@@ -8,9 +8,10 @@ To display the interactive visualizations locally, run: `python -m SimpleHTTPSer
 
 ### TODO:
 
-1. Find price of corn for counties
-2. Set up Bootstrap template for project page
-3. Set up d3.js template for U.S. choropleth
+1. Create county yield choropleth
+2. Create 2-D brush to select counties
+3. Create time brush to select years
 4. Set up d3.js template for field-level yield
 5. Set up d3.js template for histogram
-6. Set up d3.js for time series
+6. Set up d3.js for time series climate data
+7. Bootstrap template
