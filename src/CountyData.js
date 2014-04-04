@@ -124,32 +124,52 @@ function ready(error, us) {
         // .on("click", clicked);
 
     loadStations();
+    areaYield(us.objects.counties);
 };
 
 function loadStations() {
     console.log("Test")
-    url="http://b1tf4rm4p1.herokuapp.com/station/?page=2&format=json"
 
-    // d3.json(url, function(error, jsondata) { 
-    //     if (error) return console.warn(error);
+    /*This doesn't work. -JBC*/
+    // url="http://b1tf4rm4p1.herokuapp.com/station/?page=2&format=json"
 
-    //     console.log(jsondata);
-    // })
-    var status = $.ajax({
-        url: url,
-        // async: false,
-        // jsonpCallback:'getdata',
-        crossDomain: true,
-        dataType:'json',
-        success: function (data, status){
-            console.log(status, data)
+    // // d3.json(url, function(error, jsondata) { 
+    // //     if (error) return console.warn(error);
+
+    // //     console.log(jsondata);
+    // // })
+    // var status = $.ajax({
+    //     url: url,
+    //     // async: false,
+    //     // jsonpCallback:'getdata',
+    //     crossDomain: true,
+    //     dataType:'json',
+    //     success: function (data, status){
+    //         console.log(status, data)
         
-        },
-        error: function() {
-            return console.log("error");
-        }
-    });
+    //     },
+    //     error: function() {
+    //         return console.log("error");
+    //     }
+    // });
 
+}
+
+function areaYield(countyPolygons) {
+    d3.csv("../data/area-yield_04042014.csv", function(error, data) {
+
+        county_IDs = {};
+
+        countyPolygons['geometries'].forEach(function(d) {
+            county_IDs[d.id] = true;
+        });
+
+        data.forEach(function(d) {
+            if (!(d.json_id in county_IDs)) {
+                console.log(d.json_id);
+            }
+        })
+    })
 }
 
 
