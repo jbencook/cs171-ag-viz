@@ -2,6 +2,14 @@
 var w = 960;
 var h = 500;
 
+var title = d3.select("#title")
+    .style("text-align", "center")
+    .append("text").attr("class", "title")
+    .attr("text-anchor", "middle")
+    .attr("x", w/2)
+    .attr("y", 0)
+    .text("Local Crop Yield")
+
 var tip = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])

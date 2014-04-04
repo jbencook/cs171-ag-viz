@@ -14,4 +14,3 @@ To display the interactive visualizations locally, run: `python -m SimpleHTTPSer
 4. Set up d3.js template for field-level yield
 5. Set up d3.js template for histogram
 6. Set up d3.js for time series climate data
-7. Bootstrap template
