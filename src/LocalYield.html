@@ -4,18 +4,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="css/bootstrap.css" media="screen">
-    <link rel="stylesheet" href="css/bootswatch.min.css">
+    <link rel="stylesheet" href="/css/bootstrap.css" media="screen">
+    <link rel="stylesheet" href="/css/bootswatch.min.css">
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="../bower_components/html5shiv/dist/html5shiv.js"></script>
       <script src="../bower_components/respond/dest/respond.min.js"></script>
     <![endif]-->
-    <script>
-
-    // Google Analytics Here
-
-    </script>
+  <script type="text/javascript" src="/libs/d3.v3.min.js"></script>
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>      
     <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
     <script type="text/javascript">
     init_mathjax = function() {
@@ -40,10 +37,52 @@
         }
     }
     init_mathjax();
-    </script>    
+    </script>  
+<style> 
+  svg {
+    display: block;
+    margin: auto;
+  }
+
+  html, body { margin:0; padding:0; overflow:hidden }
+  svg { position:fixed; top:0; bottom:0; left:0; right:0 }    
+
+    .title {
+        font: 36px sans-serif;
+        text-align: center;
+        margin: auto;
+    }
+
+  .d3-tip {
+    line-height: 1;
+    font-weight: bold;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+  }
+
+  .d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+  }
+
+  .d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+  }     
+</style>
   </head>
   <body>
-    <script src="libs/bsa.js"></script>
+    <script src="/libs/bsa.js"></script>
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 
     <div class="navbar navbar-default navbar-fixed-top">
@@ -65,43 +104,20 @@
     </div>    
 
     <div class="container">
-      <div class="page-header" id="banner">
-        <div class="row">
-          <div class="col-lg-6">
-            <h1>This is our home page</h1>
+    <div id="title"></div>
 
-            <ul>
-              <li>
-              <a href="src/CountyData.html">County Data</a>
-              </li>
-              <li>
-              <a href="src/LocalYield.html">Local Yield</a>              
-              </li>
-            </ul>
-          </div>
-          <div class="col-lg-6" style="padding: 15px 15px 0 15px;">
-          </div>
-        </div>
-      </div>
+    <table>
+        <tr><td><div id="vis"></div></td><td><div id="localYield"></div></td></tr>
+    </table>
 
-<footer>
-<div class="row">
-  <div class="col-lg-12">
-    <p>
-      CS171 final project. Made with <a href="http://getbootstrap.com" rel="nofollow">Bootstrap</a>. Template by <a href="http://bootswatch.com/" rel="nofollow">Bootswatch</a>.
-    </p>
 
-  </div>
-</div>
-
-</footer>      
-
+    <script src="LocalYield.js"></script> 
     </div>
 
 
 
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="libs/bootstrap.min.js"></script>
-    <script src="libs/bootswatch.js"></script>
+    <script src="/libs/bootstrap.min.js"></script>
+    <script src="/libs/bootswatch.js"></script>
   </body>
 </html>
