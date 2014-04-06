@@ -94,61 +94,54 @@ var selected_station = null
 
 queue()
     .defer(d3.json, "../data/us-named.json")
+    .defer(d3.csv, "../data/station_03312014.csv")
     .await(ready)
 
 
-function ready(error, us) {
+function ready(error, us, stations) {
 
-    // var usMap = topojson.feature(data,data.objects.states).features
-    // // console.log(data)
-    // // console.log(usMap)
-    // svg.selectAll(".country").data(usMap).enter()
-    //     .append("path").attr("class", "country")
-    //     .attr("d", path)
-    // loadStations();
-    // // loadStats();
+    loadMap(us);
 
-    svg.append("g")
-        .attr("class", "counties")
-    .selectAll("path")
-        .data(topojson.feature(us, us.objects.counties).features)
-    .enter().append("path")
-        // .attr("class", function(d) { return quantize(rateById.get(d.id)); })
-        .attr("d", path)
-        // .on("click", clicked);
+    
 
-    svg.append("path")
-        .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-        .attr("class", "states")
-        .attr("d", path)
-        // .on("click", clicked);
-
-    loadStations();
+    loadStations(stations);
 };
 
-function loadStations() {
-    console.log("Test")
-    url="http://b1tf4rm4p1.herokuapp.com/station/?page=2&format=json"
+function loadMap(us) {
+    svg.append("g").attr("class", "counties")
+        .selectAll("path")
+        .data(topojson.feature(us, us.objects.counties).features)
+        .enter().append("path")
+        // .attr("class", function(d) { return quantize(rateById.get(d.id)); })
+        .attr("id", function(d){return d.id})
+        .attr("d", path)
+        // .on("click", clicked);
 
-    // d3.json(url, function(error, jsondata) { 
-    //     if (error) return console.warn(error);
+    svg.append("g").attr("class", "states")
+        .selectAll("path")
+        // .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }).coordinates)
+        .data(topojson.feature(us, us.objects.states).features)
+        .enter().append("path")
+        .attr("id", function(d){return d.properties.code})
+        .attr("d", path)
+        // .on("click", clicked);
+}
 
-    //     console.log(jsondata);
-    // })
-    var status = $.ajax({
-        url: url,
-        // async: false,
-        // jsonpCallback:'getdata',
-        crossDomain: true,
-        dataType:'json',
-        success: function (data, status){
-            console.log(status, data)
-        
-        },
-        error: function() {
-            return console.log("error");
-        }
-    });
+function loadStations(stations) {
+    console.log(stations)
+
+    svg.selectAll(".station")
+        .data(stations)
+        .enter().append("circle").attr("class", "station")
+        .attr("r", 3)
+        .style("fill", "red")
+        .attr("transform", function(d) {
+            var location = projection([d["lon"], d["lat"]])
+            if (location != null) {
+                return "translate(" + location + ")"
+            };
+        })
+    
 
 }
 
