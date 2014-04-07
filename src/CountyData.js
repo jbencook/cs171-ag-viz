@@ -105,6 +105,7 @@ function ready(error, us, stations) {
     
 
     loadStations(stations);
+    areaYield(us.objects.counties);
 };
 
 function loadMap(us) {
@@ -142,37 +143,9 @@ function loadStations(stations) {
             };
         })
     
-    loadStations();
-    areaYield(us.objects.counties);
+    
 };
 
-function loadStations() {
-    console.log("Test")
-
-    /*This doesn't work. -JBC*/
-    // url="http://b1tf4rm4p1.herokuapp.com/station/?page=2&format=json"
-
-    // // d3.json(url, function(error, jsondata) { 
-    // //     if (error) return console.warn(error);
-
-    // //     console.log(jsondata);
-    // // })
-    // var status = $.ajax({
-    //     url: url,
-    //     // async: false,
-    //     // jsonpCallback:'getdata',
-    //     crossDomain: true,
-    //     dataType:'json',
-    //     success: function (data, status){
-    //         console.log(status, data)
-        
-    //     },
-    //     error: function() {
-    //         return console.log("error");
-    //     }
-    // });
-
-}
 
 function areaYield(countyPolygons) {
     d3.csv("../data/area-yield_04042014.csv", function(error, data) {
@@ -188,139 +161,9 @@ function areaYield(countyPolygons) {
                 console.log(d.json_id);
             }
         })
+
     })
 }
-
-
-function runAQueryOn(indicatorString) {
-    if (indicatorString[0] == null) {
-        url = "http://api.worldbank.org/countries/all?format=jsonP&prefix=Getdata&per_page=500&date=2010"
-    } else {
-        url = "http://api.worldbank.org/countries/all/indicators/" + indicatorString[0] + "?format=jsonP&prefix=Getdata&per_page=500&date=" + indicatorString[1]
-    }
-    var status = $.ajax({
-        url: url,
-        async: false,
-        jsonpCallback:'getdata',
-        dataType:'jsonp',
-        success: function (data, status){
-            if (indicatorString[0] == null) {
-                data[1].forEach(function(d){
-                    if (typeof countryList[d.id] != 'undefined') {
-                        countryList[d.id] = d.iso2Code;
-                        dataSet[d.iso2Code] = {"meta": d, "decimal": null, "indicator": null, "value":null}
-                    }
-                });
-                runAQueryOn(query_inputs)
-            } else {
-                data[1].forEach(function(d){
-                    if (typeof dataSet[d.country.id] != 'undefined') {
-                        dataSet[d.country.id].decimal = d.decimal
-                        dataSet[d.country.id].value = d.value
-                        dataSet[d.country.id].indicator = d.indicator
-                    }
-                    
-                })
-            }
-            updateVis()
-        
-        },
-        error: function() {
-            return console.log("error");
-        }
-    });
-}
-
-
-
-
-
-
-
-
-
-
-function loadStations_old() {
-    d3.csv("../data/NSRDB_StationsMeta.csv",function(error,data){
-        data = data.filter(function(d){return projection([d["ISH_LON(dd)"], d["ISH_LAT (dd)"]]) !== null});
-        metaData = data;
-
-        radScale = d3.scale.linear()
-            .range([1,10])
-            .domain(d3.extent(d3.keys(dataSet).map(function(d){return dataSet[d].sum})))
-
-        data.sort(function(a,b){ 
-            var sum_a = 0;
-            var sum_b = 0;
-            if (typeof dataSet[a["USAF"]] != "undefined") {
-                sum_a = dataSet[a["USAF"]].sum
-            }
-            if (typeof dataSet[b["USAF"]] != "undefined") {
-                sum_b = dataSet[b["USAF"]].sum
-            }
-            return d3.descending(sum_a, sum_b);
-        })
-
-
-
-        svg.selectAll(".station")
-            .data(data)
-            .enter().append("circle").attr("class", "station")
-            .attr("r", function(d, i){
-                // if (i==0) {
-                //     selected_station = this;
-                // }
-                if (typeof dataSet[d["USAF"]] != 'undefined') {
-                    return radScale(dataSet[d["USAF"]].sum);
-                } else {
-                    return 1;
-                };
-            })
-            .style("fill", function(d, i){
-                // if (i==0) {
-                //     return "orange";
-                // }
-                if (typeof dataSet[d["USAF"]] != 'undefined') {
-                    return "blue";
-                }
-            })
-            .attr("transform", function(d) {
-                var location = projection([d["ISH_LON(dd)"], d["ISH_LAT (dd)"]])
-                if (location != null) {
-                    return "translate(" + location + ")"
-                };
-            })
-            .on("click", function(d){
-                d3.select(selected_station).style("fill", function(d){
-                    if (typeof dataSet[d["USAF"]] != 'undefined') {
-                        return "blue";
-                    } 
-                })
-                d3.select(this).style("fill", "orange");
-                selected_station = this;
-                updateDetailVis(d);
-            })
-            .on('mouseover', tip.show)
-            .on('mouseout', tip.hide);
-
-            createDetailVis();
-    });
-}
-
-
-function loadStats() {
-
-    d3.json("reducedMonthStationHour2003_2004.json", function(error,data){
-        dataSet= data;
-		//....
-		
-        loadStations();
-    })
-
-}
-
-
-
 
 
 var createDetailVis = function(){
