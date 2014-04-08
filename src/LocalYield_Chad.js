@@ -29,7 +29,7 @@ var bbYieldDetail = {
     h: height/2
 };
 
-var bbYieldDetail2 = {
+var bbYieldMeta = {
     x: 0,
     y: height - 150,
     w: width*0.60,
@@ -42,6 +42,12 @@ var bbYieldHist = {
     w: width*0.40,
     h: height/2
 };
+
+var colorMin = colorbrewer.Greens[3][0];
+var colorMax = colorbrewer.Greens[3][2];
+var colors = d3.scale.linear()
+    .range([colorMin, colorMax])
+    .interpolate(d3.interpolateHcl);
 
 // Add Title
 var title = d3.select("#title")
@@ -57,29 +63,28 @@ var canvas = d3.select("#fieldVis").append("svg").attr({
     width: bbFieldVis.w,
     height: bbFieldVis.h
     })
-    // .attr({ transform: "translate(" + bbFieldVis.x+ "," + bbFieldVis.y + ")" });
 
 canvas.append("rect")
     .attr("class", "background")
     .attr("width", bbFieldVis.w)
     .attr("height", bbFieldVis.h)
 
-var fieldVis = canvas.append("g").attr({
-        transform: "translate(" + margin.left + "," + margin.top + ")"
-    });
-
+var fieldVis = canvas.append("g");
 
 var yieldDetail = d3.select("#yieldDetail").append("svg").attr({
     width: bbYieldDetail.w,
     height: bbYieldDetail.h
     })
-    // .attr({ transform: "translate(" + bbYieldDetail.x + "," + bbYieldDetail.y + ")" });
 
 var yieldHist = d3.select("#yieldHist").append("svg").attr({
     width: bbYieldHist.w,
     height: bbYieldHist.h
     })
-    // .attr({ transform: "translate(" + bbYieldHist.x + "," + bbYieldHist.y + ")" });
+
+var yieldMeta = d3.select("#yieldDetail2").append("svg").attr({
+    width: bbYieldMeta.w,
+    height: bbYieldMeta.h
+    })
 
 yieldDetail.append("rect")
     .attr("class", "background")
@@ -91,15 +96,10 @@ yieldHist.append("rect")
     .attr("width", bbYieldHist.w)
     .attr("height", bbYieldHist.h)
 
-var yieldDetail2 = d3.select("#yieldDetail2").append("svg").attr({
-    width: bbYieldDetail.w,
-    height: bbYieldDetail.h
-    })
-
-yieldDetail2.append("rect")
+yieldMeta.append("rect")
     .attr("class", "background")
-    .attr("width", bbYieldDetail2.w)
-    .attr("height", bbYieldDetail2.h)
+    .attr("width", bbYieldMeta.w)
+    .attr("height", bbYieldMeta.h)
 
 // Define map projection
 var projection = d3.geo.albers().scale(5000000);
@@ -113,6 +113,7 @@ var xAxis, yAxis, xScale, yScale;
 var bar;
 var brushHist = d3.svg.brush();
 
+
 // A formatter for counts.
 var formatCount = d3.format(",.2f");
 
@@ -123,7 +124,7 @@ queue()
 
 function createVis(error, geo_data, yield_data) {
 
-    createYieldDetail();
+    createYieldMeta();
 
     var x = path.centroid(geo_data.features[2]);
 
@@ -148,9 +149,9 @@ function createVis(error, geo_data, yield_data) {
             return projection([d.lon, d.lat])[1];
         })
         .attr("r", 2.5)
-        .attr("bin", function(d) {
-            return d.yield_binned;
-        })
+        // .attr("bin", function(d) {
+        //     return d.yield_binned;
+        // })
         .attr("yield", function(d) {
             return d.yield;
         })
@@ -191,10 +192,24 @@ function createHist(yield_data) {
         .domain(d3.extent(values))
         .range([25, bbYieldHist.w - 25]);
 
+    colors.domain(d3.extent(values));
+
     // Generate a histogram using twenty uniformly-spaced bins.
     var data = d3.layout.histogram()
         // .bins(xScale.ticks(20))
         (values);
+
+    var binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / data.length
+
+
+    // point
+    //     .attr("bin", function(d) {
+    //         return Math.round(d.yield / binWidth) - 1)
+    //     })
+        // .style("fill", function(d) {
+        //     return colors(d.yield)
+        // })
+    yield_data.slice(1,100).forEach(function(d){console.log(d.yield, Math.round(d.yield / binWidth) - 1)})    
 
     yScale = d3.scale.linear()
         .domain([0, d3.max(data, function(d) { return d.y; })])
@@ -236,7 +251,7 @@ function createHist(yield_data) {
     brushHist.x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]));
 }
 
-var brushHist = d3.svg.brush()
+brushHist
     .x(d3.scale.linear().domain([0, 100]).range([25, bbYieldHist.w - 25]))
     .on("brush", brushedHist);
 
@@ -245,7 +260,7 @@ yieldHist.append("g")
     .call(brushHist)
     .selectAll("rect")
     .attr("y", 25)
-    .attr("height", bbYieldHist.h - 50);
+    .attr("height", bbYieldHist.h - 50)
 
 function brushedHist() {
     var extent = brushHist.extent();
@@ -256,13 +271,14 @@ function brushedHist() {
             return null
         }
     });
-    point.transition().style("fill", function(pt) {
-        if(pt.yield >= extent[0] & pt.yield < extent[1]) {
-            return "violet";
-        } else {
-            return pt.color;
-        }
-    });
+
+    // point.transition().style("fill", function(pt) {
+    //     if(pt.yield >= extent[0] & pt.yield < extent[1]) {
+    //         return "violet";
+    //     } else {
+    //         return pt.color;
+    //     }
+    // });
 }
 
 var brushField = d3.svg.brush()
@@ -275,8 +291,7 @@ fieldVis.append("g")
     .attr("class", "brush")
     .call(brushField)
     .selectAll("rect")
-    .attr("y", 25)
-    .attr("height", bbFieldVis.h - 50);
+    .attr("height", bbFieldVis.h);
 
 function brushedField() {
     // var extent = brushField.extent();
@@ -304,6 +319,8 @@ function getBarYield(d) {
     bar.selectAll("rect").style("fill", null);
     bar.selectAll("text").style("fill", null);
     d3.select(this).style("fill", "violet");
+    // point.selectAll("[bin='" +  + "']")
+
     point.transition().style("fill", function(pt) {
         if(pt.yield >= d.x & pt.yield < (d.dx+d.x)) {
             return "violet";
@@ -315,19 +332,19 @@ function getBarYield(d) {
 
 
 var showYield = function(d) {
-    d3.selectAll('[kind="yield"]')
+    yieldMeta.selectAll('[kind="yield"]')
       .text(d.yield + " (bu / ac)");
-    d3.selectAll('[kind="elevation"]')
+    yieldMeta.selectAll('[kind="elevation"]')
       .text(Math.round(d.elevation) + " (ft)");
-    d3.selectAll('[kind="soil"]')
+    yieldMeta.selectAll('[kind="soil"]')
       .text(d.soil)
       .style("fill", "blue")
       .style("text-decoration", "underline");
-    d3.selectAll('[kind="slopes"]')
+    yieldMeta.selectAll('[kind="slopes"]')
       .text(d.slopes)
       .style("fill", "blue")
       .style("text-decoration", "underline");
-    d3.selectAll('[kind="soil_link"]')
+    yieldMeta.selectAll('[kind="soil_link"]')
       .attr("xlink:href", d.links)
       .attr("target", "_blank");
 }
@@ -350,70 +367,70 @@ var hideYield = function(d) {
       .attr("target", "_blank");
 }
 
-function createYieldDetail() {
-    yieldDetail.append("text")
+function createYieldMeta() {
+    yieldMeta.append("text")
        .attr("x", 10)
-       .attr("y", 35)
+       .attr("y", 30)
        .text("Yield")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 24);                
+       .style("font-size", 20);                
 
-    yieldDetail.append("text")
+    yieldMeta.append("text")
        .attr("x", 10)
-       .attr("y", 75)
+       .attr("y", 60)
        .attr("kind", "yield")
        .text("___  (bu / ac)")
        .style("fill", "grey")
        .style("font-weight", "bold")
-       .style("font-size", 34);
+       .style("font-size", 24);
 
-    yieldDetail.append("text")
+    yieldMeta.append("text")
        .attr("x", 10)
-       .attr("y", 125)
+       .attr("y", 100)
        .text("Elevation")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 24);                    
+       .style("font-size", 20);                    
 
-    yieldDetail.append("text")
+    yieldMeta.append("text")
        .attr("x", 10)
-       .attr("y", 165)
+       .attr("y", 130)
        .attr("kind", "elevation")
        .text("____ (ft)")
        .style("fill", "grey")
        .style("font-weight", "bold")
-       .style("font-size", 34);                        
+       .style("font-size", 24);                        
 
-    yieldDetail.append("text")
-       .attr("x", 10)
-       .attr("y", 215)
+    yieldMeta.append("text")
+       .attr("x", 200)
+       .attr("y", 30)
        .text("Soil Profile")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 24);
+       .style("font-size", 20);
 
-    yieldDetail.append("a")
+    yieldMeta.append("a")
         .attr("kind", "soil_link")
         .append("text")
-        .attr("x", 10)
-        .attr("y", 245)
+        .attr("x", 200)
+        .attr("y", 55)
         .attr("kind", "soil")                       
         .text("________________")
         .style("fill", "grey")
         .style("font-weight", "bold")
-        .style("font-size", 18);
+        .style("font-size", 16);
 
-    yieldDetail.append("a")
+    yieldMeta.append("a")
         .attr("kind", "soil_link")
         .append("text")
-        .attr("x", 10)
-        .attr("y", 275)
+        .attr("x", 200)
+        .attr("y", 75)
         .attr("kind", "slopes")
         .text("________________")
         .style("fill", "grey")
         .style("font-weight", "bold")
-        .style("font-size", 18);                    
+        .style("font-size", 16);                    
 }
 
 var zoom = d3.behavior.zoom()
