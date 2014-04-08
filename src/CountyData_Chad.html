@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+
+
+<body>
+<script type="text/javascript" src="../libs/d3.v3.min.js"></script>
+<script type="text/javascript" src="../libs/topojson.v1.min.js"></script>
+<script type="text/javascript" src="../libs/d3.tip.v0.6.3.js"></script>
+<script type="text/javascript" src="../libs/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="../libs/colorbrewer.js"></script>
+<script type="text/javascript" src="../libs/queue.v1.min.js"></script>
+
+<style type="text/css">
+    svg{
+        background: #eeeeee;
+    }
+
+    .background {
+      fill: none;
+      pointer-events: all;
+    }
+
+    .counties {
+      fill: none;
+      stroke: steelblue;
+    }
+
+    .states {
+      fill: none;
+      stroke: steelblue;
+      stroke-linejoin: round;
+    }
+
+
+    .country{
+        fill: lightgrey;
+        /*fill: #dffaff;*/
+        stroke:  steelblue;
+    }
+
+    text{
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9pt;
+        /*font-weight: lighter;*/
+    }
+
+    .title {
+        font: 36px sans-serif;
+        text-align: center;
+        margin: auto;
+    }
+
+    .axis text {
+        font: 10px sans-serif;
+    }
+
+    .axis line,
+    .axis path {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .station{
+        fill:lightgrey;
+        opacity: .7;
+    }
+    .station.hasData{
+        fill:blue;
+        opacity: 1;
+    }
+    .hourLine{
+        fill:none;
+        stroke:steelblue;
+
+    }
+    .brush .extent{
+        fill:gray;
+        opacity: .3;
+    }
+
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        font-size: 12px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+    }
+
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
+    }
+
+
+</style>
+
+<div id="title"></div>
+
+<table>
+    <tr><td><div id="vis"></div></td><td><div id="detailVis"></div></td></tr>
+</table>
+
+
+<script src="CountyData_Chad.js"></script>
+
+</body>
+</html>
