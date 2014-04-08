@@ -5,6 +5,9 @@
  */
 
 // Set margins and vis boundaries
+
+var county_num2name = {};
+
 var margin = {
     top: 50,
     right: 50,
@@ -119,11 +122,12 @@ var formatCount = d3.format(",.2f");
 queue()
     .defer(d3.json, "../data/nebraska.geojson")
     .defer(d3.csv, "../data/local-yield_04042014.csv")
+    .defer(d3.json, "../data/us-named.json")
     .await(createVis)
 
-function createVis(error, geo_data, yield_data) {
+function createVis(error, geo_data, yield_data, us) {
 
-    createYieldDetail();
+    generateMap(error, us);
 
     var x = path.centroid(geo_data.features[2]);
 
@@ -350,71 +354,27 @@ var hideYield = function(d) {
       .attr("target", "_blank");
 }
 
-function createYieldDetail() {
-    yieldDetail.append("text")
-       .attr("x", 10)
-       .attr("y", 35)
-       .text("Yield")
-       .style("fill", "black")
-       .style("font-weight", "bold")
-       .style("font-size", 24);                
 
-    yieldDetail.append("text")
-       .attr("x", 10)
-       .attr("y", 75)
-       .attr("kind", "yield")
-       .text("___  (bu / ac)")
-       .style("fill", "grey")
-       .style("font-weight", "bold")
-       .style("font-size", 34);
+function generateMap(error, us) {   
+    
+    yieldDetail.append("g")
+        .attr("class", "counties")
+        .selectAll("path")
+        .data(topojson.feature(us, us.objects.counties).features)
+        .enter().append("path")
+        .attr("d", path)
+        .attr('name', function(d,i){
+            county_num2name[d.id] = d.properties.name
+            return d.properties.name})
+        .attr('id', function(d,i){return 'c'+d.id})
 
-    yieldDetail.append("text")
-       .attr("x", 10)
-       .attr("y", 125)
-       .text("Elevation")
-       .style("fill", "black")
-       .style("font-weight", "bold")
-       .style("font-size", 24);                    
+    yieldDetail.append("path")
+        .data(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+        .attr("class", "states")
+        .attr("d", path)
+ 
+  }
 
-    yieldDetail.append("text")
-       .attr("x", 10)
-       .attr("y", 165)
-       .attr("kind", "elevation")
-       .text("____ (ft)")
-       .style("fill", "grey")
-       .style("font-weight", "bold")
-       .style("font-size", 34);                        
-
-    yieldDetail.append("text")
-       .attr("x", 10)
-       .attr("y", 215)
-       .text("Soil Profile")
-       .style("fill", "black")
-       .style("font-weight", "bold")
-       .style("font-size", 24);
-
-    yieldDetail.append("a")
-        .attr("kind", "soil_link")
-        .append("text")
-        .attr("x", 10)
-        .attr("y", 245)
-        .attr("kind", "soil")                       
-        .text("________________")
-        .style("fill", "grey")
-        .style("font-weight", "bold")
-        .style("font-size", 18);
-
-    yieldDetail.append("a")
-        .attr("kind", "soil_link")
-        .append("text")
-        .attr("x", 10)
-        .attr("y", 275)
-        .attr("kind", "slopes")
-        .text("________________")
-        .style("fill", "grey")
-        .style("font-weight", "bold")
-        .style("font-size", 18);                    
-}
 
 var zoom = d3.behavior.zoom()
     .scaleExtent([1,8])
