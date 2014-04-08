@@ -19,21 +19,28 @@ var bbFieldVis = {
     x: 0,
     y: 0,
     w: width*0.60,
-    h: height
+    h: height - 150
 };
 
 var bbYieldDetail = {
     x: bbFieldVis.w,
     y: 0,
     w: width*0.40,
-    h: bbFieldVis.h/2
+    h: height/2
+};
+
+var bbYieldDetail2 = {
+    x: 0,
+    y: height - 150,
+    w: width*0.60,
+    h: 150
 };
 
 var bbYieldHist = {
     x: bbFieldVis.w,
-    y: bbFieldVis.h/2,
+    y: 0,
     w: width*0.40,
-    h: bbFieldVis.h/2
+    h: height/2
 };
 
 // Add Title
@@ -46,8 +53,6 @@ var title = d3.select("#title")
     .text("Local Crop Yield")
 
 // Declare three visualization areas
-
-
 var canvas = d3.select("#fieldVis").append("svg").attr({
     width: bbFieldVis.w,
     height: bbFieldVis.h
@@ -76,8 +81,6 @@ var yieldHist = d3.select("#yieldHist").append("svg").attr({
     })
     // .attr({ transform: "translate(" + bbYieldHist.x + "," + bbYieldHist.y + ")" });
 
-
-
 yieldDetail.append("rect")
     .attr("class", "background")
     .attr("width", bbYieldDetail.w)
@@ -87,6 +90,16 @@ yieldHist.append("rect")
     .attr("class", "background")
     .attr("width", bbYieldHist.w)
     .attr("height", bbYieldHist.h)
+
+var yieldDetail2 = d3.select("#yieldDetail2").append("svg").attr({
+    width: bbYieldDetail.w,
+    height: bbYieldDetail.h
+    })
+
+yieldDetail2.append("rect")
+    .attr("class", "background")
+    .attr("width", bbYieldDetail2.w)
+    .attr("height", bbYieldDetail2.h)
 
 // Define map projection
 var projection = d3.geo.albers().scale(5000000);
@@ -180,7 +193,7 @@ function createHist(yield_data) {
 
     // Generate a histogram using twenty uniformly-spaced bins.
     var data = d3.layout.histogram()
-        .bins(xScale.ticks(20))
+        // .bins(xScale.ticks(20))
         (values);
 
     yScale = d3.scale.linear()
@@ -218,6 +231,8 @@ function createHist(yield_data) {
         .text(function(d) { return formatCount(d.y / values.length * 100); })
         // .on("click", getBarYield);;
 
+    console.log(data)    
+    // Add histogram brush
     brushHist.x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]));
 }
 
