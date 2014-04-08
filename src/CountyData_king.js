@@ -39,7 +39,7 @@ var mapVis = {
     x: 100,
     y: 10,
     w: width-margin.right-margin.left,
-    h: height-margin.top-margin.bottom
+    h: height-margin.bottom
 };
 
 var TimeVis = {
@@ -61,9 +61,9 @@ var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 var legend_ticks = 100
 var legend_height = 75
-var color_range = ['orange', 'green']
-var bin_num = 50
-
+var color_range = ['greenyellow', 'darkgreen']
+var bin_num = 30
+var num_color_bins = 7
 /////////////////////////
 ////////////////////////
 // Global Variables (Scoping)
@@ -124,7 +124,7 @@ var svg = canvas.append("g").attr({transform: "translate(" + margin.left + "," +
 ////////////////////////
 /////////////////////
 
-var xtime_range = d3.scale.linear().domain([1980, 2013]).range([0, TimeVis.w]).clamp(true)
+var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, TimeVis.w]).clamp(true)
 var time_brush = d3.svg.brush().x(xtime_range).on('brush', time_brushed)
 var slider = timeslider.append('g').attr('class', 'slider').attr('fill', 'gray').call(time_brush)
 timeslider.append('g').attr('class', 'axis').attr('height',20).attr('width', 100).attr('transform', 'translate('+0+','+margin.top+")").call(d3.svg.axis().scale(xtime_range)
@@ -147,7 +147,16 @@ var handle = slider.append('circle').attr('class', 'handle').attr('transform', '
 
 
 function generate_color_scale(yield_range){
-        yield_color_scale = d3.scale.linear().domain(yield_range).range(color_range)    
+        yield_color_scale = d3.scale.linear().domain(yield_range).range(color_range)   
+        //var delta = (d3.max(all_yields)-d3.min(all_yields))/num_color_bins
+        
+        //var color_bins = []
+        //for (i=0; i < num_color_bins; i++){
+        //    color_bins.push(delta*i)
+        //}
+        //console.log(color_bins)
+        //var brewer_color_scale = d3.scale.ordinal().domain(color_bins).range(d3.range(num_color_bins))
+    
     }
 
 function generate_legend(data){
@@ -197,7 +206,7 @@ function yeild_color(year){
 
 function process_data(){
     
-    d3.csv('../data/county_yield_1980_2013.csv', function(data){
+    d3.csv('../data/county_yield_small_1910_2013.csv', function(data){
         var start_year = 0
         var data_for_year = [];
         for(i=0;i<data.length;i++){
@@ -240,7 +249,22 @@ function generateMap(error, us) {
             county_num2name[d.id] = d.properties.name
             return d.properties.name})
         .attr('id', function(d,i){return 'c'+d.id})
-       
+        .on('mousemove', function(){
+            d3.select('#vis').select('#cname_tip').remove()
+            var county_name = this.__data__.properties.name
+            var coordinates = d3.mouse(this)
+            svg.append('text')
+               .attr('x', coordinates[0]+5)
+               .attr('y', coordinates[1]-5)
+               .text(county_name)
+               .attr('id', 'cname_tip')
+               .style('font-weight', 'bold')
+               .style('font-size', 15)
+               .style('fill', 'brown')})
+
+        .on('mouseout', function(){
+            d3.select('#vis').select('#cname_tip').remove()
+        })
      
 
     svg.append("path")
@@ -279,11 +303,12 @@ function generateHist(data){
     var hist_length = 250
     var bin_values = []
     var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([0,hist_length])
-    var yscale_hist = d3.scale.linear().domain([0, data.length/10]).range([0,hist_height])
+    var yscale_hist = d3.scale.linear().domain([0, 500]).range([0,hist_height-margin.top])
     for (i=0;i<data.length; i++){
         bin_values.push(parseFloat(data[i].Value))}
     var hist_data = d3.layout.histogram().bins(xscale_hist.ticks(bin_num))(bin_values);
-    
+    var data_for_bins = {}
+
     hist_canvas.selectAll('.bars').data(hist_data).enter().append('rect')
                .attr('height', function(d,i){return yscale_hist(d.y)})
                .attr('width', hist_height/bin_num)
@@ -291,11 +316,15 @@ function generateHist(data){
                .attr('y', function(d,i){return .9*histVis.h - yscale_hist(d.y)})
                .attr('fill', function(d,i){return yield_color_scale(d.x)})
                .attr('class', 'bars')
+              // .attr('id', function(d,i){
+              //  d['id'] ="b"+i 
+               // data_for_bins['b'+i] = d
+               // return 'b'+i})
+               .attr('bin_count', function(d,i){return d.y})
 
     //create axis for histogram:         
     var yAxis = d3.svg.axis().scale(yscale_hist).orient('right').tickFormat(d3.format("d"))
     var xAxis = d3.svg.axis().scale(xscale_hist).orient('bottom').tickFormat(d3.format("d"))
-
    
     hist_canvas.append('g')
                .call(xAxis).attr('transform',  "translate("+(0)+","+(.9*histVis.h)+")")
@@ -306,6 +335,39 @@ function generateHist(data){
                .attr('transform', 'rotate(90)')  
                .style('font-size', 10)
     hist_canvas.append('text').attr('y', histVis.h).attr('x', histVis.w/2-margin.left).text('Yield').style('font-weight', 'bold').attr('class', 'axis')
+
+    d3.select('#hist').selectAll('.bars')
+      .on('mousemove', function(){
+        d3.select('#hist').select('#bcount_tip').remove()
+        var bin_count = this.__data__.y
+        var coordinates = d3.mouse(this)
+        //add bin count tool tip:
+
+        hist_canvas.append('text')
+                   .attr('x', coordinates[0]+5)
+                   .attr('y', coordinates[1]-5)
+                   .text('Bin Count: '+bin_count)
+                   .attr('id', 'bcount_tip')
+                   .style('font-weight', 'bold')
+    })
+      .on('mouseout', function(){
+        d3.select('#hist').select('#bcount_tip').remove()
+      })
+      .on('click', function(){
+        yeild_color(data[0].Year)
+        var bin_min = d3.min(this.__data__)
+        var bin_max = d3.max(this.__data__)
+        for (i=0; i<data.length; i++){
+            if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
+                var stateANSI = parseFloat(data[i]['State ANSI'])
+                var countyANSI = data[i]['County ANSI']
+                var county_id = ""+stateANSI+""+countyANSI
+                d3.selectAll('.counties').select('#c'+county_id)
+                  .attr('fill', 'blue')
+            }
+        }
+      })
+
 }   
 
 /////////////////////////
