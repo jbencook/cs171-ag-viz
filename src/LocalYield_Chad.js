@@ -283,7 +283,20 @@ function histYield(yield_data) {
 
 // >>>>>>> daa5bc605fa20315f0d4c2adba696f99676c6c77
     // Add histogram brush
-    brushHist.x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
+    // brushHist
+
+    brushHist
+        .x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
+        // .x(d3.scale.linear().domain([0, 100]).range([25, bbYieldHist.w - 25]))
+        .on("brush", brushedHist)
+
+    yieldHist.append("g")
+        .attr("class", "brush")
+        .call(brushHist)
+        .selectAll("rect")
+        .attr("y", 25)
+        .attr("height", bbYieldHist.h - 50)
+        // .on("mouseup", highlightBrushedYield);
 }
 
 function histSoil(yield_data) {
@@ -305,37 +318,26 @@ function histSoil(yield_data) {
 
 }
 
-brushHist
-    .x(d3.scale.linear().domain([0, 100]).range([25, bbYieldHist.w - 25]))
-    .on("brush", brushedHist)
-
-yieldHist.append("g")
-    .attr("class", "brush")
-    .call(brushHist)
-    .selectAll("rect")
-    .attr("y", 25)
-    .attr("height", bbYieldHist.h - 50)
-    .on("mouseup", highlightBrushedYield);
 
 
 function brushedHist() {
     var extent = brushHist.extent();
-
     bar.selectAll("rect").style("fill", function(d) {
         if((d.x + d.dx >= extent[0]) & (d.x < extent[1])) {
-            return "yellow"
+            return "#f1a340"
         } else {
             return null
         }
     });
+    highlightBrushedYield();
 
 }
 
 function highlightBrushedYield(){
     var extent = brushHist.extent();
     point.transition().style("fill", function(pt) {
-        if(pt.yld >= Math.round((extent[0] / binWidth) - 1) * binWidth & pt.yld < Math.round((extent[1] / binWidth)) * binWidth) {
-            return "yellow";
+        if(pt.yld >= Math.round((extent[0] / binWidth) - 1) * binWidth & pt.yld <= Math.round((extent[1] / binWidth)) * binWidth) {
+            return "#f1a340";
         } else {
             return colors(pt.yld);
         }
@@ -371,6 +373,10 @@ var showYield = function(d) {
       // .style("text-decoration", "underline");
     yieldMeta.selectAll('[kind="slopes"]')
       .text(d.slopes)
+    yieldMeta.selectAll('[kind="lon"]')
+      .text(d.lon)
+    yieldMeta.selectAll('[kind="lat"]')
+      .text(d.lat)
     //   .style("fill", "blue")
     //   .style("text-decoration", "underline");
     // yieldMeta.selectAll('[kind="soil_link"]')
@@ -389,6 +395,10 @@ var hideYield = function(d) {
       // .style("text-decoration", "underline");
     d3.selectAll('[kind="slopes"]')
       .text("")
+    yieldMeta.selectAll('[kind="lon"]')
+      .text("")
+    yieldMeta.selectAll('[kind="lat"]')
+      .text("")
       // .style("fill", "blue")
       // .style("text-decoration", "underline");
     // d3.selectAll('[kind="soil_link"]')
@@ -399,39 +409,71 @@ var hideYield = function(d) {
 function createYieldMeta() {
     yieldMeta.append("text")
        .attr("x", 10)
+       .attr("y", 25)
+       .text("Elevation")
+       .style("fill", "black")
+       .style("font-weight", "bold")
+       .style("font-size", 16);                    
+
+    yieldMeta.append("text")
+       .attr("x", 10)
+       .attr("y", 50)
+       .attr("kind", "elevation")
+       .style("fill", "grey")
+       .style("font-weight", "bold")
+       .style("font-size", 20);        
+
+    yieldMeta.append("text")
+       .attr("x", 10)
+       .attr("y", 75)
+       .text("Longitude")
+       .style("fill", "black")
+       .style("font-weight", "bold")
+       .style("font-size", 16);                    
+
+    yieldMeta.append("text")
+       .attr("x", 10)
+       .attr("y", 95)
+       .attr("kind", "lon")
+       .style("fill", "grey")
+       .style("font-weight", "bold")
+       .style("font-size", 20);       
+
+    yieldMeta.append("text")
+       .attr("x", 10)
+       .attr("y", 120)
+       .text("Latitude")
+       .style("fill", "black")
+       .style("font-weight", "bold")
+       .style("font-size", 16);                    
+
+    yieldMeta.append("text")
+       .attr("x", 10)
+       .attr("y", 140)
+       .attr("kind", "lat")
+       .style("fill", "grey")
+       .style("font-weight", "bold")
+       .style("font-size", 20);        
+
+    yieldMeta.append("text")
+       .attr("x", 240)
        .attr("y", 30)
        .text("Point Yield")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 20);                
+       .style("font-size", 18);                
 
     yieldMeta.append("text")
-       .attr("x", 10)
+       .attr("x", 240)
        .attr("y", 60)
        .attr("kind", "yield")
        .style("fill", "grey")
        .style("font-weight", "bold")
-       .style("font-size", 24);
+       .style("font-size", 24);                
 
     yieldMeta.append("text")
-       .attr("x", 10)
+       .attr("x", 240)
        .attr("y", 100)
-       .text("Elevation")
-       .style("fill", "black")
-       .style("font-weight", "bold")
-       .style("font-size", 20);                    
-
-    yieldMeta.append("text")
-       .attr("x", 10)
-       .attr("y", 130)
-       .attr("kind", "elevation")
-       .style("fill", "grey")
-       .style("font-weight", "bold")
-       .style("font-size", 24);                        
-
-    yieldMeta.append("text")
-       .attr("x", 200)
-       .attr("y", 30)
        .text("Soil Profile")
        .style("fill", "black")
        .style("font-weight", "bold")
@@ -440,22 +482,22 @@ function createYieldMeta() {
     yieldMeta.append("a")
         .attr("kind", "soil_link")
         .append("text")
-        .attr("x", 200)
-        .attr("y", 55)
+        .attr("x", 240)
+        .attr("y", 125)
         .attr("kind", "soil")                       
         .style("fill", "grey")
         .style("font-weight", "bold")
         .style("font-size", 16);
 
-    yieldMeta.append("a")
-        .attr("kind", "soil_link")
-        .append("text")
-        .attr("x", 200)
-        .attr("y", 75)
-        .attr("kind", "slopes")
-        .style("fill", "grey")
-        .style("font-weight", "bold")
-        .style("font-size", 16);                    
+    // yieldMeta.append("a")
+    //     .attr("kind", "soil_link")
+    //     .append("text")
+    //     .attr("x", 200)
+    //     .attr("y", 75)
+    //     .attr("kind", "slopes")
+    //     .style("fill", "grey")
+    //     .style("font-weight", "bold")
+    //     .style("font-size", 16);                    
 }
 
 
@@ -478,7 +520,7 @@ var timeSeries = function(data) {
         .orient("right");
 
     var line = d3.svg.line()
-        .x(function(d) { console.log(d.date, x(d.date)); return x(d.date); })
+        .x(function(d) { return x(d.date); })
         .y(function(d) { return y(d.price); });
 
     data.forEach(function(d) {
