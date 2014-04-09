@@ -49,7 +49,7 @@ console.log(colorbrewer)
 var colorMin = colorbrewer.YlGn[5][0];
 var colorMax = colorbrewer.YlGn[5][4];
 var colors = d3.scale.quantize()
-    .range(colorbrewer.YlGn[3])
+    .range(colorbrewer.YlGn[9])
     // .range([colorMin, colorMax])
     // .interpolate(d3.interpolateHcl);
 
@@ -142,18 +142,19 @@ function createVis(error, geo_data, yield_data) {
     point = fieldVis.selectAll(".point")
         .data(yield_data)
         .enter()
-        .append("circle")
+        .append("rect")
         .attr("class", "point")
         .attr("soil", function(d) {
             return d.soil
         })
-        .attr("cx", function(d) {
+        .attr("x", function(d) {
             return projection([d.lon, d.lat])[0];
         })
-        .attr("cy", function(d) {
+        .attr("y", function(d) {
             return projection([d.lon, d.lat])[1];
         })
-        .attr("r", 2.5)
+        .attr("width", 7)
+        .attr("height", 7)
         // .attr("bin", function(d) {
         //     return d.yield_binned;
         // })
@@ -204,7 +205,7 @@ function histYield(yield_data) {
 
     // Generate a histogram using twenty uniformly-spaced bins.
     var histYield_data = d3.layout.histogram()
-        // .bins(xScale.ticks(20))
+        //.bins(xScale.ticks(20))
         (values);
 
     binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data.length
@@ -306,13 +307,6 @@ function brushedHist() {
         }
     });
 
-    // point.transition().style("fill", function(pt) {
-    //     if(pt.yield >= extent[0] & pt.yield < extent[1]) {
-    //         return "violet";
-    //     } else {
-    //         return pt.color;
-    //     }
-    // });
 }
 
 function highlightBrushedYield(){
@@ -342,21 +336,6 @@ fieldVis.append("g")
     .attr("height", bbFieldVis.h);
 
 function brushedField() {
-    // var extent = brushField.extent();
-    // bar.selectAll("rect").style("fill", function(d) {
-    //     if((d.x + d.dx >= extent[0]) & (d.x < extent[1])) {
-    //         return "violet"
-    //     } else {
-    //         return null
-    //     }
-    // });
-    // point.transition().style("fill", function(pt) {
-    //     if(pt.yield >= extent[0] & pt.yield < extent[1]) {
-    //         return "violet";
-    //     } else {
-    //         return pt.color;
-    //     }
-    // });
 }
 
 
@@ -477,301 +456,9 @@ function createYieldMeta() {
         .style("font-size", 16);                    
 }
 
-var zoom = d3.behavior.zoom()
-    .scaleExtent([1,8])
-    .on("zoom", zoomToBB);
-
-fieldVis.call(zoom)
-
 function zoomToBB() {
     projection.translate(d3.event.translate).scale(d3.event.scale);
     fieldVis.transition().duration(0)
         // .style("stroke-width", 1/d3.event.scale + "px");
     fieldVis.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
 }
-
-    /*                     
-    .on("mouseover", function(d) {
-        d3.select(this).style("fill", "white");
-     });
-    .on("mouseout", function(d) {
-        d3.select(this).style("fill", function(d) {
-            return color(d.yield);
-        })
-    });
-
-};
-
-// var tip = d3.tip()
-//   .attr('class', 'd3-tip')
-//   .offset([-10, 0])
-//   .html(function(d) {
-//     return "<span style='color:yellow'>" + d.yield + " (bu/ac) </span>";
-//   });
-
-// var yield = function(d) {
-//     d3.selectAll('[kind="yield"]')
-//       .text(d.yield + " (bu / ac)");
-//     d3.selectAll('[kind="elevation"]')
-//       .text(Math.round(d.elevation) + " (ft)");
-//     d3.selectAll('[kind="soil"]')
-//       .text(d.soil)
-//       .style("fill", "blue")
-//       .style("text-decoration", "underline");
-//     d3.selectAll('[kind="slopes"]')
-//       .text(d.slopes)
-//       .style("fill", "blue")
-//       .style("text-decoration", "underline");
-//     d3.selectAll('[kind="soil_link"]')
-//       .attr("xlink:href", d.links)
-//       .attr("target", "_blank");
-// }
-
-
-
-
-
-// //Define quantize scale to sort data values into buckets of color
-// var color = d3.scale.linear()
-//                     .interpolate(d3.interpolateRgb)
-//                     .range(["red","#004529"]);
-
-// //Load in GeoJSON data
-// d3.json("../data/nebraska.geojson", function(json) {
-
-//     //Define map projection
-//     var projection = d3.geo.albers();
-
-//     //Define path generator
-//     var path = d3.geo.path()
-//                      .projection(projection);
-
-    
-//     projection.scale(5000000);
-
-//     var x = path.centroid(json.features[2]);
-
-//     console.log(x);
-//     console.log([width,height]);
-
-//     projection.translate([width - x[0], height - x[1]]);
-        
-
-//     console.log(path.centroid(json.features[2]));
-
-//     //Create SVG element
-//     var svg = d3.select("#localYield")
-//                 .append("svg")
-//                 .attr("width", width)
-//                 .attr("height", height);
-
-//     svg.call(tip);                          
-
-//     var g = svg.append("g");
-
-//     //g.attr("transform", "translate(" + w / 2 + "," + h / 2 + ")scale(" + k + ")translate(" + -x[0] + "," + -x[1] + ")");
-
-//     var x = path.centroid(json.features[2]);
-//     var k = 6000;
-    
-//     //Bind data and create one path per GeoJSON feature
-//     g.selectAll("path")
-//        .data(json.features)
-//        .enter()
-//        .append("path")
-//        .attr("d", path)
-//        .style("fill", "white")
-//        .style("stroke", "white");
-
-//     svg.append("text")
-//        .attr("x", 700)
-//        .attr("y", 135)
-//        .text("Yield")
-//        .style("fill", "black")
-//        .style("font-weight", "bold")
-//        .style("font-size", 24);                
-
-//     svg.append("text")
-//        .attr("x", 700)
-//        .attr("y", 175)
-//        .attr("kind", "yield")
-//        .text("___  (bu / ac)")
-//        .style("fill", "grey")
-//        .style("font-weight", "bold")
-//        .style("font-size", 34);
-
-//     svg.append("text")
-//        .attr("x", 700)
-//        .attr("y", 225)
-//        .text("Elevation")
-//        .style("fill", "black")
-//        .style("font-weight", "bold")
-//        .style("font-size", 24);                    
-
-//     svg.append("text")
-//        .attr("x", 700)
-//        .attr("y", 265)
-//        .attr("kind", "elevation")
-//        .text("____ (ft)")
-//        .style("fill", "grey")
-//        .style("font-weight", "bold")
-//        .style("font-size", 34);                        
-
-//     svg.append("text")
-//        .attr("x", 700)
-//        .attr("y", 315)
-//        .text("Soil Profile")
-//        .style("fill", "black")
-//        .style("font-weight", "bold")
-//        .style("font-size", 24);
-
-//     svg.append("a")
-//         .attr("kind", "soil_link")
-//         .append("text")
-//         .attr("x", 700)
-//         .attr("y", 345)
-//         .attr("kind", "soil")                       
-//         .text("________________")
-//         .style("fill", "grey")
-//         .style("font-weight", "bold")
-//         .style("font-size", 18);
-
-//     svg.append("a")
-//         .attr("kind", "soil_link")
-//         .append("text")
-//         .attr("x", 700)
-//         .attr("y", 375)
-//         .attr("kind", "slopes")
-//         .text("________________")
-//         .style("fill", "grey")
-//         .style("font-weight", "bold")
-//         .style("font-size", 18);                    
-
-//     var quadtree;
-//     var point;
-
-
-
-//     d3.csv("../data/local-yield_04042014.csv", function(data) {
-
-//         color.domain([
-//             d3.min(data, function(d) { return d.yield; }), 
-//             d3.max(data, function(d) { return d.yield; })
-//         ]);                 
-        
-//         point = svg.selectAll(".point")
-//           .data(data)
-//           .enter()
-//           .append("circle")
-//           .attr("class", "point")
-//           .attr("cx", function(d) {
-//              return projection([d.lon, d.lat])[0];
-//           })
-//           .attr("cy", function(d) {
-//              return projection([d.lon, d.lat])[1];
-//           })
-//           .attr("r", 2.5)
-//           .attr("bin", function(d) {
-//           return d.yield_binned;
-//           })
-//           .style("fill", function(d) {
-//               // if(d.soil == "Butler silt loam") {
-//               //   return "blue"
-//               // } else if(d.soil == "Fillmore silt loam") {
-//               //   return "red"
-//               // } else if(d.soil == "Olbut-Butler silt loams") {
-//               //   return "violet"
-//               // } else if(d.soil == "Hastings silty clay loam") {
-//               //   return "yellow"
-//               // }
-
-//               return d.color;
-//           })
-//           .style("opacity", function(d){
-//             return 1
-//           })
-//            .on('click', yield);
-
-//             /*                     
-//            .on("mouseover", function(d) {
-//                 d3.select(this).style("fill", "white");
-//              });
-//            .on("mouseout", function(d) {
-//                 d3.select(this).style("fill", function(d) {
-//                     return color(d.yield);
-//                 })
-//            });
-//             */
-
-//         lon_max = d3.max(data, function(d) { return d.lon; });
-//         lat_max = d3.max(data, function(d) { return d.lat; });
-//         console.log(projection([lon_max, lat_max]));
-//         console.log(data)
-//         /*svg.append("rect")
-//            .attr("x", 775)
-//            .attr("y", 100)
-//            .attr("width", 250)
-//            .attr("height", 600)
-//            .style("fill", "lightgrey");*/
-
-//         // quadtree = d3.geom.quadtree()
-//         //   .extent([[-1, -1], [w + 1, h + 1]])
-//         //   (data);
-//   // var brush = d3.svg.brush()
-//   //   .x(d3.scale.identity().domain([0, w]))
-//   //   .y(d3.scale.identity().domain([0, h]))
-//   //   // .extent([[100, 100], [200, 200]])
-//   //   .on("brush", brushed);
-
-//   // svg.append("g")
-//   //   .attr("class", "brush")
-//   //   .call(brush);
-  
-
-  // // brushed();
-
-  // function brushed() {
-  //   var extent = brush.extent();
-  //   // point.each(function(d) { d.scanned = d.selected = false; });
-  //   // search(quadtree, extent[0][0], extent[0][1], extent[1][0], extent[1][1]);
-  //   // point.classed("scanned", function(d) { return d.scanned; });
-  //   // point.classed("selected", function(d) { return d.selected; });
-  // }
-
-  // svg.selectAll(".node")
-  //   .data(nodes(quadtree))
-  // .enter().append("rect")
-  //   .attr("class", "node")
-  //   .attr("x", function(d) { return d.x; })
-  //   .attr("y", function(d) { return d.y; })
-  //   .attr("width", function(d) { return d.width; })
-  //   .attr("height", function(d) { return d.height; });
-
-  // // console.log(quadtree.visit())
-  // // Collapse the quadtree into an array of rectangles.
-  // function nodes(quadtree) {
-  //   var nodes = [];
-  //   quadtree.visit(function(node, x1, y1, x2, y2) {
-  //     nodes.push({x: x1, y: y1, width: x2 - x1, height: y2 - y1});
-  //   });
-  //   console.log(nodes)
-  //   return nodes;
-  // }
-
-  // // Find the nodes within the specified rectangle.
-  // function search(quadtree, x0, y0, x3, y3) {
-  //   quadtree.visit(function(node, x1, y1, x2, y2) {
-  //     var p = node.point;
-  //     if (p) {
-  //       console.log(p)
-  //       p.scanned = true;
-  //       p.selected = (p[0] >= x0) && (p[0] < x3) && (p[1] >= y0) && (p[1] < y3);
-  //     }
-  //     return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
-  //   });
-  // }
-
-    
-// });                
-
-// });
