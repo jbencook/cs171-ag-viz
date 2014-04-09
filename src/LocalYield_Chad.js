@@ -207,8 +207,6 @@ function histYield(yield_data) {
         //.bins(xScale.ticks(20))
         (values);
 
-    console.log("hist", histYield_data);
-
     binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data.length
 
 
@@ -243,17 +241,8 @@ function histYield(yield_data) {
         .attr("x", 1)
         .attr("y", -25)
 //        .attr("width", xScale(histYield_data[0].dx) - 15)
-        .attr("width", 10)
-        .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); })
-        .on("click", getBarYield);
-
-    bar.append("text")
-        .attr("dy", ".75em")
-        .attr("y", -35)
-        .attr("x", xScale(histYield_data[0].dx - 12) / 2)
-        .attr("text-anchor", "middle")
-        .text(function(d) { return formatCount(d.y / values.length * 100); })
-        // .on("click", getBarYield);;
+        .attr("width", 20)
+        .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); });
 
     // Add histogram brush
     brushHist.x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
@@ -296,7 +285,7 @@ function brushedHist() {
 
     bar.selectAll("rect").style("fill", function(d) {
         if((d.x + d.dx >= extent[0]) & (d.x < extent[1])) {
-            return "violet"
+            return "yellow"
         } else {
             return null
         }
@@ -308,9 +297,9 @@ function highlightBrushedYield(){
     var extent = brushHist.extent();
     point.transition().style("fill", function(pt) {
         if(pt.yld >= Math.round((extent[0] / binWidth) - 1) * binWidth & pt.yld < Math.round((extent[1] / binWidth)) * binWidth) {
-            return "violet";
+            return "yellow";
         } else {
-            return pt.color;
+            return colors(pt.yld);
         }
     });
 
@@ -329,25 +318,6 @@ fieldVis.append("g")
     .attr("height", bbFieldVis.h);
 
 function brushedField() {
-}
-
-
-
-
-
-function getBarYield(d) {
-    bar.selectAll("rect").style("fill", null);
-    bar.selectAll("text").style("fill", null);
-    d3.select(this).style("fill", "violet");
-    // point.selectAll("[bin='" +  + "']")
-
-    point.transition().style("fill", function(pt) {
-        if(pt.yld >= d.x & pt.yld < (d.dx+d.x)) {
-            return "violet";
-        } else {
-            return pt.color;
-        }
-    })
 }
 
 
@@ -447,11 +417,4 @@ function createYieldMeta() {
         .style("fill", "grey")
         .style("font-weight", "bold")
         .style("font-size", 16);                    
-}
-
-function zoomToBB() {
-    projection.translate(d3.event.translate).scale(d3.event.scale);
-    fieldVis.transition().duration(0)
-        // .style("stroke-width", 1/d3.event.scale + "px");
-    fieldVis.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
 }
