@@ -442,7 +442,7 @@ var timeSeries = function(data) {
     //     .orient("left");
 
     var line = d3.svg.line()
-        .x(function(d) { return x(d.date); })
+        .x(function(d) { console.log(d.date, x(d.date)); return x(d.date); })
         .y(function(d) { return y(d.price); });
 
     // var svg = d3.select("body").append("svg")
