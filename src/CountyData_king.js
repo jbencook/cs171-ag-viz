@@ -1,6 +1,5 @@
 /**
 Ryan
- * CS171 HW4
  * 17 March 2014
  */
 
@@ -61,7 +60,7 @@ var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 var legend_ticks = 100
 var legend_height = 75
-var color_range = ['greenyellow', 'darkgreen']
+var color_range = ['yellowgreen', 'darkgreen']
 var bin_num = 30
 var num_color_bins = 7
 /////////////////////////
@@ -75,6 +74,7 @@ var county_num2name = {};
 var yield_color_scale 
 var data_by_year = {}
 var all_yields = []
+var county_ids = {}
 /////////////////////////
 ////////////////////////
 // Create Canvases
@@ -132,8 +132,6 @@ timeslider.append('g').attr('class', 'axis').attr('height',20).attr('width', 100
 var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+margin.top+")").attr('r', 9)
     slider.selectAll('.extent, .resize' ).remove()
   
-
-
 
 
 /////////////////////////
@@ -203,12 +201,15 @@ function yeild_color(year){
        .attr('font-weight', 'bold')
        .style('font-size', 20)
     }
+var data_by_id = {}
 
 function process_data(){
     
     d3.csv('../data/county_yield_small_1910_2013.csv', function(data){
         var start_year = 0
         var data_for_year = [];
+        var start_id = 0
+        var data_for_id = [];
         for(i=0;i<data.length;i++){
             all_yields.push(parseFloat(data[i].Value))
             if(start_year==0){
@@ -224,16 +225,23 @@ function process_data(){
             if(i==data.length-1){
                 data_for_year.push(data[i])
                 data_by_year[current_year] = data_for_year}
+
+            var current_id = ('c'+parseFloat(data[i]['State ANSI'])+data[i]['County ANSI'])
+            var current_list = county_ids[current_id]
+            if (current_list != null){current_list.push(data[i])}
+            
+
              }
 
           var yield_range = d3.extent(all_yields) 
           generate_color_scale(yield_range)
           generate_legend(all_yields)
-
+          
           var years = Object.keys(data_by_year)
           yeild_color(parseFloat(d3.min(years)))
           })
 
+        
     }
 
 
@@ -248,7 +256,10 @@ function generateMap(error, us) {
         .attr('name', function(d,i){
             county_num2name[d.id] = d.properties.name
             return d.properties.name})
-        .attr('id', function(d,i){return 'c'+d.id})
+        .attr('id', function(d,i){
+          county_ids[('c'+d.id)] = []
+          return 'c'+d.id})
+        .on('click', function(){selected_county_vis(this)})
         .on('mousemove', function(){
             d3.select('#vis').select('#cname_tip').remove()
             var county_name = this.__data__.properties.name
@@ -311,15 +322,12 @@ function generateHist(data){
 
     hist_canvas.selectAll('.bars').data(hist_data).enter().append('rect')
                .attr('height', function(d,i){return yscale_hist(d.y)})
-               .attr('width', hist_height/bin_num)
+               .attr('width', hist_length/bin_num)
                .attr('x', function(d,i){return i*hist_length/bin_num})
                .attr('y', function(d,i){return .9*histVis.h - yscale_hist(d.y)})
                .attr('fill', function(d,i){return yield_color_scale(d.x)})
                .attr('class', 'bars')
-              // .attr('id', function(d,i){
-              //  d['id'] ="b"+i 
-               // data_for_bins['b'+i] = d
-               // return 'b'+i})
+               .attr('id', function(d,i){return 'b'+i})
                .attr('bin_count', function(d,i){return d.y})
 
     //create axis for histogram:         
@@ -357,6 +365,8 @@ function generateHist(data){
         yeild_color(data[0].Year)
         var bin_min = d3.min(this.__data__)
         var bin_max = d3.max(this.__data__)
+        d3.select('#hist').select('#'+this.id).style('fill', 'blue')
+       
         for (i=0; i<data.length; i++){
             if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
                 var stateANSI = parseFloat(data[i]['State ANSI'])
@@ -369,6 +379,51 @@ function generateHist(data){
       })
 
 }   
+function brushed_county_vis(data){
+  //console.log(data)
+  //console.log(county_ids)
+  for(i=0; i<data.length;i++){
+    var county_id = "c"+data[i]
+  }
+}
+
+function selected_county_vis(data){
+  console.log(data)
+  
+
+}
+
+/////////////////////////
+////////////////////////
+// Create 2D Brush Selector
+////////////////////////
+/////////////////////
+
+var x_2d = d3.scale.identity().domain([0, width])
+var y_2d = d3.scale.identity().domain([0, height])
+var brush_2d = d3.svg.brush().x(x_2d).y(y_2d).on('brush', brushed_2d)
+
+canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event)
+
+
+function brushed_2d(){
+  var extent = d3.event.target.extent()
+  //console.log(d3.select('#vis').selectAll('.counties').selectAll('path'))
+  var test = 0
+  var selected_data = []
+  d3.select('#vis').selectAll('.counties').selectAll('path').style('fill', function(d){
+
+    var xpos = path.centroid(d)[0]+margin.left
+    var ypos = path.centroid(d)[1]+margin.top
+    if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){
+    selected_data.push(d.id)    
+    return 'yellow'}})
+
+    brushed_county_vis(selected_data)
+  //console.log(d3.selectAll('.counties'))
+  
+ // console.log(extent)
+}
 
 /////////////////////////
 ////////////////////////
