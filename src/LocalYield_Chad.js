@@ -428,18 +428,19 @@ var timeSeries = function(data) {
     var parseDate = d3.time.format("%Y-%m").parse;
 
     var x = d3.time.scale()
-    .range([0, bbPrice.w]);
+    .range([20, bbPrice.w - 50]);
 
     var y = d3.scale.linear()
-        .range([bbPrice.h, 0]);
+        .range([bbPrice.h/2, 20]);
 
-    // var xAxis = d3.svg.axis()
-    //     .scale(x)
-    //     .orient("bottom");
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
 
-    // var yAxis = d3.svg.axis()
-    //     .scale(y)
-    //     .orient("left");
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .ticks(5)
+        .orient("right");
 
     var line = d3.svg.line()
         .x(function(d) { console.log(d.date, x(d.date)); return x(d.date); })
@@ -459,24 +460,40 @@ var timeSeries = function(data) {
     x.domain(d3.extent(data, function(d) { return d.date; }));
     y.domain(d3.extent(data, function(d) { return d.price; }));
 
-    // price.append("g")
-    //   .attr("class", "x axis")
-    //   .attr("transform", "translate(0," + bbPrice.h + ")")
-    //   .call(xAxis);
+    price.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (bbPrice.h/2 + 20) + ")")
+      .call(xAxis); 
 
-    // price.append("g")
-    //   .attr("class", "y axis")
-    //   .call(yAxis)
-    //   .append("text")
-    //   .attr("transform", "rotate(-90)")
-    //   .attr("y", 6)
-    //   .attr("dy", ".71em")
-    //   .style("text-anchor", "end")
-    //   .text("Price ($)");
+    price.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(" + (bbPrice.w - 40) + ",0)")
+      .call(yAxis)
+      .append("text")
+      .attr("dy", ".71em")
+      .style("text-anchor", "end");
 
     price.append("path")
       .datum(data)
       .attr("class", "line")
       .attr("d", line);
+
+    price.append("text")
+       .attr("x", 20)
+       .attr("y", bbPrice.h/2 + 150)
+       .text("Value of Field:")
+       .style("fill", "black")
+       .style("font-weight", "bold")
+       .style("font-size", 20);
+
+    price.append("text")
+       .attr("x", 180)
+       .attr("y", bbPrice.h/2 + 150)
+       .attr("kind", "value")
+       .text("$ 1 quadrillion")
+       .style("fill", "grey")
+       .style("font-weight", "bold")
+       .style("font-size", 24);
+
 
 }
