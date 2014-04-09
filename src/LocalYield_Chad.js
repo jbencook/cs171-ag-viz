@@ -22,13 +22,6 @@ var bbFieldVis = {
     h: height - 150
 };
 
-var bbYieldDetail = {
-    x: bbFieldVis.w,
-    y: 0,
-    w: width*0.40,
-    h: height/2
-};
-
 var bbYieldMeta = {
     x: 0,
     y: height - 150,
@@ -41,6 +34,13 @@ var bbYieldHist = {
     y: 0,
     w: width*0.40,
     h: height/2
+};
+
+var bbPrice = {
+    x: bbFieldVis.w,
+    y: bbYieldHist.h,
+    w: width*0.40,
+    h: height - bbYieldHist.h
 };
 
 
@@ -93,15 +93,15 @@ canvas.append("rect")
 
 var fieldVis = canvas.append("g");
 
-var yieldDetail = d3.select("#yieldDetail").append("svg").attr({
-    width: bbYieldDetail.w,
-    height: bbYieldDetail.h
+var price = d3.select("#yieldDetail").append("svg").attr({
+    width: bbPrice.w,
+    height: bbPrice.h
     })
 
-yieldDetail.append("rect")
+price.append("rect")
     .attr("class", "background")
-    .attr("width", bbYieldDetail.w)
-    .attr("height", bbYieldDetail.h)
+    .attr("width", bbPrice.w)
+    .attr("height", bbPrice.h)
 
 var yieldHist = d3.select("#yieldHist").append("svg").attr({
     width: bbYieldHist.w,
@@ -122,8 +122,6 @@ yieldMeta.append("rect")
     .attr("class", "background")
     .attr("width", bbYieldMeta.w)
     .attr("height", bbYieldMeta.h)
-
-var parseDate = d3.time.format("%d-%b-%y").parse;
 
 // Load data and create visualizations
 queue()
@@ -258,7 +256,7 @@ function histSoil(yield_data) {
     var soil_data = {}
 
     xScale_soil = d3.scale.ordinal()
-        .rangeRoundBands([25, bbYieldDetail.w-25], .8, 0)
+        .rangeRoundBands([25, bbYieldHist.w-25], .8, 0)
         .domain(d3.keys(soil_data))
 
     var soil_data = d3.nest()
@@ -427,58 +425,58 @@ function createYieldMeta() {
 
 
 var timeSeries = function(data) {
-    console.log(data);
-//     var x = d3.time.scale()
-//     .range([0, width]);
+    var parseDate = d3.time.format("%Y-%m").parse;
 
-//     var y = d3.scale.linear()
-//         .range([height, 0]);
+    var x = d3.time.scale()
+    .range([0, bbPrice.w]);
 
-//     var xAxis = d3.svg.axis()
-//         .scale(x)
-//         .orient("bottom");
+    var y = d3.scale.linear()
+        .range([bbPrice.h, 0]);
 
-//     var yAxis = d3.svg.axis()
-//         .scale(y)
-//         .orient("left");
+    // var xAxis = d3.svg.axis()
+    //     .scale(x)
+    //     .orient("bottom");
 
-//     var line = d3.svg.line()
-//         .x(function(d) { return x(d.date); })
-//         .y(function(d) { return y(d.close); });
+    // var yAxis = d3.svg.axis()
+    //     .scale(y)
+    //     .orient("left");
 
-//     var svg = d3.select("body").append("svg")
-//         .attr("width", width + margin.left + margin.right)
-//         .attr("height", height + margin.top + margin.bottom)
-//       .append("g")
-//         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var line = d3.svg.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.price); });
 
-//     d3.tsv("data.tsv", function(error, data) {
-//       data.forEach(function(d) {
-//         d.date = parseDate(d.date);
-//         d.close = +d.close;
-//       });
+    // var svg = d3.select("body").append("svg")
+    //     .attr("width", width + margin.left + margin.right)
+    //     .attr("height", height + margin.top + margin.bottom)
+    //     .append("g")
+    //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-//       x.domain(d3.extent(data, function(d) { return d.date; }));
-//       y.domain(d3.extent(data, function(d) { return d.close; }));
+    data.forEach(function(d) {
+        d.date = parseDate(d.date);
+        d.price = +d.price;
+    });
 
-//       svg.append("g")
-//           .attr("class", "x axis")
-//           .attr("transform", "translate(0," + height + ")")
-//           .call(xAxis);
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain(d3.extent(data, function(d) { return d.price; }));
 
-//       svg.append("g")
-//           .attr("class", "y axis")
-//           .call(yAxis)
-//         .append("text")
-//           .attr("transform", "rotate(-90)")
-//           .attr("y", 6)
-//           .attr("dy", ".71em")
-//           .style("text-anchor", "end")
-//           .text("Price ($)");
+    // price.append("g")
+    //   .attr("class", "x axis")
+    //   .attr("transform", "translate(0," + bbPrice.h + ")")
+    //   .call(xAxis);
 
-//       svg.append("path")
-//           .datum(data)
-//           .attr("class", "line")
-//           .attr("d", line);
-// });
+    // price.append("g")
+    //   .attr("class", "y axis")
+    //   .call(yAxis)
+    //   .append("text")
+    //   .attr("transform", "rotate(-90)")
+    //   .attr("y", 6)
+    //   .attr("dy", ".71em")
+    //   .style("text-anchor", "end")
+    //   .text("Price ($)");
+
+    price.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line);
+
 }
