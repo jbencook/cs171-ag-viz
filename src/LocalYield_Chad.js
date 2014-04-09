@@ -446,12 +446,6 @@ var timeSeries = function(data) {
         .x(function(d) { console.log(d.date, x(d.date)); return x(d.date); })
         .y(function(d) { return y(d.price); });
 
-    // var svg = d3.select("body").append("svg")
-    //     .attr("width", width + margin.left + margin.right)
-    //     .attr("height", height + margin.top + margin.bottom)
-    //     .append("g")
-    //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
     data.forEach(function(d) {
         d.date = parseDate(d.date);
         d.price = +d.price;
