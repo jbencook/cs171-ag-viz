@@ -52,7 +52,7 @@ var TimeVis = {
 var histVis = {
     x: 100,
     y: 10,
-    w: 300,
+    w: 400,
     h: 500
 };
 
@@ -60,9 +60,12 @@ var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 var legend_ticks = 100
 var legend_height = 75
-var color_range = ['yellowgreen', 'darkgreen']
+var color_range = ['orange', 'darkgreen']
+var highlight_color = 'blue'
 var bin_num = 30
 var num_color_bins = 7
+var hist_height = 400
+var hist_length = 250
 /////////////////////////
 ////////////////////////
 // Global Variables (Scoping)
@@ -75,6 +78,7 @@ var yield_color_scale
 var data_by_year = {}
 var all_yields = []
 var county_ids = {}
+var years, selected_data, select_year
 /////////////////////////
 ////////////////////////
 // Create Canvases
@@ -179,8 +183,9 @@ function yeild_color(year){
         
     //remove old coloring
     d3.selectAll('.counties').selectAll('path').attr('fill', 'white')
-
+    
     // New Coloring
+
     var data = data_by_year[year]
     for (i=0; i<data.length;i++){
         if (parseFloat(data[i].Year)==year){
@@ -237,7 +242,8 @@ function process_data(){
           generate_color_scale(yield_range)
           generate_legend(all_yields)
           
-          var years = Object.keys(data_by_year)
+          years = Object.keys(data_by_year)
+          select_year = d3.min(years)
           yeild_color(parseFloat(d3.min(years)))
           })
 
@@ -291,35 +297,49 @@ function generateMap(error, us) {
 
 
 function time_brushed(){
+    d3.selectAll('.selectVis').remove()
     var value = time_brush.extent()[0]
-    var year
+    
     if (d3.event.sourceEvent){
         value = xtime_range.invert(d3.mouse(this)[0])
         time_brush.extent([value, value])
-        year = d3.round(value, 0)
+        select_year = d3.round(value, 0)
     }
     handle.attr('cx', xtime_range(value))
     //update color 
-    yeild_color(year)
+    yeild_color(select_year)
 
 }
 
 
-   
+   ////////////////
+   ///////////////
 
 function generateHist(data){
     d3.select('#hist').selectAll('.bars').remove()
     d3.select('#hist').selectAll('.axis').remove()
-    var hist_height = 400
-    var hist_length = 250
     var bin_values = []
     var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([0,hist_length])
     var yscale_hist = d3.scale.linear().domain([0, 500]).range([0,hist_height-margin.top])
+
+    // create bin values:
+    if (selected_data.length == 0){
     for (i=0;i<data.length; i++){
-        bin_values.push(parseFloat(data[i].Value))}
+        bin_values.push(parseFloat(data[i].Value))}}
+
+    for (i=0; i < selected_data.length; i++){
+          var datum = county_ids[selected_data[i]]
+          for(j=0; j<datum.length; j++){
+            if (datum[j].Year == data[0].Year){
+              bin_values.push(parseFloat(datum[j].Value))
+            }
+          }
+          }
+
+
     var hist_data = d3.layout.histogram().bins(xscale_hist.ticks(bin_num))(bin_values);
     var data_for_bins = {}
-
+    
     hist_canvas.selectAll('.bars').data(hist_data).enter().append('rect')
                .attr('height', function(d,i){return yscale_hist(d.y)})
                .attr('width', hist_length/bin_num)
@@ -329,6 +349,7 @@ function generateHist(data){
                .attr('class', 'bars')
                .attr('id', function(d,i){return 'b'+i})
                .attr('bin_count', function(d,i){return d.y})
+   
 
     //create axis for histogram:         
     var yAxis = d3.svg.axis().scale(yscale_hist).orient('right').tickFormat(d3.format("d"))
@@ -349,6 +370,8 @@ function generateHist(data){
         d3.select('#hist').select('#bcount_tip').remove()
         var bin_count = this.__data__.y
         var coordinates = d3.mouse(this)
+
+
         //add bin count tool tip:
 
         hist_canvas.append('text')
@@ -356,16 +379,14 @@ function generateHist(data){
                    .attr('y', coordinates[1]-5)
                    .text('Bin Count: '+bin_count)
                    .attr('id', 'bcount_tip')
-                   .style('font-weight', 'bold')
-    })
+                   .style('font-weight', 'bold')})
       .on('mouseout', function(){
-        d3.select('#hist').select('#bcount_tip').remove()
-      })
+        d3.select('#hist').select('#bcount_tip').remove()})
       .on('click', function(){
         yeild_color(data[0].Year)
         var bin_min = d3.min(this.__data__)
         var bin_max = d3.max(this.__data__)
-        d3.select('#hist').select('#'+this.id).style('fill', 'blue')
+        d3.select('#hist').select('#'+this.id).style('fill', highlight_color)
        
         for (i=0; i<data.length; i++){
             if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
@@ -373,14 +394,18 @@ function generateHist(data){
                 var countyANSI = data[i]['County ANSI']
                 var county_id = ""+stateANSI+""+countyANSI
                 d3.selectAll('.counties').select('#c'+county_id)
-                  .attr('fill', 'blue')
-            }
-        }
-      })
+                  .attr('fill', highlight_color)
+            }}})
 
 }   
+
+////////////////////
+////////////////////
+
 function brushed_county_vis(data){
-  //console.log(data)
+
+  if (select_year != null){yeild_color(select_year)}
+  
   //console.log(county_ids)
   for(i=0; i<data.length;i++){
     var county_id = "c"+data[i]
@@ -388,8 +413,72 @@ function brushed_county_vis(data){
 }
 
 function selected_county_vis(data){
-  console.log(data)
+  d3.selectAll('.selectVis').remove()
+  var count_data = county_ids[data.id]
+  var xscale_selectvis = d3.scale.linear().domain([parseFloat(d3.min(years)), parseFloat(d3.max(years))]).range([0, hist_length])
+ 
+  var yscale_selectvis = d3.scale.linear().domain(d3.extent(all_yields)).range([0, hist_height])
+ 
+  hist_canvas.append('rect').attr('x',0).attr('y',histVis.y).attr('width', histVis.w).attr('height', histVis.h).attr('fill', 'white').attr('class', 'selectVis')
+  hist_canvas.append('text')
+             .attr('x', 0)
+             .attr('y',histVis.y+margin.top)
+             .attr('class', 'selectVis')
+             .text('Time Series Data: ').style('font-weight', 'bold').style('font-size', 15)
+  hist_canvas.append('text')
+             .attr('x', 0)
+             .attr('y',histVis.y+margin.top+25)
+             .attr('class', 'selectVis')
+             .text(data.getAttribute('name')+', '+count_data[0].State).style('font-weight', 'bold').style('font-size', 15)
+
+
+  //create axis:
+  var xAxis = d3.svg.axis().scale(xscale_selectvis).orient('bottom').tickFormat(d3.format("d"))
+   
+    hist_canvas.append('g')
+               .call(xAxis).attr('transform',  "translate("+(0)+","+(.8*histVis.h)+")")
+               .style({'fill': 'none',
+                      'stroke': '#000',
+                       'shape-rendering': 'crispEdges'})
+               .attr('class', 'selectVis')
+               .selectAll('text')
+               .attr('y',0)
+               .attr('x',+20)
+               .attr('transform', 'rotate(90)')  
+               .style('font-size', 10)
   
+  
+  var delta = hist_length/years.length
+
+  for (i=0; i<count_data.length;i++){
+
+    var year = parseFloat(count_data[i].Year)
+    var xpos = xscale_selectvis(year)
+    var yield = parseFloat(count_data[i].Value)
+    var ypos = yscale_selectvis(yield)
+    hist_canvas.append('rect')
+               .attr('x', xpos)
+               .attr('y', hist_height-ypos)
+               .attr('width', delta)
+               .attr('height', ypos)
+               .attr('class', 'selectVis')
+               .attr('yield', yield)
+               .attr('fill', yield_color_scale(yield))
+    }
+    d3.select('#hist').selectAll('rect').on('mousemove', function(){
+      d3.select('#yield_ttip').remove()
+      var coordinates = d3.mouse(this)
+      var yield = this.getAttribute('yield')
+      if (yield != null){
+      hist_canvas.append('text')
+                 .attr('x', coordinates[0]+5)
+                 .attr('y', coordinates[1]-5)
+                 .text('Yield: '+yield+" Bu/acre")
+                 .style('font-weight', 'bold')
+                 .style('font-size', 15)
+                 .attr('id', 'yield_ttip')}})
+      .on('mouseout', function(){d3.select('#yield_ttip').remove()})
+
 
 }
 
@@ -403,27 +492,37 @@ var x_2d = d3.scale.identity().domain([0, width])
 var y_2d = d3.scale.identity().domain([0, height])
 var brush_2d = d3.svg.brush().x(x_2d).y(y_2d).on('brush', brushed_2d)
 
-canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event)
+
+canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush')
 
 
 function brushed_2d(){
   var extent = d3.event.target.extent()
-  //console.log(d3.select('#vis').selectAll('.counties').selectAll('path'))
   var test = 0
-  var selected_data = []
+  selected_data = []
   d3.select('#vis').selectAll('.counties').selectAll('path').style('fill', function(d){
 
     var xpos = path.centroid(d)[0]+margin.left
     var ypos = path.centroid(d)[1]+margin.top
-    if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){
-    selected_data.push(d.id)    
+    if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
+    selected_data.push('c'+d.id)
     return 'yellow'}})
 
     brushed_county_vis(selected_data)
-  //console.log(d3.selectAll('.counties'))
-  
- // console.log(extent)
+
 }
+
+///////////////////
+//////////////////
+// Radial Button Toggle
+/////////////////
+/////////////////
+// button updates:
+d3.select("input[value=\"Point\"]").on("click", function(){d3.selectAll('.brush').remove()});
+d3.select("input[value=\"Brush\"]").on("click", function(){
+  d3.selectAll('.selectVis').remove()
+  canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush')});
+
 
 /////////////////////////
 ////////////////////////
