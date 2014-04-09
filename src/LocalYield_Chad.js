@@ -45,7 +45,6 @@ var bbYieldHist = {
 
 
 // Color scale for field -- Needs work
-console.log(colorbrewer)
 var colorMin = colorbrewer.YlGn[5][0];
 var colorMax = colorbrewer.YlGn[5][4];
 var colors = d3.scale.quantize()
@@ -198,7 +197,7 @@ function histYield(yield_data) {
     yield_data.forEach(function(d) {values.push(parseInt(d.yld))})
 
     xScale = d3.scale.linear()
-        .domain([0,d3.max(values)])
+        .domain([d3.min(values),d3.max(values)])
         .range([25, bbYieldHist.w - 25]);
 
     colors.domain(d3.extent(values));
@@ -208,6 +207,8 @@ function histYield(yield_data) {
         //.bins(xScale.ticks(20))
         (values);
 
+    console.log("hist", histYield_data);
+
     binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data.length
 
 
@@ -215,11 +216,8 @@ function histYield(yield_data) {
             return Math.round((d.yld / binWidth) - 1)
         })
         .style("fill", function(d) {
-            console.log(colors(d.yld))
             return colors(d.yld)
         })
-
-    console.log(histYield_data[0].dx, d3.extent(values), bbYieldHist.w - 25)
 
     yScale = d3.scale.linear()
         .domain([0, d3.max(histYield_data, function(d) { return d.y; })])
@@ -244,7 +242,8 @@ function histYield(yield_data) {
     bar.append("rect")
         .attr("x", 1)
         .attr("y", -25)
-        .attr("width", xScale(histYield_data[0].dx) - 15)
+//        .attr("width", xScale(histYield_data[0].dx) - 15)
+        .attr("width", 10)
         .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); })
         .on("click", getBarYield);
 
@@ -256,7 +255,6 @@ function histYield(yield_data) {
         .text(function(d) { return formatCount(d.y / values.length * 100); })
         // .on("click", getBarYield);;
 
-    console.log(histYield_data)    
     // Add histogram brush
     brushHist.x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
 }
@@ -274,12 +272,9 @@ function histSoil(yield_data) {
         .rollup(function(i) { return i.length; })
         .entries(yield_data)   
 
-    console.log(soil_data.map(function(d){return d.key}))
-
     var data = d3.layout.histogram()
         (yield_data.map(function(d){return d.soil}));
 
-    console.log(data)
 
 }
 
@@ -311,8 +306,6 @@ function brushedHist() {
 
 function highlightBrushedYield(){
     var extent = brushHist.extent();
-    console.log(extent, Math.round((extent[0] / binWidth) - 1) * binWidth, Math.round((extent[1] / binWidth)) * binWidth)
-
     point.transition().style("fill", function(pt) {
         if(pt.yld >= Math.round((extent[0] / binWidth) - 1) * binWidth & pt.yld < Math.round((extent[1] / binWidth)) * binWidth) {
             return "violet";
