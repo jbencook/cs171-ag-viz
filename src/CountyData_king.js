@@ -149,7 +149,7 @@ var handle = slider.append('circle').attr('class', 'handle').attr('transform', '
 
 
 function generate_color_scale(yield_range){
-        yield_color_scale = d3.scale.linear().domain(yield_range).range(color_range)   
+        yield_color_scale = d3.scale.quantize().domain(yield_range).range(colorbrewer.YlGn[9])   
         //var delta = (d3.max(all_yields)-d3.min(all_yields))/num_color_bins
         
         //var color_bins = []
@@ -162,7 +162,7 @@ function generate_color_scale(yield_range){
     }
 
 function generate_legend(data){
-    var legend_color_scale = d3.scale.linear().domain([0,legend_ticks]).range(color_range)
+    var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9])
     for (i=0; i<=legend_ticks; i++){
         svg.append('rect')
            .attr('class', 'legend_box')

@@ -46,10 +46,10 @@ var bbYieldHist = {
 
 // Color scale for field -- Needs work
 console.log(colorbrewer)
-var colorMin = colorbrewer.YlGn[5][0];
-var colorMax = colorbrewer.YlGn[5][4];
+// var colorMin = colorbrewer.YlGn[5][0];
+// var colorMax = colorbrewer.YlGn[5][4];
 var colors = d3.scale.quantize()
-    .range(colorbrewer.YlGn[3])
+    .range(colorbrewer.YlGn[9])
     // .range([colorMin, colorMax])
     // .interpolate(d3.interpolateHcl);
 
@@ -189,6 +189,27 @@ function createVis(error, geo_data, yield_data) {
 
 }
 
+function generate_legend(data){
+    var legend_ticks = 100
+    var legend_height = 75
+    var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9])
+    
+    d3.range(legend_ticks).reverse().forEach(function(i) {
+        console.log(i)
+        yieldMeta.append('rect')
+           .attr('class', 'legend_box')
+           .attr('x', bbYieldMeta.w-100)
+           .attr('y',  (legend_height/legend_ticks)*(legend_ticks.length - i) + 100)
+           .attr('height', 10)
+           .attr('width', 10)
+           .style('fill', legend_color_scale(i))
+        })
+    yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  15).text('Bu/Acre')
+    yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y', 30).text(d3.max(data))
+    yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  30+legend_height).text(d3.min(data))
+
+}
+
 var histYield_data, binWidth;
 
 function histYield(yield_data) {
@@ -214,7 +235,6 @@ function histYield(yield_data) {
             return Math.round((d.yld / binWidth) - 1)
         })
         .style("fill", function(d) {
-            console.log(colors(d.yld))
             return colors(d.yld)
         })
 
@@ -255,7 +275,7 @@ function histYield(yield_data) {
         .text(function(d) { return formatCount(d.y / values.length * 100); })
         // .on("click", getBarYield);;
 
-    console.log(histYield_data)    
+    generate_legend(values)  
     // Add histogram brush
     brushHist.x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
 }
