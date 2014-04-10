@@ -244,7 +244,7 @@ function process_data(){
           
           years = Object.keys(data_by_year)
           select_year = d3.min(years)
-          yeild_color(parseFloat(d3.min(years)))
+          yield_color(parseFloat(d3.min(years)))
           })
 
         
@@ -307,7 +307,7 @@ function time_brushed(){
     }
     handle.attr('cx', xtime_range(value))
     //update color 
-    yeild_color(select_year)
+    yield_color(select_year)
 
 }
 
@@ -383,7 +383,7 @@ function generateHist(data){
       .on('mouseout', function(){
         d3.select('#hist').select('#bcount_tip').remove()})
       .on('click', function(){
-        yeild_color(data[0].Year)
+        yield_color(data[0].Year)
         var bin_min = d3.min(this.__data__)
         var bin_max = d3.max(this.__data__)
         d3.select('#hist').select('#'+this.id).style('fill', highlight_color)
