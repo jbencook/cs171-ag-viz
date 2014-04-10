@@ -159,6 +159,7 @@ var handle = slider.append('circle').attr('class', 'handle').attr('transform', '
 
 
 function generate_color_scale(yield_range){
+<<<<<<< HEAD
         //continuous color scale:
         //yield_color_scale = d3.scale.linear().domain(yield_range).range(color_range)   
 
@@ -176,6 +177,22 @@ function generate_legend(data){
 
 
     var legend = Map.append('g').attr('class', 'legend')
+=======
+        yield_color_scale = d3.scale.quantize().domain(yield_range).range(colorbrewer.YlGn[9])   
+        //var delta = (d3.max(all_yields)-d3.min(all_yields))/num_color_bins
+        
+        //var color_bins = []
+        //for (i=0; i < num_color_bins; i++){
+        //    color_bins.push(delta*i)
+        //}
+        //console.log(color_bins)
+        //var brewer_color_scale = d3.scale.ordinal().domain(color_bins).range(d3.range(num_color_bins))
+    
+    }
+
+function generate_legend(data){
+    var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9])
+>>>>>>> FETCH_HEAD
     for (i=0; i<=legend_ticks; i++){
         legend.append('rect')
            .attr('class', 'legend_box')
@@ -192,7 +209,7 @@ function generate_legend(data){
 }
 
 
-function yeild_color(year){
+function yield_color(year){
         
     //remove old coloring
     d3.selectAll('.counties').selectAll('path').attr('fill', county_fill_color)
@@ -257,6 +274,7 @@ function process_data(){
           
           years = Object.keys(data_by_year)
           select_year = d3.min(years)
+<<<<<<< HEAD
           yeild_color(parseFloat(d3.min(years)))
           
           for(i=0;i<years.length;i++){
@@ -269,6 +287,9 @@ function process_data(){
 
           }
           generate_average_hist(yield_average)
+=======
+          yield_color(parseFloat(d3.min(years)))
+>>>>>>> FETCH_HEAD
           })
 
         
@@ -337,7 +358,7 @@ function time_brushed(){
     }
     handle.attr('cx', xtime_range(value))
     //update color 
-    yeild_color(select_year)
+    yield_color(select_year)
 
 }
 
@@ -431,7 +452,7 @@ function generateHist(data){
       .on('mouseout', function(){
         d3.select('#hist').select('#bcount_tip').remove()})
       .on('click', function(){
-        yeild_color(data[0].Year)
+        yield_color(data[0].Year)
         var bin_min = d3.min(this.__data__)
         var bin_max = d3.max(this.__data__)
         d3.select('#hist').select('#'+this.id).style('fill', highlight_color)
@@ -452,7 +473,7 @@ function generateHist(data){
 
 function brushed_county_vis(data){
 
-  if (select_year != null){yeild_color(select_year)}
+  if (select_year != null){yield_color(select_year)}
   
   //console.log(county_ids)
   for(i=0; i<data.length;i++){
