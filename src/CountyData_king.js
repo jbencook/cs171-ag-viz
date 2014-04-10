@@ -404,7 +404,7 @@ function generateHist(data){
 
 function brushed_county_vis(data){
 
-  if (select_year != null){yeild_color(select_year)}
+  if (select_year != null){yield_color(select_year)}
   
   //console.log(county_ids)
   for(i=0; i<data.length;i++){
