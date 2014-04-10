@@ -61,8 +61,9 @@ var xAxis, yAxis, xScale, yScale;
 var xAxis_soil, yAxis_soil, xScale_soil, yScale_soil
 
 // Globals for interaction between sections
-var bar;
-var brushHist = d3.svg.brush();
+var bar, bar2, bins;
+var brushHist;
+var brushField;
 
 // Formatters
 var formatCount = d3.format(",.2f");
@@ -121,6 +122,10 @@ yieldMeta.append("rect")
     .attr("width", bbYieldMeta.w)
     .attr("height", bbYieldMeta.h)
 
+
+
+
+
 // Load data and create visualizations
 queue()
     .defer(d3.json, "../data/nebraska.geojson")
@@ -128,13 +133,14 @@ queue()
     .defer(d3.csv, "../data/price.csv")
     .await(createVis)
 
-
 function createVis(error, geo_data, yield_data, price) {
 
     createYieldMeta();
 
     var x = path.centroid(geo_data.features[2]);
 
+    loadMap(x)
+    
     projection.translate([bbFieldVis.w - x[0], bbFieldVis.h - x[1]]);
 
     timeSeries(price);
@@ -185,9 +191,52 @@ function createVis(error, geo_data, yield_data, price) {
             
         })
 
+    brushField = d3.svg.brush()
+        .x(d3.scale.identity().domain([0, bbFieldVis.w]))
+        .y(d3.scale.identity().domain([0, bbFieldVis.h]))
+        .on("brush", brushedField);
+
+    fieldVis.append("g")
+        .attr("class", "brush")
+        .call(brushField)
+        // .selectAll("rect")
+        // .attr("height", bbFieldVis.h);
+
     histYield(yield_data)
     histSoil(yield_data)
+ 
+}
 
+function loadMap(center_coord) {
+    // Create the Google Map…
+    var map = new google.maps.Map(d3.select("#map").node(), {
+      zoom: 16,
+      center: new google.maps.LatLng(41.2531, -97.1440),
+      mapTypeId: google.maps.MapTypeId.HYBRID
+    });
+
+    var overlay = new google.maps.OverlayView();
+
+    // Add the container when the overlay is added to the map.
+    overlay.onAdd = function() {
+
+        // Draw each marker as a separate SVG element.
+        overlay.draw = function() {
+            var projection = this.getProjection(),
+                padding = 10;
+
+            function transform(d) {
+            d = new google.maps.LatLng(d.value[1], d.value[0]);
+            d = projection.fromLatLngToDivPixel(d);
+            return d3.select(this)
+                .style("left", (d.x - padding) + "px")
+                .style("top", (d.y - padding) + "px");
+            }
+        };
+    };
+     
+    // Bind our overlay to the map…
+    overlay.setMap(map);
 }
 
 function generate_legend(data){
@@ -229,6 +278,8 @@ function histYield(yield_data) {
         //.bins(xScale.ticks(20))
         (values);
 
+    bins = histYield_data.length;
+
     binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data.length
 
 
@@ -262,30 +313,11 @@ function histYield(yield_data) {
     bar.append("rect")
         .attr("x", 1)
         .attr("y", -25)
-// <<<<<<< HEAD
-//         .attr("width", xScale(histYield_data[0].dx) - 15)
-//         .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); })
-//         .on("click", getBarYield);
-
-//     bar.append("text")
-//         .attr("dy", ".75em")
-//         .attr("y", -35)
-//         .attr("x", xScale(histYield_data[0].dx - 12) / 2)
-//         .attr("text-anchor", "middle")
-//         .text(function(d) { return formatCount(d.y / values.length * 100); })
-//         // .on("click", getBarYield);;
-
-//     generate_legend(values)  
-// =======
-// //        .attr("width", xScale(histYield_data[0].dx) - 15)
         .attr("width", 20)
         .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); });
 
-// >>>>>>> daa5bc605fa20315f0d4c2adba696f99676c6c77
     // Add histogram brush
-    // brushHist
-
-    brushHist
+    brushHist = d3.svg.brush()
         .x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
         // .x(d3.scale.linear().domain([0, 100]).range([25, bbYieldHist.w - 25]))
         .on("brush", brushedHist)
@@ -297,7 +329,37 @@ function histYield(yield_data) {
         .attr("y", 25)
         .attr("height", bbYieldHist.h - 50)
         // .on("mouseup", highlightBrushedYield);
+
 }
+
+function histYield_select(values) {
+
+    // Generate a histogram using twenty uniformly-spaced bins.
+    var histYield_data2 = d3.layout.histogram()
+        .bins(bins)
+        (values);
+
+    yieldHist.selectAll(".bar_sub").remove()
+    console.log(histYield_data2.length)
+    bar2 = yieldHist.selectAll(".bar_sub")
+        .data(histYield_data2)
+        .enter().append("g")
+        .attr("class", "bar_sub")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + (yScale(d.y) + 25) + ")"; });
+
+    bar2.append("rect")
+        .style("fill", "#f1a340")
+
+    // binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data2.length
+
+        .attr("x", 1)
+        .attr("y", -25)
+        .attr("width", 20)
+        .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); });
+
+}
+
+
 
 function histSoil(yield_data) {
 
@@ -345,19 +407,25 @@ function highlightBrushedYield(){
 
 }
 
-// var brushField = d3.svg.brush()
-//     .x(d3.scale.linear().domain([0, 100]).range([0, bbFieldVis.w]))
-//     .y(d3.scale.identity().domain([0, bbFieldVis.h]))
-
-//     .on("brush", brushedField);
-
-fieldVis.append("g")
-    .attr("class", "brush")
-//    .call(brushField)
-    .selectAll("rect")
-    .attr("height", bbFieldVis.h);
 
 function brushedField() {
+    var extent = brushField.extent();
+    var brush_min = projection.invert(extent[0])
+    var brush_max = projection.invert(extent[1])
+    
+    bar.selectAll("rect").style("fill", null);
+    var values = []
+    point.transition().duration(0).style("fill", function(pt) {
+
+        if(pt.lon >= brush_min[0] && pt.lon <= brush_max[0] && pt.lat >= brush_max[1] && pt.lat <= brush_min[1]) {
+            values.push(parseInt(pt.yld))
+            return d3.rgb(colors(pt.yld)).darker(1);
+        } else {
+            return colors(pt.yld);
+        }
+    });
+
+    histYield_select(values);
 }
 
 
@@ -565,6 +633,5 @@ var timeSeries = function(data) {
        .style("fill", "grey")
        .style("font-weight", "bold")
        .style("font-size", 24);
-
 
 }
