@@ -147,9 +147,8 @@ function createVis(error, geo_data, yield_data, price) {
     var x = path.centroid(geo_data.features[2]);
 
     // console.log(x)
-    // loadMap(x)
+    loadMap(x)
     
-
     projection.translate([bbFieldVis.w - x[0], bbFieldVis.h - x[1]]);
 
     timeSeries(price);
@@ -207,9 +206,9 @@ function createVis(error, geo_data, yield_data, price) {
 
 function loadMap(center_coord) {
     // Create the Google Map…
-    var map = new google.maps.Map(fieldVis, {
+    var map = new google.maps.Map(d3.select("#map").node(), {
       zoom: 16,
-      center: new google.maps.LatLng(41.251073956522, -97.1449267811),
+      center: new google.maps.LatLng(41.2531, -97.1440),
       mapTypeId: google.maps.MapTypeId.HYBRID
     });
 
