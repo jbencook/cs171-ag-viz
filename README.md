@@ -6,7 +6,7 @@ Welcome to our CS171 final project. We are visualizing how data that affects a f
 To display the interactive visualizations locally, run: `python -m SimpleHTTPServer`
 
 
-### TODO:
+### TO DO:
 
 1. Create county yield choropleth
 2. Create 2-D brush to select counties
