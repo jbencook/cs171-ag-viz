@@ -121,6 +121,10 @@ yieldMeta.append("rect")
     .attr("width", bbYieldMeta.w)
     .attr("height", bbYieldMeta.h)
 
+
+
+
+
 // Load data and create visualizations
 queue()
     .defer(d3.json, "../data/nebraska.geojson")
@@ -129,11 +133,22 @@ queue()
     .await(createVis)
 
 
+ // Create the Google Map…
+// map = new google.maps.Map(d3.select("#fieldVis").node(), {
+//   zoom: 8,
+//   center: new google.maps.LatLng(41.251073956522, -97.1449267811),
+//   mapTypeId: google.maps.MapTypeId.TERRAIN
+// });
+
 function createVis(error, geo_data, yield_data, price) {
 
     createYieldMeta();
 
     var x = path.centroid(geo_data.features[2]);
+
+    // console.log(x)
+    // loadMap(x)
+    
 
     projection.translate([bbFieldVis.w - x[0], bbFieldVis.h - x[1]]);
 
@@ -187,7 +202,42 @@ function createVis(error, geo_data, yield_data, price) {
 
     histYield(yield_data)
     histSoil(yield_data)
+ 
+}
 
+function loadMap(center_coord) {
+    // Create the Google Map…
+    var map = new google.maps.Map(fieldVis, {
+      zoom: 16,
+      center: new google.maps.LatLng(41.251073956522, -97.1449267811),
+      mapTypeId: google.maps.MapTypeId.HYBRID
+    });
+
+    // Load the station data. When the data comes back, create an overlay.
+    // d3.json("stations.json", function(data) {
+      var overlay = new google.maps.OverlayView();
+     
+      // Add the container when the overlay is added to the map.
+      overlay.onAdd = function() {
+     
+        // Draw each marker as a separate SVG element.
+        // We could use a single SVG, but what size would it have?
+        overlay.draw = function() {
+          var projection = this.getProjection(),
+              padding = 10;
+     
+          function transform(d) {
+            d = new google.maps.LatLng(d.value[1], d.value[0]);
+            d = projection.fromLatLngToDivPixel(d);
+            return d3.select(this)
+                .style("left", (d.x - padding) + "px")
+                .style("top", (d.y - padding) + "px");
+          }
+        };
+      };
+     
+      // Bind our overlay to the map…
+      overlay.setMap(map);
 }
 
 function generate_legend(data){
@@ -565,6 +615,5 @@ var timeSeries = function(data) {
        .style("fill", "grey")
        .style("font-weight", "bold")
        .style("font-size", 24);
-
 
 }
