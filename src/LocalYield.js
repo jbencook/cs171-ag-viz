@@ -508,6 +508,9 @@ var timeSeries = function(data) {
     var x = d3.time.scale()
     .range([20, bbPrice.w - 50]);
 
+    var x_reversed = d3.scale.linear()
+      .domain([20, bbPrice.w-50]).range([1,20]);
+
     var y = d3.scale.linear()
         .range([bbPrice.h/2, 20]);
 
@@ -562,11 +565,11 @@ var timeSeries = function(data) {
        .style("font-weight", "bold")
        .style("font-size", 20);
 
-    price.append("text")
+    var value = price.append("text")
        .attr("x", 180)
        .attr("y", bbPrice.h/2 + 150)
        .attr("kind", "value")
-       .text("$ 1 quadrillion")
+       .text("$ 134893")
        .style("fill", "grey")
        .style("font-weight", "bold")
        .style("font-size", 24);
@@ -586,6 +589,7 @@ var timeSeries = function(data) {
 
 
   price.on("click", function() {
+      value.text("$ " + d3.round(data[d3.round(x_reversed(d3.mouse(this)[0]))].price * 29712))
       vertLine.attr({"x1": d3.mouse(this)[0], "x2": d3.mouse(this)[0]})
           .attr("visibility", "visible");
       })
