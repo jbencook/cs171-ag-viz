@@ -42,10 +42,10 @@ var mapVis = {
 };
 
 var TimeVis = {
-    h: 100,
+    h: 200,
     w: 500, 
     x: (width-500)/2,
-    y: 0
+    y: mapVis.h-25
 }
 
 
@@ -60,12 +60,15 @@ var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 var legend_ticks = 100
 var legend_height = 75
-var color_range = ['orange', 'darkgreen']
+var color_range = colorbrewer.Greens[9] //['orange', 'darkgreen']
 var highlight_color = 'blue'
 var bin_num = 30
 var num_color_bins = 7
-var hist_height = 400
+var hist_height = 100
 var hist_length = 250
+var brush_highlight_color = '#FFFF6C'
+var county_fill_color = '#E2C670'
+var remove_counties = ["c15001", "c15009", "c15009", "c15009", "c15009", "c15003","c15007", "c15007", "c2016", "c2013", "c2130", "c2060", "c2070", "c2164", "c2150", "c2110", "c2280", "c2232", "c2100", "c2220", "c2270", "c2050", "c2170", "c2068", "c2020", "c2261", "c2122", "c2282", "c2290", "c2090", "c2240", "c2185", "c2188", "c2180", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201"]
 /////////////////////////
 ////////////////////////
 // Global Variables (Scoping)
@@ -76,8 +79,10 @@ var hist_length = 250
 var county_num2name = {};
 var yield_color_scale 
 var data_by_year = {}
+var data_by_id = {}
 var all_yields = []
 var county_ids = {}
+var yield_average = {}
 var years, selected_data, select_year
 /////////////////////////
 ////////////////////////
@@ -95,12 +100,7 @@ var title = d3.select("#title")
     .attr("y", 0)
     .text("County Level Crop Yield")
 
-var slider_canvas = d3.select("#timeslider").append('svg').attr({
-    width: width + margin.left + margin.right,
-    height: TimeVis.h+ margin.top + margin.bottom,})
 
-var timeslider = slider_canvas.append('g').attr({
-    transform:  "translate(" + TimeVis.x + "," + TimeVis.y + ")"})
 
 var hist_canvas = d3.select("#hist").append('svg').attr({
     width: width + margin.left + margin.right,
@@ -117,10 +117,15 @@ canvas.append("rect")
     .attr("class", "background")
     .attr("width", width)
     .attr("height", height)
+    
+var Map = canvas.append("g").attr({transform: "translate(" + 0 + "," + margin.top + ")"});
 
-var svg = canvas.append("g").attr({transform: "translate(" + margin.left + "," + margin.top + ")"});
+var slider_canvas = d3.select("#vis").append('svg').attr({
+    width: width + margin.left + margin.right,
+    height: TimeVis.h+ margin.top + margin.bottom,})
 
-
+var timeslider = canvas.append('g').attr({
+    transform:  "translate(" + TimeVis.x + "," + TimeVis.y + ")"})
 
 /////////////////////////
 ////////////////////////
@@ -131,9 +136,14 @@ var svg = canvas.append("g").attr({transform: "translate(" + margin.left + "," +
 var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, TimeVis.w]).clamp(true)
 var time_brush = d3.svg.brush().x(xtime_range).on('brush', time_brushed)
 var slider = timeslider.append('g').attr('class', 'slider').attr('fill', 'gray').call(time_brush)
-timeslider.append('g').attr('class', 'axis').attr('height',20).attr('width', 100).attr('transform', 'translate('+0+','+margin.top+")").call(d3.svg.axis().scale(xtime_range)
-    .orient('bottom').tickFormat(d3.format("d")))
-var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+margin.top+")").attr('r', 9)
+timeslider.append('g')
+          .attr('class', 'axis')
+          .attr('height',20)
+          .attr('width', 100)
+          .attr('transform', 'translate('+0+','+(margin.top+hist_height)+")")
+          .call(d3.svg.axis().scale(xtime_range)
+          .orient('bottom').tickFormat(d3.format("d")))
+var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+(margin.top+hist_height)+")").attr('r', 9)
     slider.selectAll('.extent, .resize' ).remove()
   
 
@@ -149,6 +159,25 @@ var handle = slider.append('circle').attr('class', 'handle').attr('transform', '
 
 
 function generate_color_scale(yield_range){
+<<<<<<< HEAD
+        //continuous color scale:
+        //yield_color_scale = d3.scale.linear().domain(yield_range).range(color_range)   
+
+        //quantized color scale:
+        yield_color_scale = d3.scale.quantize().domain(yield_range).range(color_range)
+      
+    }
+
+function generate_legend(data){
+    //continuous color scale:
+    //var legend_color_scale = d3.scale.linear().domain([0,legend_ticks]).range(color_range)
+
+    //quantized color scale:
+    var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(color_range)
+
+
+    var legend = Map.append('g').attr('class', 'legend')
+=======
         yield_color_scale = d3.scale.quantize().domain(yield_range).range(colorbrewer.YlGn[9])   
         //var delta = (d3.max(all_yields)-d3.min(all_yields))/num_color_bins
         
@@ -163,8 +192,9 @@ function generate_color_scale(yield_range){
 
 function generate_legend(data){
     var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9])
+>>>>>>> FETCH_HEAD
     for (i=0; i<=legend_ticks; i++){
-        svg.append('rect')
+        legend.append('rect')
            .attr('class', 'legend_box')
            .attr('x', mapVis.w)
            .attr('y', mapVis.h/2+ (legend_height/legend_ticks)*i)
@@ -172,9 +202,9 @@ function generate_legend(data){
            .attr('width', 10)
            .style('fill', legend_color_scale(i))
         }
-    svg.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2-15).text('Bu/Acre')
-    svg.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data))
-    svg.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data))
+    legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2-15).text('Bu/Acre')
+    legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data))
+    legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data))
 
 }
 
@@ -182,7 +212,7 @@ function generate_legend(data){
 function yield_color(year){
         
     //remove old coloring
-    d3.selectAll('.counties').selectAll('path').attr('fill', 'white')
+    d3.selectAll('.counties').selectAll('path').attr('fill', county_fill_color)
     
     // New Coloring
 
@@ -199,14 +229,14 @@ function yield_color(year){
     generateHist(data)
 
     //add year to map:
-    svg.select('#yrtooptip').remove()    
-    svg.append('text').attr('y',mapVis.y+margin.top).attr('x',mapVis.w)
+    Map.select('#yrtooptip').remove()    
+    Map.append('text').attr('y',mapVis.y+margin.top).attr('x',mapVis.w)
        .text('Year: '+year)
        .attr('id', 'yrtooptip')
        .attr('font-weight', 'bold')
        .style('font-size', 20)
     }
-var data_by_id = {}
+
 
 function process_data(){
     
@@ -244,7 +274,22 @@ function process_data(){
           
           years = Object.keys(data_by_year)
           select_year = d3.min(years)
+<<<<<<< HEAD
+          yeild_color(parseFloat(d3.min(years)))
+          
+          for(i=0;i<years.length;i++){
+            var current_data = data_by_year[years[i]]
+            var sum = 0
+            for(j=0;j<current_data.length;j++){
+              sum += parseFloat(current_data[j].Value)
+            }
+            yield_average[years[i]] = sum/current_data.length
+
+          }
+          generate_average_hist(yield_average)
+=======
           yield_color(parseFloat(d3.min(years)))
+>>>>>>> FETCH_HEAD
           })
 
         
@@ -252,8 +297,11 @@ function process_data(){
 
 
 function generateMap(error, us) {   
+
+
+    //console.log(us)
     
-    svg.append("g")
+    Map.append("g")
         .attr("class", "counties")
         .selectAll("path")
         .data(topojson.feature(us, us.objects.counties).features)
@@ -283,11 +331,14 @@ function generateMap(error, us) {
             d3.select('#vis').select('#cname_tip').remove()
         })
      
-
-    svg.append("path")
-        .data(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-        .attr("class", "states")
-        .attr("d", path)
+  //remove HI and AK:   
+  for(i=0;i<remove_counties.length;i++){
+    d3.select("#vis").select('#'+remove_counties[i]).remove()
+  }
+   // svg.append("path")
+   //     .data(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+   //     .attr("class", "states")
+   //     .attr("d", path)
        
     process_data()
  
@@ -315,6 +366,23 @@ function time_brushed(){
    ////////////////
    ///////////////
 
+function generate_average_hist(data){
+  
+  var keys = Object.keys(data)
+  var xscale = d3.scale.linear().domain([2013, 1910]).range([0, TimeVis.w]).clamp(true)
+  var yscale = d3.scale.linear().domain(d3.extent(all_yields)).range([0, TimeVis.h])
+  for(i=0;i<keys.length;i++){
+  var year = keys[i]
+  var datum = data[year]
+
+  timeslider.append('rect')
+            .attr('x', xscale(year))
+            .attr('y', yscale(datum))
+            .attr('width', 5)
+            .attr('height', 5)
+            .style('fill', 'black')
+}  } 
+
 function generateHist(data){
     d3.select('#hist').selectAll('.bars').remove()
     d3.select('#hist').selectAll('.axis').remove()
@@ -326,8 +394,9 @@ function generateHist(data){
     if (selected_data.length == 0){
     for (i=0;i<data.length; i++){
         bin_values.push(parseFloat(data[i].Value))}}
-
+    //console.log(selected_data)
     for (i=0; i < selected_data.length; i++){
+          yscale_hist.domain([0, selected_data.length])
           var datum = county_ids[selected_data[i]]
           for(j=0; j<datum.length; j++){
             if (datum[j].Year == data[0].Year){
@@ -506,7 +575,7 @@ function brushed_2d(){
     var ypos = path.centroid(d)[1]+margin.top
     if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
     selected_data.push('c'+d.id)
-    return 'yellow'}})
+    return brush_highlight_color}})
 
     brushed_county_vis(selected_data)
 
