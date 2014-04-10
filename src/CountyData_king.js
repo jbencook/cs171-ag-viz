@@ -179,7 +179,7 @@ function generate_legend(data){
 }
 
 
-function yeild_color(year){
+function yield_color(year){
         
     //remove old coloring
     d3.selectAll('.counties').selectAll('path').attr('fill', 'white')
