@@ -173,10 +173,20 @@ function generate_color_scale(yield_range){
 
 
 function generate_WeatheVis(){
-  var weather_vis = hist_canvas.append('rect').attr('x', 0).attr('y', 0).attr('height', 200).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
- hist_canvas.append('text').attr('x', margin.left).attr('y', margin.top).text('Weather Data Panel')
 
- var link =  hist_canvas.append('rect').attr('x', 0).attr('y', 500).attr('height', 20).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
+    d3.json("../data/gdd.json", function(data){
+
+     //console.log(data)
+
+    }) 
+
+  
+
+  
+  //var weather_vis = hist_canvas.append('rect').attr('x', 0).attr('y', 0).attr('height', 200).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
+ //hist_canvas.append('text').attr('x', margin.left).attr('y', margin.top).text('Weather Data Panel')
+
+ //var link =  hist_canvas.append('rect').attr('x', 0).attr('y', 500).attr('height', 20).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
 
 }
 
@@ -217,7 +227,7 @@ function yield_color(year){
     // New Coloring
 
     var data = data_by_year[year]
-
+   
     if (selected_data.length == 0){
     for (i=0; i<data.length;i++){
         var stateANSI = parseFloat(data[i]['State ANSI'])
@@ -228,7 +238,7 @@ function yield_color(year){
           .attr('fill', yield_color_scale(parseFloat(data[i].Value)))}}
 
 
-
+    var high_lighted = []
     if (selected_data.length != 0){
       d3.selectAll('.counties').selectAll('path').attr('fill', 'none')
         for (i=0; i<data.length;i++){
@@ -238,32 +248,39 @@ function yield_color(year){
         var gray_scale = true
         for(j=0; j<selected_data.length; j++){
           if ("c"+county_id==selected_data[j]){
-
+            high_lighted.push(selected_data[j])
             gray_scale=false}
         }
         if (gray_scale==true){
         d3.selectAll('.counties').select('#c'+county_id)
           .attr('fill', gray_color_scale(parseFloat(data[i].Value)))}
         if (gray_scale ==false){
+        
         d3.selectAll('.counties').select('#c'+county_id)
           .attr('fill', yield_color_scale(parseFloat(data[i].Value)))
         }
 
         }
-
-        //for (i=0; i<selected_data.length; i++){
-          //var selected = selected_data[i]
-          //d3.selectAll('.counties').select(selected)
-         // .attr('fill', yield_color_scale(parseFloat(data[i].Value)))
-        //}
+    
     }
-        
-        
+    
+
+    for(i=0; i<selected_data.length; i++) {
+      var county_id = selected_data[i]
+      var colored = false
+      for (j=0; j<high_lighted.length; j++){
+  
+        if(high_lighted[j] == county_id) {colored = true}
+      }
+      if(colored == false){
+         d3.selectAll('.counties').select('#'+county_id).attr('fill', county_fill_color)
+      }
+    }
       
 
    
     generateHist(data)
-    generate_average_hist(yield_average)
+    generate_average_scatterplot(yield_average)
 
     //add year to map:
     Map.select('#yrtooptip').remove()    
@@ -283,6 +300,7 @@ function process_data(){
         var start_id = 0
         var data_for_id = [];
         for(i=0;i<data.length;i++){
+            if (data[i].County != 'OTHER (COMBINED) COUNTIES'){
             all_yields.push(parseFloat(data[i].Value))
             if(start_year==0){
             var current_year = data[i].Year;
@@ -303,7 +321,7 @@ function process_data(){
             if (current_list != null){current_list.push(data[i])}
             
 
-             }
+             }}
 
           var yield_range = d3.extent(all_yields) 
           generate_color_scale(yield_range)
@@ -323,7 +341,7 @@ function process_data(){
             yield_average[years[i]] = sum/current_data.length
 
           }
-          generate_average_hist(yield_average)
+          generate_average_scatterplot(yield_average)
 
           yield_color(parseFloat(d3.min(years)))
 
@@ -336,8 +354,7 @@ function process_data(){
 function generateMap(error, us) {   
 
 
-    //console.log(us)
-    
+   
     Map.append("g")
         .attr("class", "counties")
         .selectAll("path")
@@ -412,54 +429,126 @@ function time_brushed(){
    ////////////////
    ///////////////
 
-function generate_average_hist(data){
-  d3.select('#vis').select("#nat_avg_title").remove()
+function generate_average_scatterplot(data){
+  d3.select('#vis').select("#avg_title").remove()
+  d3.select('#vis').selectAll('.nat_avg').remove()
   var keys = Object.keys(data)
   var xscale = d3.scale.linear().domain(d3.extent(keys)).range([0, TimeVis.w]).clamp(true)
   var yscale = d3.scale.linear().domain(d3.extent(all_yields)).range([0, TimeVis.h])
-  timeslider.append('text')
+
+  if (selected_data.length == 0){
+     timeslider.append('text')
             .attr('x', 0)
             .attr('y', margin.top)
             .text('National Averages:')
-            .attr('id', "nat_avg_title")
-  for(i=0;i<keys.length;i++){
-  var year = keys[i]
-  var datum = data[year]
+            .attr('id', "avg_title")
+  
+ 
+ 
+            for(i=0;i<keys.length;i++){
+            var year = keys[i]
+            var datum = data[year]
 
 
-  timeslider.append('rect')
-            .attr('x', xscale(year))
-            .attr('y', TimeVis.h - yscale(datum)-margin.top)
-            .attr('width', 5)
-            .attr('height', 5)
-            .attr('value', datum)
-            .attr('year', year)
-            .style('fill', yield_color_scale(datum))
-            .attr('class', 'nat_avg')
-            .on('mouseover', function(){
-              d3.select('#vis').select('#avg_yeildttip').remove()
-              var coordinates = d3.mouse(this)
-              var avg_yield = this.getAttribute('value')
-              var avg_year = this.getAttribute('year')
-              timeslider.append('text')
-                        .attr('x', coordinates[0]+5)
-                        .attr('y', coordinates[1]-5)
-                        .text("Nat'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
-                        .attr('id', 'avg_yeildttip')
-                        .style({'font-weight':'bold', 'font-size':15})
 
-              })
-            .on('mouseout', function(){
-              d3.select('#vis').select('#avg_yeildttip').remove()
-            })
-}  } 
+            timeslider.append('rect')
+                      .attr('x', xscale(year))
+                      .attr('y', TimeVis.h - yscale(datum)-margin.top)
+                      .attr('width', 5)
+                      .attr('height', 5)
+                      .attr('value', datum)
+                      .attr('year', year)
+                      .style('fill', yield_color_scale(datum))
+                      .attr('class', 'nat_avg')
+                      .on('mouseover', function(){
+                        d3.select('#vis').select('#avg_yeildttip').remove()
+                        var coordinates = d3.mouse(this)
+                        var avg_yield = this.getAttribute('value')
+                        var avg_year = this.getAttribute('year')
+                        timeslider.append('text')
+                                  .attr('x', coordinates[0]+5)
+                                  .attr('y', coordinates[1]-5)
+                                  .text("Nat'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
+                                  .attr('id', 'avg_yeildttip')
+                                  .style({'font-weight':'bold', 'font-size':15})
+
+                        })
+                      .on('mouseout', function(){
+                        d3.select('#vis').select('#avg_yeildttip').remove()
+                      })
+          }  
+
+}
+
+ if (selected_data.length != 0){
+     timeslider.append('text')
+            .attr('x', 0)
+            .attr('y', margin.top)
+            .text('Regional Averages:')
+            .attr('id', "avg_title")
+
+            var regional_yields = {}
+            for(i=0; i<years.length; i++){
+              regional_yields[years[i]] = {'sum':0, 'count':0, 'avg':0}
+            }
+
+       
+            for(i=0;i<selected_data.length; i++){
+              var datum  = county_ids[selected_data[i]]
+              for(j=0; j<datum.length; j++){
+                regional_yields[datum[j].Year].sum += parseFloat(datum[j].Value)
+                regional_yields[datum[j].Year].count += 1
+              }
+
+            }
+        
+            for(i=0; i<years.length; i++){
+              regional_yields[years[i]].avg = regional_yields[years[i]].sum/regional_yields[years[i]].count
+            }
+
+            for(i=0; i<years.length; i++){
+            var year = years[i]
+            var datum = regional_yields[year].avg
+            //console.log(year, datum)
+            if(!isNaN(datum)){
+            timeslider.append('rect')
+                              .attr('x', xscale(year))
+                              .attr('y', TimeVis.h - yscale(datum)-margin.top)
+                              .attr('width', 5)
+                              .attr('height', 5)
+                              .attr('value', datum)
+                              .attr('year', year)
+                              .style('fill', yield_color_scale(datum))
+                              .attr('class', 'nat_avg')
+                              .on('mouseover', function(){
+                                d3.select('#vis').select('#avg_yeildttip').remove()
+                                var coordinates = d3.mouse(this)
+                                var avg_yield = this.getAttribute('value')
+                                var avg_year = this.getAttribute('year')
+                                timeslider.append('text')
+                                          .attr('x', coordinates[0]+5)
+                                          .attr('y', coordinates[1]-5)
+                                          .text("Nat'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
+                                          .attr('id', 'avg_yeildttip')
+                                          .style({'font-weight':'bold', 'font-size':15})
+
+                                })
+                              .on('mouseout', function(){
+                                d3.select('#vis').select('#avg_yeildttip').remove()
+                              })
+                        }}
+
+ }
+
+} 
 
 function generateHist(data){
     d3.select('#hist').selectAll('.bars').remove()
     d3.select('#hist').selectAll('.axis').remove()
+   
     var bin_values = []
     var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([0,hist_length])
-    var yscale_hist = d3.scale.linear().domain([0, 500]).range([0,hist_height-margin.top])
+    var yscale_hist = d3.scale.linear().domain([0, data.length/10]).range([0,hist_height-margin.top])
 
     // create bin values:
     if (selected_data.length == 0){
@@ -556,7 +645,7 @@ function selected_county_vis(data){
   
   d3.selectAll('.selectVis').remove()
   d3.selectAll('.nat_avg').style('fill', 'gray').style('opacity', 0.5)
-  d3.select('#vis').select("#nat_avg_title").remove()
+  d3.select('#vis').select("#avg_title").remove()
   var count_data = county_ids[data.id]
   var xscale_selectvis = d3.scale.linear().domain([parseFloat(d3.min(years)), parseFloat(d3.max(years))]).range([0, TimeVis.w])
  
@@ -647,8 +736,8 @@ function brushed_2d(){
     }
 
     brushed_county_vis(selected_data)
-
-  if(select_year != null){yield_color(select_year)}
+    generate_average_scatterplot(yield_average)
+  //if(select_year != null){yield_color(select_year)}
 }
 
 ///////////////////
@@ -673,5 +762,7 @@ d3.select("input[value=\"Brush\"]").on("click", function(){
 
 queue()
     .defer(d3.json, "../data/us-named.json")
+  
     .await(generateMap)
+    
 
