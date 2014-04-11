@@ -56,6 +56,8 @@ var histVis = {
     h: 500
 };
 
+///change
+
 var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 var legend_ticks = 100
