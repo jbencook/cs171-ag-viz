@@ -56,12 +56,14 @@ var histVis = {
     h: 500
 };
 
+///change
+
 var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 var legend_ticks = 100
 var legend_height = 75
 var color_range = colorbrewer.YlGn[9].slice(2,8)
-var gray_range = colorbrewer.Greys[9] //['orange', 'darkgreen']
+var gray_range = colorbrewer.Greys[9].slice(2,8) //['orange', 'darkgreen']
 var highlight_color = 'blue'
 var bin_num = 30
 var num_color_bins = 7
@@ -174,6 +176,15 @@ function generate_color_scale(yield_range){
     }
 
 
+function generate_WeatheVis(){
+  var weather_vis = hist_canvas.append('rect').attr('x', 0).attr('y', 0).attr('height', 200).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
+ hist_canvas.append('text').attr('x', margin.left).attr('y', margin.top).text('Weather Data Panel')
+
+ var link =  hist_canvas.append('rect').attr('x', 0).attr('y', 500).attr('height', 20).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
+
+}
+
+
 
 function generate_legend(data){
     //continuous color scale:
@@ -229,20 +240,49 @@ function yield_color(year){
     // New Coloring
 
     var data = data_by_year[year]
-  
+
+    if (selected_data.length == 0){
     for (i=0; i<data.length;i++){
-        if (parseFloat(data[i].Year)==year){
         var stateANSI = parseFloat(data[i]['State ANSI'])
         var countyANSI = data[i]['County ANSI']
         var county_id = ""+stateANSI+""+countyANSI
-     
-        d3.selectAll('.counties').selectAll('[selected="True"]').select('#c'+county_id)
-          .attr('fill', yield_color_scale(parseFloat(data[i].Value)))
-        d3.selectAll('.counties').selectAll('[selected="False"]').select('#c'+county_id)
-          .attr('fill', gray_color_scale(parseFloat(data[i].Value)))
-        
+
+        d3.selectAll('.counties').select('#c'+county_id)
+          .attr('fill', yield_color_scale(parseFloat(data[i].Value)))}}
+
+
+
+    if (selected_data.length != 0){
+      d3.selectAll('.counties').selectAll('path').attr('fill', 'none')
+        for (i=0; i<data.length;i++){
+        var stateANSI = parseFloat(data[i]['State ANSI'])
+        var countyANSI = data[i]['County ANSI']
+        var county_id = ""+stateANSI+""+countyANSI
+        var gray_scale = true
+        for(j=0; j<selected_data.length; j++){
+          if ("c"+county_id==selected_data[j]){
+
+            gray_scale=false}
         }
-      }
+        if (gray_scale==true){
+        d3.selectAll('.counties').select('#c'+county_id)
+          .attr('fill', gray_color_scale(parseFloat(data[i].Value)))}
+        if (gray_scale ==false){
+        d3.selectAll('.counties').select('#c'+county_id)
+          .attr('fill', yield_color_scale(parseFloat(data[i].Value)))
+        }
+
+        }
+
+        //for (i=0; i<selected_data.length; i++){
+          //var selected = selected_data[i]
+          //d3.selectAll('.counties').select(selected)
+         // .attr('fill', yield_color_scale(parseFloat(data[i].Value)))
+        //}
+    }
+        
+        
+      
 
    
     generateHist(data)
@@ -343,7 +383,8 @@ function generateMap(error, us) {
         .attr('id', function(d,i){
           county_ids[('c'+d.id)] = []
           return 'c'+d.id})
-        .attr('selected', 'True')
+        .attr('xpos', function(d,i){return path.centroid(d)[0]})
+        .attr('ypos', function(d,i){return path.centroid(d)[1] + margin.top})
         .on('click', function(){selected_county_vis(this)})
         .on('mousemove', function(){
             d3.select('#vis').select('#cname_tip').remove()
@@ -372,6 +413,7 @@ function generateMap(error, us) {
    //     .attr("d", path)
        
     process_data()
+    generate_WeatheVis()
  
   }
 
@@ -393,6 +435,7 @@ function time_brushed(){
     }
     handle.attr('cx', xtime_range(value))
     //update color 
+    yield_color(select_year)
 
     
   
@@ -621,22 +664,24 @@ function brushed_2d(){
   var extent = d3.event.target.extent()
   var test = 0
   selected_data = []
-  console.log(county_ids)
-  d3.select('#vis').selectAll('.counties').selectAll('path').style('fill', function(d){
-
-    var xpos = path.centroid(d)[0]
-    var ypos = path.centroid(d)[1]+margin.top
-    var ID = 'c'+d.id
+  var keys = Object.keys(county_ids)
+  
+  
+  for(i=0; i<keys.length; i++){
+    var key = keys[i]
+    var county = d3.select('#vis').select('#'+key)
+    
+    if (county[0][0] != null){
+    var xpos = county[0][0].getAttribute('xpos')
+    var ypos = county[0][0].getAttribute('ypos')
     if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
-    selected_data.push(ID)
-
-    return yield_color_scale(parseFloat(county_ids[ID][select_year].Value))}
-    else{ 
-      }})
+    selected_data.push(key)
+    }}
+    }
 
     brushed_county_vis(selected_data)
-    console.log(select_year)
-    if(select_year != null){yield_color(select_year)}
+
+  if(select_year != null){yield_color(select_year)}
 }
 
 ///////////////////
