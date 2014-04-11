@@ -1,6 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/bootstrap.css" media="screen">
+    <link rel="stylesheet" href="/css/bootswatch.min.css">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../bower_components/html5shiv/dist/html5shiv.js"></script>
+      <script src="../bower_components/respond/dest/respond.min.js"></script>
+    <![endif]-->
+    <script>
+
+    // Google Analytics Here
+
+    </script>
+  </head>
+  <body>
+    <script src="/libs/bsa.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-collapse collapse" id="navbar-main">
+          <ul class="nav navbar-nav">       
+            <li>
+            <a href="/">Home</a>
+            </li>
+          </ul>
+
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://github.com/jbencook/cs171-ag-viz" target="_blank">GitHub</a></li>
+<!--             <li><a href="https://github.com/jbencook" target="_blank">GitHub</a></li>
+ -->          </ul>
+
+        </div>
+      </div>
+    </div> 
+
+    <div class="container">
     <form>
   Selection Type:
     <label><input type="radio" name="layout" value="Point" > Point</label>
@@ -11,12 +49,12 @@
 
 
 <body>
-<script type="text/javascript" src="../libs/d3.v3.min.js"></script>
-<script type="text/javascript" src="../libs/topojson.v1.min.js"></script>
-<script type="text/javascript" src="../libs/d3.tip.v0.6.3.js"></script>
-<script type="text/javascript" src="../libs/jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="../libs/colorbrewer.js"></script>
-<script type="text/javascript" src="../libs/queue.v1.min.js"></script>
+<script type="text/javascript" src="/libs/d3.v3.min.js"></script>
+<script type="text/javascript" src="/libs/topojson.v1.min.js"></script>
+<script type="text/javascript" src="/libs/d3.tip.v0.6.3.js"></script>
+<script type="text/javascript" src="/libs/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="/libs/colorbrewer.js"></script>
+<script type="text/javascript" src="/libs/queue.v1.min.js"></script>
 
 <style type="text/css">
     svg{
@@ -138,5 +176,9 @@
 
 <script src="CountyData.js"></script>
 
+</div>
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="/libs/bootstrap.min.js"></script>
+    <script src="/libs/bootswatch.js"></script>
 </body>
 </html>
