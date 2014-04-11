@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <form>
+  Selection Type:
+    <label><input type="radio" name="layout" value="Point" > Point</label>
+    <label><input type="radio" name="layout" value="Brush" checked> Brush</label>
+  </form>
     <title></title>
 </head>
 
@@ -25,7 +30,7 @@
 
     .counties {
       fill: none;
-      stroke: steelblue;
+      stroke: darkgray;
     }
 
     .states {
@@ -38,7 +43,13 @@
     .country{
         fill: lightgrey;
         /*fill: #dffaff;*/
-        stroke:  steelblue;
+        stroke:  darkgray;
+    }
+
+    .counties .path .selected{
+        fill: yellow;
+        /*fill: #dffaff;*/
+        stroke:  darkgray;
     }
 
     text{
@@ -118,8 +129,11 @@
 <div id="title"></div>
 
 <table>
-    <tr><td><div id="vis"></div></td><td><div id="detailVis"></div></td></tr>
+    <tr><td><div id="vis"></div></td><td><div id='hist'></div></td></tr>
 </table>
+<table>
+    <tr><div id="timeslider"></div></tr>
+ </table>
 
 
 <script src="CountyData.js"></script>
