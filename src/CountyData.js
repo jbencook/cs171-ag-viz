@@ -50,11 +50,19 @@ var TimeVis = {
 
 
 var histVis = {
-    x: 100,
-    y: 10,
-    w: 400,
-    h: 500
+    x: 0,
+    y: 0,
+    w: 250,
+    h: 250
 };
+
+var weatherVis = {
+    x: 0,
+    y: 0,
+    w: 300,
+    h: 300
+
+}
 
 ///change
 
@@ -65,12 +73,22 @@ var legend_height = 75
 var color_range = colorbrewer.YlGn[9].slice(2,8)
 var gray_range = colorbrewer.Greys[9].slice(2,8) //['orange', 'darkgreen']
 var highlight_color = 'blue'
+var HLT_color = 'blue'
+var HLTavg_color= 'none'
 var bin_num = 30
 var num_color_bins = 7
 var hist_height = 100
 var hist_length = 250
+var weather_data_length = 12
+var weather_radius = 10
+var station_path = '../data/station_03312014.csv'
+var gdd_path = "../data/gdd.json"
+var yield_path = '../data/county_yield_small_1910_2013.csv'
 var brush_highlight_color = '#FFFF6C'
 var county_fill_color = '#E2C670'
+var weather_colors = colorbrewer.RdBu[9]
+var checked = false
+var keep_marks = false
 var remove_counties = ["c15001", "c15009", "c15009", "c15009", "c15009", "c15003","c15007", "c15007", "c2016", "c2013", "c2130", "c2060", "c2070", "c2164", "c2150", "c2110", "c2280", "c2232", "c2100", "c2220", "c2270", "c2050", "c2170", "c2068", "c2020", "c2261", "c2122", "c2282", "c2290", "c2090", "c2240", "c2185", "c2188", "c2180", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201"]
 /////////////////////////
 ////////////////////////
@@ -85,7 +103,10 @@ var data_by_year = {}
 var data_by_id = {}
 var all_yields = []
 var county_ids = {}
+var  county_to_station = {}
 var yield_average = {}
+var all_stations = []
+var selected_stations = []
 var years, selected_data, select_year
 /////////////////////////
 ////////////////////////
@@ -106,10 +127,18 @@ var title = d3.select("#title")
 
 
 var hist_canvas = d3.select("#hist").append('svg').attr({
-    width: width + margin.left + margin.right,
-    height: TimeVis.h+ margin.top + margin.bottom,})
-    .attr("width", histVis.w)
-    .attr("height", histVis.h)
+    width: histVis.w + margin.left + margin.right,
+    height: histVis.h+ margin.top + margin.bottom,})
+  
+
+
+var weather_vis = d3.select("#weather").append('svg').attr({
+    width: weatherVis.w + margin.left + margin.right,
+    height: weatherVis.h+ margin.top + margin.bottom,})
+                 
+                    .attr('x', weatherVis.x)
+                    .attr('y', weatherVis.y)
+
 
 
 var canvas = d3.select("#vis").append("svg").attr({
@@ -171,23 +200,329 @@ function generate_color_scale(yield_range){
         gray_color_scale = d3.scale.quantize().domain(yield_range).range(gray_range)
     }
 
+function create_checks(){
+  var Tcount = 0
+  var avgTcount = 0
+  d3.select("#right").select('#weather').select('#averageT_check').remove()
+  d3.select("#right").select('#weather').select('#averageP_check').remove()
+  d3.select("#right").select('#weather').select('#T_check').remove()
+  d3.select("#right").select('#weather').select('#P_check').remove()
+  d3.select("#right").select('#weather').select('svg')
+       .append("foreignObject")
+       .attr("width", 200)
+       .attr("height", 100)
+       .attr('x', 0)
+       .attr('y', weatherVis.h)
+       .attr("type", "checkbox")
+       .append("xhtml:body")
+       .html("<form><input type=checkbox id=avgT_check /> Average Temperature</form>")
+       .attr('id', 'averageT_check')
+       .on('change', function(){
+     
+        if (avgTcount%2 != 0){
+          d3.select('#right').select('#weather').selectAll('.avg_temps').style('stroke', 'none')
+          
+        }
+        if (avgTcount%2 == 0){
 
-function generate_WeatheVis(){
+          d3.select('#right').select('#weather').selectAll('.avg_temps').style('stroke', 'gray')
+          
+        }
+        avgTcount += 1
+        
 
-    d3.json("../data/gdd.json", function(data){
+       })
+  d3.select("#right").select('#weather').select('svg')
+       .append("foreignObject")
+       .attr("width", 200)
+       .attr("height", 100)
+       .attr('x', 150)
+       .attr('y', weatherVis.h)
+       .attr("type", "checkbox")
+       .append("xhtml:body")
+       .html("<form><input type=checkbox id=avgP_check /> Average Precipitation</form>")
+       .attr('id', 'averageP_check')
+       .on('change', function(){
+        
+       })
+  d3.select("#right").select('#weather').select('svg')
+       .append("foreignObject")
+       .attr("width", 200)
+       .attr("height", 100)
+       .attr('x', 0)
+       .attr('y', weatherVis.h -25)
+       .attr("type", "checkbox")
+       .append("xhtml:body")
+       .html("<form><input type=checkbox id=T_check checked/> Temperature</form>")
+       .attr('id', 'T_check')
+       .on('change', function(){
+ 
+        if (Tcount%2 != 0){
+          d3.select('#right').select('#weather').selectAll('.temps').style('stroke', 'black')
+          
+        }
+        if (Tcount%2 == 0){
 
-     //console.log(data)
+          d3.select('#right').select('#weather').selectAll('.temps').style('stroke', 'none')
+          
+        }
+        Tcount += 1
+       })
+  d3.select("#right").select('#weather').select('svg')
+       .append("foreignObject")
+       .attr("width", 200)
+       .attr("height", 100)
+       .attr('x', 150)
+       .attr('y', weatherVis.h-25)
+       .attr("type", "checkbox")
+       .append("xhtml:body")
+       .html("<form><input type=checkbox id=P_check /> Precipitation</form>")
+       .attr('id', 'P_check')
+       .on('change', function(){console.log('hi')})
 
-    }) 
+   
+
+}
+
+
+
+function create_hlchecks(){
+
+ var Tcount = 0
+ var avgTcount = 0
+ d3.select("#right").select('#weather').select('#HLaverageT_check').remove()
+ d3.select("#right").select('#weather').select('#HLT_check').remove()
+ d3.select("#right").select('#weather').select('svg')
+ d3.select("#right").select('#weather').select('svg')
+       .append("foreignObject")
+       .attr("width", 200)
+       .attr("height", 100)
+       .attr('x', 0)
+       .attr('y', weatherVis.h -50)
+       .attr("type", "checkbox")
+       .append("xhtml:body")
+       .html("<form><input type=checkbox id=HLT_check checked/> Highlighted Temp</form>")
+       .attr('id', 'HLT_check')
+       .on('change', function(){
+ 
+        if (Tcount%2 != 0){
+          HLT_color = 'blue'
+          d3.select('#right').select('#weather').selectAll('.highlighted_weather').style('stroke', HLT_color)
+          
+        }
+        if (Tcount%2 == 0){
+          HLT_color = 'none'
+          d3.select('#right').select('#weather').selectAll('.highlighted_weather').style('stroke', HLT_color)
+          
+        }
+        Tcount += 1
+       })
+  d3.select("#right").select('#weather').select('svg')
+       .append("foreignObject")
+       .attr("width", 200)
+       .attr("height", 100)
+       .attr('x', 150)
+       .attr('y', weatherVis.h-50)
+       .attr("type", "checkbox")
+       .append("xhtml:body")
+       .html("<form><input type=checkbox id=HLavgT_check /> Highligthed Average Temp</form>")
+       .attr('id', 'HLaverageT_check')
+       .on('change', function(){
+        if (avgTcount%2 != 0){
+          HLTavg_color = 'none'
+          d3.select('#right').select('#weather').selectAll('.HL_avg_temps').style('stroke', HLTavg_color)
+          
+        }
+        if (avgTcount%2 == 0){
+          HLTavg_color = 'purple'
+          d3.select('#right').select('#weather').selectAll('.HL_avg_temps').style('stroke', HLTavg_color)
+          
+        }
+        avgTcount += 1
+        
+       })  
+
+
+}
+
+
+function generate_WeatheVis(stations, path, year){
+
+    
+    d3.select('#weather').selectAll(".axis").remove()
+    d3.select('#weather').selectAll(".temps").remove()
+    d3.select('#weather').selectAll(".highlighted_weather").remove()
+    d3.select('#weather').selectAll('.avg_temps').remove()
+    d3.select('#weather').selectAll('.HL_avg_temps').remove()
+  
+
+    var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w])
+    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h])
+    var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors)
+    d3.json(path, function(data){
+    var station_totals = {}
+     if (stations.length != 0){
+     
+
+      
+     for (i=0; i<weather_data_length;i++ ){
+      station_totals[i] = {"sum":0, 'count':0, 'average':0}
+     }
+
+     for(i=0; i < stations.length; i++){
+      var key = stations[i]+String(select_year)
+      var ggd_data = data[key]
+      var weather_path = ''
+      if(ggd_data != null){
+
+      for (j=0; j<weather_data_length; j++){
+        station_totals[j].sum += ggd_data[j]
+        station_totals[j].count += 1
+        var xpos = weather_xscale(j)
+        var ypos = weather_yscale(ggd_data[j])
+        if (j == 0){
+          weather_path = 'M '+xpos+" "+ypos
+        }
+        if (j != 0){
+          weather_path += " L "+xpos+" "+ypos
+        }
+      }
+      
+      weather_vis.append('path')
+                 .attr('d', weather_path)
+                 .attr('class', 'temps')
+                 .attr('fill', 'none')
+                 .attr('stroke', 'black')
+      
+     }}
+
+
+     var avg_weather_path = ''
+     var start = 0 
+     for (i=0; i<weather_data_length;i++ ){
+      station_totals[i].average = station_totals[i].sum/station_totals[i].count
+      
+      if (!isNaN(station_totals[i].average)){
+      var xpos = weather_xscale(i)
+      var ypos = weather_yscale(station_totals[i].average)
+      if (start != 0){avg_weather_path += " L "+xpos+" "+ypos}
+      if (start == 0){
+          avg_weather_path = 'M '+xpos+" "+ypos
+          start = 1}
+        
+     }
+      if (avg_weather_path != ''){
+
+      var yAxis = d3.svg.axis().scale(weather_yscale).orient('right').tickFormat(d3.format("d"))
+      var xAxis = d3.svg.axis().scale(weather_xscale).orient('bottom').tickFormat(d3.format("d"))
+     
+      weather_vis.append('g')
+                 .call(xAxis).attr('transform',  "translate("+(0)+","+(weatherVis.h-margin.top-25)+")")
+                 .attr('class', 'axis')
+                 .selectAll('text')
+                 .attr('y',0)
+                 .attr('x',+20)
+                 .attr('transform', 'rotate(90)')  
+                 .style('font-size', 10)
+
+
+       create_checks()
+       weather_vis.append('path')
+                   .attr('d', avg_weather_path)
+                   .attr('class', 'avg_temps')
+                   .attr('fill', 'none')
+                   .attr('stroke', 'none')
+                   .attr('stroke-width', 5)
+                   .attr('stroke-dasharray', "5,5")}
+      
+         
+  }}
+  }) 
 
   
 
   
-  //var weather_vis = hist_canvas.append('rect').attr('x', 0).attr('y', 0).attr('height', 200).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
- //hist_canvas.append('text').attr('x', margin.left).attr('y', margin.top).text('Weather Data Panel')
+  
 
- //var link =  hist_canvas.append('rect').attr('x', 0).attr('y', 500).attr('height', 20).attr('width', 250).attr('fill', 'none').attr('stroke', 'black')
+}
 
+function highlighted_weather(highlighted, path, year){
+      d3.select('#weather').selectAll(".highlighted_weather").remove()
+      d3.select('#weather').selectAll(".HL_avg_temps").remove()
+      var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w])
+      var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h])
+  
+      d3.json(path, function(data){
+      var station_totals = {}
+      for (i=0; i<weather_data_length;i++ ){
+      station_totals[i] = {"sum":0, 'count':0, 'average':0}
+     }
+
+      for(i=0; i< highlighted.length; i ++){
+          var stations = county_to_station[highlighted[i]]
+          for(j=0; j<stations.length; j++){
+            var key = stations[j] + String(year)
+            var ggd_data = data[key]
+            var weather_path = ''
+            if(ggd_data != null){
+
+            for (k=0; k<weather_data_length; k++){
+              station_totals[k].sum += ggd_data[k]
+              station_totals[k].count += 1
+              var xpos = weather_xscale(k)
+              var ypos = weather_yscale(ggd_data[k])
+              if (k == 0){
+                weather_path = 'M '+xpos+" "+ypos
+              }
+              if (k != 0){
+                weather_path += " L "+xpos+" "+ypos
+              }
+            }
+            weather_vis.append('path')
+                 .attr('d', weather_path)
+                 .attr('class', 'highlighted_weather')
+                 .attr('fill', 'none')
+                 .attr('stroke', HLT_color)
+
+          }}}
+          var avg_weather_path = ''
+         var start = 0 
+         for (i=0; i<weather_data_length;i++ ){
+          station_totals[i].average = station_totals[i].sum/station_totals[i].count
+
+          if (!isNaN(station_totals[i].average)){
+              var xpos = weather_xscale(i)
+              var ypos = weather_yscale(station_totals[i].average)
+              if (start != 0){avg_weather_path += " L "+xpos+" "+ypos}
+              if (start == 0){
+                  avg_weather_path = 'M '+xpos+" "+ypos
+                  start = 1}
+                
+             }
+              if (avg_weather_path != ''){
+                if (keep_marks == false){create_hlchecks()}
+                
+               checked = true
+               weather_vis.append('path')
+                           .attr('d', avg_weather_path)
+                           .attr('class', 'HL_avg_temps')
+                           .attr('fill', 'none')
+                           .attr('stroke', HLTavg_color)
+                           .attr('stroke-width', 5)
+                           .attr('stroke-dasharray', "5,5")}
+                 }
+  }) 
+
+      
+  
+
+
+
+
+
+    
+    
+  
 }
 
 
@@ -228,7 +563,7 @@ function yield_color(year){
 
     var data = data_by_year[year]
    
-    if (selected_data.length == 0){
+    if (selected_data.length == 0 && data != null){
     for (i=0; i<data.length;i++){
         var stateANSI = parseFloat(data[i]['State ANSI'])
         var countyANSI = data[i]['County ANSI']
@@ -292,9 +627,9 @@ function yield_color(year){
     }
 
 
-function process_data(){
+function process_data(path){
     
-    d3.csv('../data/county_yield_small_1910_2013.csv', function(data){
+    d3.csv(path, function(data){
         var start_year = 0
         var data_for_year = [];
         var start_id = 0
@@ -350,8 +685,55 @@ function process_data(){
         
     }
 
+function load_station_Data(path){
+  var station_over_lay = Map.append('g').attr('class', 'stations')
+  var keys = Object.keys(county_ids)
+  
+  d3.csv(path, function(data){
+    for(i=0; i<data.length; i++){
+      all_stations.push(data[i].code)
+      var coordinates = projection([parseFloat(data[i].lon),parseFloat(data[i].lat)])
+
+      station_over_lay.append('circle')
+         .attr('cx', coordinates[0])
+         .attr('cy', coordinates[1])
+         .attr('r', 0)
+         .attr('id', 's'+ data[i].code)
+         .attr('value', data[i].code)
+         .attr('class', 'station')
+    }
+
+
+
+/////////////// HUGE WASTE OF TIME ///////////////// Need to revamp the dataset:
+
+    for(i=0; i< keys.length; i ++){
+    var key = keys[i]
+    
+    if (d3.select('#vis').select('#'+key)[0][0] != null){
+    county_to_station[key] = {}
+    var xpos = d3.select('#vis').select('#'+key)[0][0].getAttribute('xpos')
+    var ypos = d3.select('#vis').select('#'+key)[0][0].getAttribute('ypos')
+    var current_set = []
+    for(j=0; j<data.length; j++){
+      var coordinates = projection([parseFloat(data[j].lon),parseFloat(data[j].lat)])
+      if(coordinates[0] <= xpos+weather_radius && xpos-weather_radius< coordinates[0] && coordinates[1] <= ypos+weather_radius && ypos-weather_radius < coordinates[1]){
+        current_set.push( data[j].code)
+      }
+    }
+    county_to_station[key] = current_set
+    }
+
+  }
+
+    generate_WeatheVis(all_stations, gdd_path, select_year)
+
+
+    })
+}
 
 function generateMap(error, us) {   
+
 
 
    
@@ -396,8 +778,10 @@ function generateMap(error, us) {
    //     .attr("class", "states")
    //     .attr("d", path)
        
-    process_data()
-    generate_WeatheVis()
+    process_data(yield_path)
+    
+    load_station_Data(station_path)
+    
  
   }
 
@@ -420,6 +804,9 @@ function time_brushed(){
     handle.attr('cx', xtime_range(value))
     //update color 
     yield_color(select_year)
+    //load weather data:
+    
+    generate_WeatheVis(selected_stations, gdd_path, select_year)
 
     
   
@@ -509,7 +896,7 @@ function generate_average_scatterplot(data){
             for(i=0; i<years.length; i++){
             var year = years[i]
             var datum = regional_yields[year].avg
-            //console.log(year, datum)
+      
             if(!isNaN(datum)){
             timeslider.append('rect')
                               .attr('x', xscale(year))
@@ -528,7 +915,7 @@ function generate_average_scatterplot(data){
                                 timeslider.append('text')
                                           .attr('x', coordinates[0]+5)
                                           .attr('y', coordinates[1]-5)
-                                          .text("Nat'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
+                                          .text("Reg'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
                                           .attr('id', 'avg_yeildttip')
                                           .style({'font-weight':'bold', 'font-size':15})
 
@@ -547,16 +934,16 @@ function generateHist(data){
     d3.select('#hist').selectAll('.axis').remove()
    
     var bin_values = []
-    var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([0,hist_length])
-    var yscale_hist = d3.scale.linear().domain([0, data.length/10]).range([0,hist_height-margin.top])
+
+    
 
     // create bin values:
     if (selected_data.length == 0){
     for (i=0;i<data.length; i++){
         bin_values.push(parseFloat(data[i].Value))}}
-    //console.log(selected_data)
+
     for (i=0; i < selected_data.length; i++){
-          yscale_hist.domain([0, selected_data.length])
+         
           var datum = county_ids[selected_data[i]]
           for(j=0; j<datum.length; j++){
             if (datum[j].Year == data[0].Year){
@@ -565,15 +952,22 @@ function generateHist(data){
           }
           }
 
+    var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([0,histVis.w])
+    var yscale_hist = d3.scale.linear().domain([0, bin_values.length]).range([5,histVis.h])
+
 
     var hist_data = d3.layout.histogram().bins(xscale_hist.ticks(bin_num))(bin_values);
     var data_for_bins = {}
     
     hist_canvas.selectAll('.bars').data(hist_data).enter().append('rect')
-               .attr('height', function(d,i){return yscale_hist(d.y)})
-               .attr('width', hist_length/bin_num)
-               .attr('x', function(d,i){return i*hist_length/bin_num})
-               .attr('y', function(d,i){return .9*histVis.h - yscale_hist(d.y)})
+               .attr('height', function(d,i){
+                if(d.y == 0){ return 0}
+                if(d.y != 0){return yscale_hist(d.y)}})
+               .attr('width', histVis.w/bin_num)
+               .attr('x', function(d,i){return i*histVis.w/bin_num})
+               .attr('y', function(d,i){
+                if(d.y == 0){ return histVis.h}
+                if(d.y != 0){return histVis.h - yscale_hist(d.y)}})
                .attr('fill', function(d,i){return yield_color_scale(d.x)})
                .attr('class', 'bars')
                .attr('id', function(d,i){return 'b'+i})
@@ -585,14 +979,14 @@ function generateHist(data){
     var xAxis = d3.svg.axis().scale(xscale_hist).orient('bottom').tickFormat(d3.format("d"))
    
     hist_canvas.append('g')
-               .call(xAxis).attr('transform',  "translate("+(0)+","+(.9*histVis.h)+")")
+               .call(xAxis).attr('transform',  "translate("+(0)+","+(histVis.h)+")")
                .attr('class', 'axis')
                .selectAll('text')
                .attr('y',0)
                .attr('x',+20)
                .attr('transform', 'rotate(90)')  
                .style('font-size', 10)
-    hist_canvas.append('text').attr('y', histVis.h).attr('x', histVis.w/2-margin.left).text('Yield').style('font-weight', 'bold').attr('class', 'axis')
+    //hist_canvas.append('text').attr('y', histVis.h).attr('x', histVis.w/2-margin.left).text('Yield').style('font-weight', 'bold').attr('class', 'axis')
 
     d3.select('#hist').selectAll('.bars')
       .on('mousemove', function(){
@@ -608,15 +1002,14 @@ function generateHist(data){
                    .attr('y', coordinates[1]-5)
                    .text('Bin Count: '+bin_count)
                    .attr('id', 'bcount_tip')
-                   .style('font-weight', 'bold')})
-      .on('mouseout', function(){
-        d3.select('#hist').select('#bcount_tip').remove()})
-      .on('click', function(){
-        yield_color(data[0].Year)
+                   .style('font-weight', 'bold')
+
+      if(checked == true){
+       yield_color(data[0].Year)
         var bin_min = d3.min(this.__data__)
         var bin_max = d3.max(this.__data__)
         d3.select('#hist').select('#'+this.id).style('fill', highlight_color)
-       
+        var highlightd_counties = [] 
         for (i=0; i<data.length; i++){
             if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
                 var stateANSI = parseFloat(data[i]['State ANSI'])
@@ -624,7 +1017,36 @@ function generateHist(data){
                 var county_id = ""+stateANSI+""+countyANSI
                 d3.selectAll('.counties').select('#c'+county_id)
                   .attr('fill', highlight_color)
-            }}})
+                highlightd_counties.push('c'+county_id)
+                
+            }}
+          keep_marks = true
+          highlighted_weather(highlightd_counties, gdd_path, select_year)
+
+      }})
+
+      .on('mouseout', function(){
+        d3.select('#weather').selectAll(".highlighted_weather").remove()
+        d3.select('#weather').selectAll('.HL_avg_temps').remove()
+        d3.select('#hist').select('#bcount_tip').remove()})
+      .on('click', function(){
+        yield_color(data[0].Year)
+        var bin_min = d3.min(this.__data__)
+        var bin_max = d3.max(this.__data__)
+        d3.select('#hist').select('#'+this.id).style('fill', highlight_color)
+        var highlightd_counties = [] 
+        for (i=0; i<data.length; i++){
+            if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
+                var stateANSI = parseFloat(data[i]['State ANSI'])
+                var countyANSI = data[i]['County ANSI']
+                var county_id = ""+stateANSI+""+countyANSI
+                d3.selectAll('.counties').select('#c'+county_id)
+                  .attr('fill', highlight_color)
+                highlightd_counties.push('c'+county_id)
+                
+            }}
+          highlighted_weather(highlightd_counties, gdd_path, select_year)
+          })
 
 }   
 
@@ -635,7 +1057,7 @@ function brushed_county_vis(data){
 
   if (select_year != null){yield_color(select_year)}
   
-  //console.log(county_ids)
+
   for(i=0; i<data.length;i++){
     var county_id = "c"+data[i]
   }
@@ -717,12 +1139,15 @@ canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).c
 
 
 function brushed_2d(){
+  checked = false
+  
   var extent = d3.event.target.extent()
   var test = 0
   selected_data = []
+  
   var keys = Object.keys(county_ids)
   
-  
+  //select counties
   for(i=0; i<keys.length; i++){
     var key = keys[i]
     var county = d3.select('#vis').select('#'+key)
@@ -735,9 +1160,31 @@ function brushed_2d(){
     }}
     }
 
+
+
+    //select weather station
+    for(i=0; i<all_stations.length; i++){
+    var station = all_stations[i]
+    var station_data = d3.select('#vis').select('#s'+station)
+    
+    if (station_data[0][0] != null){
+    var xpos = station_data[0][0].getAttribute('cx')
+    var ypos = station_data[0][0].getAttribute('cy')
+    if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
+    selected_stations.push(station)
+    }}
+    }
+
+
+
+
+
+
     brushed_county_vis(selected_data)
     generate_average_scatterplot(yield_average)
-  //if(select_year != null){yield_color(select_year)}
+
+    
+    generate_WeatheVis(selected_stations, gdd_path, select_year)
 }
 
 ///////////////////
