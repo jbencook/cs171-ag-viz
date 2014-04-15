@@ -49,6 +49,8 @@ var colors = d3.scale.quantize()
     .range(colorbrewer.YlGn[9])
     // .range([colorMin, colorMax])
     // .interpolate(d3.interpolateHcl);
+var colors_grey = d3.scale.quantize()
+    .range(colorbrewer.Greys[9])
 
 // Define map projection
 var projection = d3.geo.albers().scale(5000000);
@@ -61,15 +63,19 @@ var xAxis, yAxis, xScale, yScale;
 var xAxis_soil, yAxis_soil, xScale_soil, yScale_soil
 
 // Globals for interaction between sections
-var bar, bar2, bins;
+var bar, bar2, bins, hist_values;
 var brushHist;
 var brushField;
+
+var yieldMean, yieldMean_select
 
 // Formatters
 var formatCount = d3.format(",.2f");
 var formatCoords = d3.format(".4f");
 
-// var formatYield = d3.format(".2f");
+
+
+
 
 
 // Add Title
@@ -91,6 +97,15 @@ canvas.append("rect")
     .attr("class", "background")
     .attr("width", bbFieldVis.w)
     .attr("height", bbFieldVis.h)
+    .on("click", function(d) {
+            var select_values = []
+            fieldVis.selectAll(".point")
+                .transition().duration(0)
+                .style("fill", function(d){return colors(d.yld)})
+            histYield_select(select_values);
+            yieldMean_select.attr("visibility", "hidden");
+            
+        })
 
 var fieldVis = canvas.append("g");
 
@@ -125,6 +140,16 @@ yieldMeta.append("rect")
     .attr("height", bbYieldMeta.h)
 
 
+///////////////////
+//////////////////
+// Radial Button Toggle
+/////////////////
+/////////////////
+// button updates:
+d3.select("input[value=\"Point\"]").on("click", function(){d3.selectAll('.brush').remove()});
+d3.select("input[value=\"Brush\"]").on("click", function(){
+  // d3.selectAll('.selectVis').remove()
+  canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
 
 
 
@@ -141,11 +166,21 @@ function createVis(error, geo_data, yield_data, price) {
 
     var x = path.centroid(geo_data.features[2]);
 
-    loadMap(x)
+    // loadMap(x)
     
     projection.translate([bbFieldVis.w - x[0], bbFieldVis.h - x[1]]);
 
     timeSeries(price);
+
+    hist_values = []
+    yield_data.forEach(function(d) {hist_values.push(parseInt(d.yld))})
+
+    xScale = d3.scale.linear()
+        .domain([d3.min(hist_values),d3.max(hist_values)])
+        .range([25, bbYieldHist.w - 25]);
+
+    colors.domain(d3.extent(hist_values));
+    colors_grey.domain(d3.extent(hist_values));
 
     point = fieldVis.selectAll(".point")
         .data(yield_data)
@@ -175,15 +210,21 @@ function createVis(error, geo_data, yield_data, price) {
         .style("opacity", 1)
         .on("mouseover", showYield)
         .on("mouseout", hideYield)
-        // .on("click", function(d) {
-        //     fieldVis.selectAll(".point")
-        //         .transition().duration(0)
-        //         .style("opacity", 0.1)
-        //     fieldVis.selectAll("[soil = '" + d.soil + "']")
-        //         .transition().duration(0)
-        //         .style("opacity", 1)
+        .on("click", function(d) {
+            var select_values = []
+            fieldVis.selectAll(".point")
+                .transition().duration(0)
+                .style("fill", function(d){return colors_grey(d.yld)})
+            fieldVis.selectAll("[soil = '" + d.soil + "']")
+                .transition().duration(0)
+                .style("fill", function(d){
+                    select_values.push(parseInt(d.yld));
+                    // 
+                    return colors(d.yld)
+                })
+            histYield_select(select_values);
             
-        // })
+        })
         
 
     fieldVis.selectAll(".background")
@@ -212,12 +253,12 @@ function createVis(error, geo_data, yield_data, price) {
 
 function loadMap(center_coord) {
     // Create the Google Map…
-    var map = new google.maps.Map(d3.select("#map").node(), {
-      zoom: 16,
-      center: new google.maps.LatLng(41.2531, -97.1440),
-      mapTypeId: google.maps.MapTypeId.HYBRID
+    var map = new google.maps.Map(d3.select("#fieldVis").node(), {
+        zoom: 16,
+        center: new google.maps.LatLng(41.2531, -97.1440),
+        mapTypeId: google.maps.MapTypeId.HYBRID
     });
-
+    
     var overlay = new google.maps.OverlayView();
 
     // Add the container when the overlay is added to the map.
@@ -267,24 +308,27 @@ var histYield_data, binWidth;
 
 function histYield(yield_data) {
 
-    var values = []
-    yield_data.forEach(function(d) {values.push(parseInt(d.yld))})
+    // hist_values = []
+    // yield_data.forEach(function(d) {hist_values.push(parseInt(d.yld))})
 
-    xScale = d3.scale.linear()
-        .domain([d3.min(values),d3.max(values)])
-        .range([25, bbYieldHist.w - 25]);
+    // xScale = d3.scale.linear()
+    //     .domain([d3.min(hist_values),d3.max(hist_values)])
+    //     .range([25, bbYieldHist.w - 25]);
 
-    colors.domain(d3.extent(values));
+    // colors.domain(d3.extent(hist_values));
 
     // Generate a histogram using twenty uniformly-spaced bins.
     var histYield_data = d3.layout.histogram()
         //.bins(xScale.ticks(20))
-        (values);
+        (hist_values);
+
+    console.log(histYield_data, d3.extent(hist_values))
+    console.log(histYield_data[0].x, histYield_data[0].dx, Math.ceil(histYield_data[histYield_data.length-1].x + histYield_data[0].dx))
 
     bins = histYield_data.length;
 
-    binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data.length
-
+    binWidth = (d3.extent(hist_values)[1] - d3.extent(hist_values)[0]) / histYield_data.length
+    console.log(binWidth)
 
     point.attr("bin", function(d) {
             return Math.round((d.yld / binWidth) - 1)
@@ -321,7 +365,7 @@ function histYield(yield_data) {
 
     // Add histogram brush
     brushHist = d3.svg.brush()
-        .x(d3.scale.linear().domain(d3.extent(values)).range([25, bbYieldHist.w - 25]))
+        .x(d3.scale.linear().domain(d3.extent(hist_values)).range([25, bbYieldHist.w - 25]))
         // .x(d3.scale.linear().domain([0, 100]).range([25, bbYieldHist.w - 25]))
         .on("brush", brushedHist)
 
@@ -333,19 +377,43 @@ function histYield(yield_data) {
         .attr("height", bbYieldHist.h - 50)
         // .on("mouseup", highlightBrushedYield);
 
-    fieldVis.on("mouseover", console.log("test"))
+
+
+    yieldMean = yieldHist.append("line")
+        .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
+        .attr("stroke-width", 3)
+        .attr("stroke", "black")
+        .attr("fill", "black")
+        .attr("visibility", "visible")
+
+    yieldMean_select = yieldHist.append("line")
+        .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
+        .attr("stroke-width", 3)
+        .attr("stroke", "darkorange")
+        .attr("fill", "darkorange")
+        .attr("visibility", "hidden")
+
+    // price.on("click", function() {
+    //     value.text("$ " + d3.round(data[d3.round(x_reversed(d3.mouse(this)[0]))].price * 29712))
+    //     vertLine.attr({"x1": d3.mouse(this)[0], "x2": d3.mouse(this)[0]})
+    //         .attr("visibility", "visible");
+    //     })
 
 }
 
-function histYield_select(values) {
+function histYield_select(select_values) {
 
     // Generate a histogram using twenty uniformly-spaced bins.
     var histYield_data2 = d3.layout.histogram()
+        .range(d3.extent(hist_values))
         .bins(bins)
-        (values);
+        (select_values);
 
+    if (select_values.length == 0) { 
+        yieldMean_select.attr("visibility", "hidden");
+    };
     yieldHist.selectAll(".bar_sub").remove()
-    console.log(histYield_data2.length)
+    // console.log(histYield_data2)
     bar2 = yieldHist.selectAll(".bar_sub")
         .data(histYield_data2)
         .enter().append("g")
@@ -354,13 +422,17 @@ function histYield_select(values) {
 
     bar2.append("rect")
         .style("fill", "#f1a340")
-
-    // binWidth = (d3.extent(values)[1] - d3.extent(values)[0]) / histYield_data2.length
-
         .attr("x", 1)
         .attr("y", -25)
         .attr("width", 20)
         .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); });
+
+    if (select_values.length != 0) {
+        yieldMean_select.attr({"x1": xScale(d3.mean(select_values)), "x2": xScale(d3.mean(select_values))})
+            .attr("visibility", "visible");
+    }
+    
+
 
 }
 
@@ -390,7 +462,7 @@ function histSoil(yield_data) {
 function brushedHist() {
     var extent = brushHist.extent();
     bar.selectAll("rect").style("fill", function(d) {
-        if((d.x + d.dx >= extent[0]) & (d.x < extent[1])) {
+        if((d.x + d.dx >= extent[0]) & (d.x <= extent[1])) {
             return "#f1a340"
         } else {
             return null
@@ -402,10 +474,11 @@ function brushedHist() {
 function highlightBrushedYield(){
     var extent = brushHist.extent();
     point.transition().style("fill", function(pt) {
-        if(pt.yld >= Math.round((extent[0] / binWidth) - 1) * binWidth & pt.yld <= Math.round((extent[1] / binWidth)) * binWidth) {
-            return "#f1a340";
-        } else {
+        if(pt.yld >= Math.floor((extent[0] / binWidth) - 1) * binWidth & pt.yld <= Math.ceil((extent[1] / binWidth)) * binWidth) {
+            // return "#f1a340";
             return colors(pt.yld);
+        } else {
+            return colors_grey(pt.yld);
         }
     });
 
@@ -420,18 +493,18 @@ function brushedField() {
     var brush_max = projection.invert(extent[1])
     
     bar.selectAll("rect").style("fill", null);
-    var values = []
+    var select_values = []
     point.transition().duration(0).style("fill", function(pt) {
 
         if(pt.lon >= brush_min[0] && pt.lon <= brush_max[0] && pt.lat >= brush_max[1] && pt.lat <= brush_min[1]) {
-            values.push(parseInt(pt.yld))
-            return d3.rgb(colors(pt.yld)).darker(1);
-        } else {
+            select_values.push(parseInt(pt.yld))
             return colors(pt.yld);
+        } else {
+            return colors_grey(pt.yld);
         }
     });
 
-    histYield_select(values);
+    histYield_select(select_values);
 }
 
 
