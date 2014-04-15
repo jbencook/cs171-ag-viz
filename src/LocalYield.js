@@ -114,11 +114,7 @@ canvas.append("rect")
     .attr("height", bbFieldVis.h)
     .on("click", function(d) {
             var select_values = []
-            fieldVis.selectAll(".point")
-                .transition().duration(0)
-                .style("fill", function(d){return colors(d.yld)})
             histYield_select(select_values);
-            yieldMean_select.attr("visibility", "hidden");
             
         })
 
@@ -213,15 +209,9 @@ function createVis(error, geo_data, yield_data, price) {
         })
         .attr("width", 7)
         .attr("height", 7)
-        // .attr("bin", function(d) {
-        //     return d.yield_binned;
-        // })
         .attr("yield", function(d) {
             return d.yld;
         })
-        // .style("fill", function(d) {
-        //     return d.color;
-        // })
         .style("opacity", 1)
         .on("mouseover", showYield)
         .on("mouseout", hideYield)
@@ -422,6 +412,9 @@ function histYield_select(select_values) {
         (select_values);
 
     if (select_values.length == 0) { 
+        fieldVis.selectAll(".point")
+            .transition().duration(0)
+            .style("fill", function(d){return colors(d.yld)})
         yieldMean_select.attr("visibility", "hidden");
     };
     yieldHist.selectAll(".bar_sub").remove()
@@ -443,8 +436,6 @@ function histYield_select(select_values) {
         yieldMean_select.attr({"x1": xScale(d3.mean(select_values)), "x2": xScale(d3.mean(select_values))})
             .attr("visibility", "visible");
     }
-    
-
 
 }
 
@@ -507,7 +498,6 @@ function brushedField() {
     bar.selectAll("rect").style("fill", null);
     var select_values = []
     point.transition().duration(0).style("fill", function(pt) {
-
         if(pt.lon >= brush_min[0] && pt.lon <= brush_max[0] && pt.lat >= brush_max[1] && pt.lat <= brush_min[1]) {
             select_values.push(parseInt(pt.yld))
             return colors(pt.yld);
@@ -515,7 +505,6 @@ function brushedField() {
             return colors_grey(pt.yld);
         }
     });
-
     histYield_select(select_values);
 }
 
