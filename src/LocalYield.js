@@ -75,6 +75,12 @@ var formatCoords = d3.format(".4f");
 
 
 // // Create the Google Map…
+// var fieldLoc = new google.maps.LatLng(41.2531, -97.1440);
+// var bounds = new google.maps.LatLngBounds();
+// bounds.extend(fieldLoc);
+// bounds.extend(new google.maps.LatLng(41.258, -97.1460));
+
+
 // var map = new google.maps.Map(d3.select("#map").node(), {
 //     zoom: 16,
 //     center: new google.maps.LatLng(41.2531, -97.1440),
@@ -86,6 +92,8 @@ var formatCoords = d3.format(".4f");
 //     streetViewControl: false,
 //     overviewMapControl: false
 // });
+
+// map.fitBounds(bounds);
 
 // console.log(map)
 // .on("click", function() {console.log("click")})
@@ -223,8 +231,7 @@ function createVis(error, geo_data, yield_data, price) {
             fieldVis.selectAll("[soil = '" + d.soil + "']")
                 .transition().duration(0)
                 .style("fill", function(d){
-                    select_values.push(parseInt(d.yld));
-                    // 
+                    select_values.push(parseInt(d.yld)); 
                     return colors(d.yld)
                 })
             histYield_select(select_values);

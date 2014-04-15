@@ -175,9 +175,22 @@ timeslider.append('g')
           .attr('transform', 'translate('+0+','+(margin.top+hist_height)+")")
           .call(d3.svg.axis().scale(xtime_range)
           .orient('bottom').tickFormat(d3.format("d")))
-var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+(margin.top+hist_height)+")").attr('r', 9)
+// var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+(margin.top+hist_height)+")").attr('r', 9)
+//     slider.selectAll('.extent, .resize' ).remove()
+
+
+var handle = slider.append('image').attr('class', 'handle')
+    .attr("xlink:href", "../img/corn_icon.svg")
+    .attr("x", -20)
+    .attr("y", function(){return margin.top+hist_height - 25})
+    // .attr('transform', 'translate('+0+','+(margin.top+hist_height)+")")
+    .attr("width", 40)
+    .attr("height", 40)
+    .style("z-index", -1)
+    // .attr('r', 9)
     slider.selectAll('.extent, .resize' ).remove()
-  
+
+    
 
 
 /////////////////////////
@@ -800,7 +813,8 @@ function time_brushed(){
         time_brush.extent([value, value])
         select_year = d3.round(value, 0)
     }
-    handle.attr('cx', xtime_range(value))
+    // handle.attr('cx', xtime_range(value))
+    handle.attr('x', xtime_range(value) - 20)
     //update color 
     yield_color(select_year)
     //load weather data:
