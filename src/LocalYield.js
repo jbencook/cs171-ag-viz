@@ -74,7 +74,22 @@ var formatCount = d3.format(",.2f");
 var formatCoords = d3.format(".4f");
 
 
+// // Create the Google Map…
+// var map = new google.maps.Map(d3.select("#map").node(), {
+//     zoom: 16,
+//     center: new google.maps.LatLng(41.2531, -97.1440),
+//     mapTypeId: google.maps.MapTypeId.HYBRID,
+//     panControl: false,
+//     zoomControl: false,
+//     mapTypeControl: false,
+//     scaleControl: false,
+//     streetViewControl: false,
+//     overviewMapControl: false
+// });
 
+// console.log(map)
+// .on("click", function() {console.log("click")})
+// google.maps.event.clearListeners(map, function(d){console.log("click"); return 'click'})
 
 
 
@@ -252,13 +267,10 @@ function createVis(error, geo_data, yield_data, price) {
 }
 
 function loadMap(center_coord) {
-    // Create the Google Map…
-    var map = new google.maps.Map(d3.select("#fieldVis").node(), {
-        zoom: 16,
-        center: new google.maps.LatLng(41.2531, -97.1440),
-        mapTypeId: google.maps.MapTypeId.HYBRID
-    });
     
+    console.log(center_coord)
+
+    map.center = new google.maps.LatLng(41.2531, -97.1440);
     var overlay = new google.maps.OverlayView();
 
     // Add the container when the overlay is added to the map.
