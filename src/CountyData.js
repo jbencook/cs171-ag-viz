@@ -49,7 +49,6 @@ var weatherVis = {
 //Global Variables
 var projection = d3.geo.albersUsa().translate([width/2, height/2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
-<<<<<<< HEAD
 var legend_ticks = 100
 var legend_height = 75
 var color_range = colorbrewer.YlGn[9].slice(2,8)
@@ -78,8 +77,6 @@ var remove_counties = ["c15001", "c15009", "c15009", "c15009", "c15009", "c15003
 // Global Variables (Scoping)
 ////////////////////////
 /////////////////////
-=======
->>>>>>> ef32868ee51ce780dfa5a1fe2b05a41960c8857f
 
 var legend_ticks = 100;
 var legend_height = 75;
