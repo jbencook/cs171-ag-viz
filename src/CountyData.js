@@ -83,6 +83,7 @@ var weather_data_length = 12
 var weather_radius = 10
 var station_path = '../data/station_03312014.csv'
 var gdd_path = "../data/gdd.json"
+// var yield_path = '../data/corn_irrigated_1960-2013.csv'
 var yield_path = '../data/county_yield_small_1910_2013.csv'
 var brush_highlight_color = '#FFFF6C'
 var county_fill_color = '#E2C670'
