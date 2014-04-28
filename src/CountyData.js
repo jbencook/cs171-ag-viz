@@ -6,83 +6,63 @@
 // 5. Costume Fxn
 // Calls
 
+// Overall page margins
+var margin_buffer = 50;
 var margin = {
-    top: 50,
-    right: 50,
-    bottom: 50,
-    left: 50
+    top: margin_buffer,
+    right: margin_buffer,
+    bottom: margin_buffer,
+    left: margin_buffer
 };
 
-var width = 1060 - margin.left - margin.right;
+var width = 1600 - margin.left - margin.right;
 var height = 900 - margin.bottom - margin.top;
 var centered;
 
+
+// Individual vis bounding boxes
 var mapVis = {
-    x: 100,
-    y: 10,
-    w: width-margin.right-margin.left,
-    h: height-margin.bottom
+    x: 0,
+    y: 0,
+    w: width * 0.8,
+    h: height * 0.8
 };
 
-var TimeVis = {
-    h: 200,
-    w: 500, 
-    x: (width-500)/2,
-    y: mapVis.h-margin.top
+var timeVis = {
+    x: 0,
+    y: mapVis.h,
+    w: mapVis.w, 
+    h: height - mapVis.h
 }
 
 var histVis = {
-    x: 0,
+    x: mapVis.w,
     y: 0,
-    w: 250,
-    h: 250
+    w: width - mapVis.w,
+    h: height * 0.5
 };
 
 var weatherVis = {
-    x: 0,
-    y: 0,
-    w: 300,
-    h: 300
-
+    x: mapVis.w,
+    y: histVis.h,
+    w: width - mapVis.w,
+    h: height - histVis.h
 }
 
-//Global Variables
-var projection = d3.geo.albersUsa().translate([width/2, height/2]);
-var path = d3.geo.path().projection(projection).pointRadius(1.5);
-var legend_ticks = 100
-var legend_height = 75
-var color_range = colorbrewer.YlGn[9].slice(2,8)
-var gray_range = colorbrewer.Greys[9].slice(2,8) //['orange', 'darkgreen']
-var highlight_color = 'blue'
-var HLT_color = 'blue'
-var HLTavg_color= 'none'
-var bin_num = 30
-var num_color_bins = 7
-var hist_height = 100
-var hist_length = 250
-var weather_data_length = 12
-var weather_radius = 10
-var station_path = '../data/station_03312014.csv'
-var gdd_path = "../data/gdd.json"
-// var yield_path = '../data/corn_irrigated_1960-2013.csv'
-var yield_path = '../data/county_yield_small_1910_2013.csv'
-var brush_highlight_color = '#FFFF6C'
-var county_fill_color = '#E2C670'
-var weather_colors = colorbrewer.RdBu[9]
-var checked = false
-var keep_marks = false
-var remove_counties = ["c15001", "c15009", "c15009", "c15009", "c15009", "c15003","c15007", "c15007", "c2016", "c2013", "c2130", "c2060", "c2070", "c2164", "c2150", "c2110", "c2280", "c2232", "c2100", "c2220", "c2270", "c2050", "c2170", "c2068", "c2020", "c2261", "c2122", "c2282", "c2290", "c2090", "c2240", "c2185", "c2188", "c2180", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201"]
 /////////////////////////
 ////////////////////////
 // Global Variables (Scoping)
 ////////////////////////
 /////////////////////
-
-var legend_ticks = 100;
-var legend_height = 75;
+var projection = d3.geo.albersUsa()
+    .scale(1500)
+    .translate([mapVis.w/2, mapVis.h/2]);
+var path = d3.geo.path().projection(projection).pointRadius(1.5);
 
 var color_range = colorbrewer.YlGn[9].slice(2,8);
 var gray_range = colorbrewer.Greys[9].slice(2,8); //['orange', 'darkgreen']
+var legend_ticks = color_range.length;
+var legend_height = 75;
 
 var highlight_color = 'blue';
 var HLT_color = 'blue';
@@ -94,12 +74,14 @@ var num_color_bins = 7;
 var hist_height = 100;
 var hist_length = 250;
 
-var weather_data_length = 12;
+var weather_range = [3,9];
+var weather_radius = 10
 var weather_radius = 10;
 
 var station_path = '../data/station_03312014.csv';
 var gdd_path = "../data/gdd.json";
 var yield_path = '../data/county_yield_small_1910_2013.csv';
+
 
 var brush_highlight_color = '#FFFF6C';
 var county_fill_color = '#E2C670';
@@ -107,8 +89,6 @@ var weather_colors = colorbrewer.RdBu[9];
 
 var checked = false;
 var keep_marks = false;
-
-var remove_counties = ["c15001", "c15009", "c15009", "c15009", "c15009", "c15003","c15007", "c15007", "c2016", "c2013", "c2130", "c2060", "c2070", "c2164", "c2150", "c2110", "c2280", "c2232", "c2100", "c2220", "c2270", "c2050", "c2170", "c2068", "c2020", "c2261", "c2122", "c2282", "c2290", "c2090", "c2240", "c2185", "c2188", "c2180", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201", "c2201"];
 
 //Global variables (initialize)
 var county_num2name = {};
@@ -141,39 +121,62 @@ var title = d3.select("#title")
     .attr("y", 0)
     .text("County Level Crop Yield");
 
-var hist_canvas = d3.select("#hist").append('svg').attr({
-    width: histVis.w + margin.left + margin.right,
-    height: histVis.h+ margin.top + margin.bottom,});
- 
-
-var weather_vis = d3.select("#weather").append('svg').attr({
-    width: weatherVis.w + margin.left + margin.right,
-    height: weatherVis.h+ margin.top + margin.bottom,})               
-                    .attr('x', weatherVis.x)
-                    .attr('y', weatherVis.y);
-
-
-var canvas = d3.select("#vis").append("svg").attr({
-    width: width + margin.left + margin.right,
-    height: height + margin.top + margin.bottom});
+var canvas = d3.select("#vis").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
 canvas.append("rect")
     .attr("class", "background")
     .attr("width", width)
-    .attr("height", height);
-    
-var Map = canvas.append("g").attr({transform: "translate(" + 0 + "," + margin.top + ")"});
+    .attr("height", height)
+    .style("fill", "blue");
 
-var slider_canvas = d3.select("#vis").append('svg').attr({
-    width: width + margin.left + margin.right,
-    height: TimeVis.h+ margin.top + margin.bottom,});
+var Map = canvas.append("svg")
+    .attr("width", mapVis.w)
+    .attr("height", mapVis.h)
+    .attr("x", mapVis.x)
+    .attr("y", mapVis.y);
 
-var timeslider = canvas.append('g').attr({
-    transform:  "translate(" + TimeVis.x + "," + TimeVis.y + ")"});
+Map.append("rect")
+    .attr("class", "background")
+    .attr("width", mapVis.w)
+    .attr("height", mapVis.h)
+
+var timeslider = canvas.append("svg")
+    .attr("width", timeVis.w)
+    .attr("height", timeVis.h)
+    .attr("x", timeVis.x)
+    .attr("y", timeVis.y);
+
+timeslider.append("rect")
+    .attr("class", "background")
+    .attr("width", timeVis.w)
+    .attr("height", timeVis.h)
+
+var hist_canvas = canvas.append("svg")
+    .attr("width", histVis.w)
+    .attr("height", histVis.h)
+    .attr("x", histVis.x)
+    .attr("y", histVis.y);
+
+hist_canvas.append("rect")
+    .attr("class", "background")
+    .attr("width", histVis.w)
+    .attr("height", histVis.h)
+
+var weather_vis = canvas.append('svg')
+    .attr("width", weatherVis.w)
+    .attr("height", weatherVis.h)
+    .attr("x", weatherVis.x)
+    .attr("y", weatherVis.y);
+
+weather_vis.append("rect")
+    .attr("class", "background")
+    .attr("width", weatherVis.w)
+    .attr("height", weatherVis.h)
 
 // Create Time Range Slider
-
-var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, TimeVis.w]).clamp(true);
+var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, timeVis.w]).clamp(true);
 var time_brush = d3.svg.brush().x(xtime_range).on('brush', time_brushed);
 var slider = timeslider.append('g').attr('class', 'slider').attr('fill', 'gray').call(time_brush);
 
@@ -181,7 +184,7 @@ timeslider.append('g')
           .attr('class', 'axis')
           .attr('height',20)
           .attr('width', 100)
-          .attr('transform', 'translate('+0+','+(margin.top+hist_height)+")")
+          .attr('transform', 'translate('+0+','+ (timeVis.h - margin.top) +")")
           .call(d3.svg.axis().scale(xtime_range)
           .orient('bottom').tickFormat(d3.format("d")));
 // var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+(margin.top+hist_height)+")").attr('r', 9)
@@ -191,14 +194,14 @@ timeslider.append('g')
 var handle = slider.append('image').attr('class', 'handle')
     .attr("xlink:href", "../img/corn_icon.svg")
     .attr("x", -20)
-    .attr("y", function(){return margin.top+hist_height - 25})
+    .attr("y", function(){return (timeVis.h - margin.top) - 25})
     // .attr('transform', 'translate('+0+','+(margin.top+hist_height)+")")
     .attr("width", 40)
     .attr("height", 40)
-    .style("z-index", -1);
+    .style("z-index", 999);
     // .attr('r', 9)
     
-slider.selectAll('.extent, .resize' ).remove();
+// slider.selectAll('.extent, .resize' ).remove();
 
     
 // Costume Fxns
@@ -350,16 +353,19 @@ function generate_WeatheVis(stations, path, year){
     d3.select('#weather').selectAll('.avg_temps').remove();
     d3.select('#weather').selectAll('.HL_avg_temps').remove();
   
-    var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
+    // var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
+
+    
+
+    var weather_xscale = d3.scale.linear().domain(weather_range).range([0, weatherVis.w]);
     var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h]);
     var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors);
     
     d3.json(path, function(data){
         var station_totals = {};
-        
         if (stations.length != 0){
         
-            for (i=0; i<weather_data_length;i++ ){
+            for (i=weather_range[0]; i<=weather_range[1];i++ ){
                 station_totals[i] = {"sum":0, 'count':0, 'average':0};
             }
             
@@ -369,17 +375,17 @@ function generate_WeatheVis(stations, path, year){
                 var weather_path = '';
                 
                 if(ggd_data != null){
-                    for (j=0; j<weather_data_length; j++){
+                    for (j=weather_range[0]; j<=weather_range[1]; j++){
                     
                         station_totals[j].sum += ggd_data[j];
                         station_totals[j].count += 1;
                         var xpos = weather_xscale(j);
                         var ypos = weather_yscale(ggd_data[j]);
                         
-                        if (j == 0){
+                        if (j == weather_range[0]){
                             weather_path = 'M '+xpos+" "+ypos;
                         }
-                        if (j != 0){
+                        if (j != weather_range[0]){
                             weather_path += " L "+xpos+" "+ypos;
                         }
                     }
@@ -395,7 +401,7 @@ function generate_WeatheVis(stations, path, year){
             var avg_weather_path = '';
             var start = 0 ;
             
-            for (i=0; i<weather_data_length;i++ ){
+            for (i=weather_range[0]; i<=weather_range[1];i++ ){
                 station_totals[i].average = station_totals[i].sum/station_totals[i].count;
           
                 if (!isNaN(station_totals[i].average)){
@@ -449,7 +455,7 @@ function highlighted_weather(highlighted, path, year){
     d3.json(path, function(data){
         var station_totals = {};
         
-        for (i=0; i<weather_data_length;i++ ){
+        for (i=weather_range[0]; i<=weather_range[1];i++ ){
             station_totals[i] = {"sum":0, 'count':0, 'average':0};
         }
 
@@ -462,16 +468,16 @@ function highlighted_weather(highlighted, path, year){
                 var weather_path = '';
                 
                 if(ggd_data != null){                
-                    for (k=0; k<weather_data_length; k++){
+                    for (k=weather_range[0]; k<=weather_range[1]; k++){
                         station_totals[k].sum += ggd_data[k];
                         station_totals[k].count += 1;
                         var xpos = weather_xscale(k);
                         var ypos = weather_yscale(ggd_data[k]);
                         
-                        if (k == 0){
+                        if (k == weather_range[0]){
                             weather_path = 'M '+xpos+" "+ypos;
                         }
-                        if (k != 0){
+                        if (k != weather_range[0]){
                             weather_path += " L "+xpos+" "+ypos;
                         } 
                     }
@@ -488,7 +494,7 @@ function highlighted_weather(highlighted, path, year){
         var avg_weather_path = '';
         var start = 0;
         
-        for (i=0; i<weather_data_length;i++ ){
+        for (i=weather_range[0]; i<=weather_range[1];i++ ){
             station_totals[i].average = station_totals[i].sum/station_totals[i].count;
 
             if (!isNaN(station_totals[i].average)){
@@ -533,7 +539,7 @@ function generate_legend(data){
     for (i=0; i<=legend_ticks; i++){
         legend.append('rect')
               .attr('class', 'legend_box')
-              .attr('x', mapVis.w)
+              .attr('x', mapVis.w - 100)
               .attr('y', mapVis.h/2+ (legend_height/legend_ticks)*i)
               .attr('height', 10)
               .attr('width', 10)
@@ -737,13 +743,22 @@ function load_station_Data(path){
     });
 }
 
+var leading_zero = d3.format("05d");
 
 function generateMap(error, us) {      
+
+    // Remove HI and AK (FIPS states 02 and 15)
+    counties = [];
+    topojson.feature(us, us.objects.counties).features.forEach(function(d) {
+        if((leading_zero(d.id).slice(0,2) != 02) && (leading_zero(d.id).slice(0,2) != 15)){
+            counties.push(d)
+        }
+    });
 
     Map.append("g")
         .attr("class", "counties")
         .selectAll("path")
-        .data(topojson.feature(us, us.objects.counties).features)
+        .data(counties)
         .enter().append("path")
         .attr("d", path)
         .attr('name', function(d,i){
@@ -772,12 +787,7 @@ function generateMap(error, us) {
             d3.select('#vis').select('#cname_tip').remove();
         });
      
-    //remove HI and AK:   
-    for(i=0;i<remove_counties.length;i++){
-        d3.select("#vis").select('#'+remove_counties[i]).remove();
-    }
-    
-    // svg.append("path")
+    // Map.append("path")
     //     .data(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
     //     .attr("class", "states")
     //     .attr("d", path)
@@ -799,8 +809,15 @@ function time_brushed(){
         time_brush.extent([value, value]);
         select_year = d3.round(value, 0);
     }
+    else{
+        time_brush.extent([value, value]);
+        value = animate_year
+        select_year = animate_year;
+    }
     // handle.attr('cx', xtime_range(value))
-    handle.attr('x', xtime_range(value) - 20);
+    handle.transition(100).attr('x', xtime_range(value) - 20);
+    animate_year = d3.round(value, 0);
+    console.log(animate_year)
     //update color 
     yield_color(select_year);
     //load weather data:
@@ -813,8 +830,8 @@ function generate_average_scatterplot(data){
     d3.select('#vis').select("#avg_title").remove();
     d3.select('#vis').selectAll('.nat_avg').remove();
     var keys = Object.keys(data);
-    var xscale = d3.scale.linear().domain(d3.extent(keys)).range([0, TimeVis.w]).clamp(true);
-    var yscale = d3.scale.linear().domain(d3.extent(all_yields)).range([0, TimeVis.h]);
+    var xscale = d3.scale.linear().domain(d3.extent(keys)).range([0, timeVis.w]).clamp(true);
+    var yscale = d3.scale.linear().domain(d3.extent(all_yields)).range([0, timeVis.h]);
 
     if (selected_data.length == 0){
         timeslider.append('text')
@@ -829,7 +846,7 @@ function generate_average_scatterplot(data){
 
             timeslider.append('rect')
                       .attr('x', xscale(year))
-                      .attr('y', TimeVis.h - yscale(datum)-margin.top)
+                      .attr('y', timeVis.h - yscale(datum)-margin.top)
                       .attr('width', 5)
                       .attr('height', 5)
                       .attr('value', datum)
@@ -888,7 +905,7 @@ function generate_average_scatterplot(data){
             if(!isNaN(datum)){
                 timeslider.append('rect')
                           .attr('x', xscale(year))
-                          .attr('y', TimeVis.h - yscale(datum)-margin.top)
+                          .attr('y', timeVis.h - yscale(datum)-margin.top)
                           .attr('width', 5)
                           .attr('height', 5)
                           .attr('value', datum)
@@ -917,11 +934,10 @@ function generate_average_scatterplot(data){
 
 
 function generateHist(data){
-    d3.select('#hist').selectAll('.bars').remove();
-    d3.select('#hist').selectAll('.axis').remove();
+    hist_canvas.selectAll('.bars').remove();
+    hist_canvas.selectAll('.axis').remove();
    
     var bin_values = [];
-
     // create bin values:
     if (selected_data.length == 0){
         for (i=0;i<data.length; i++){
@@ -982,9 +998,9 @@ function generateHist(data){
                .style('font-size', 10);
     //hist_canvas.append('text').attr('y', histVis.h).attr('x', histVis.w/2-margin.left).text('Yield').style('font-weight', 'bold').attr('class', 'axis')
 
-    d3.select('#hist').selectAll('.bars')
+    hist_canvas.selectAll('.bars')
         .on('mousemove', function(){
-            d3.select('#hist').select('#bcount_tip').remove();
+            hist_canvas.select('#bcount_tip').remove();
             var bin_count = this.__data__.y;
             var coordinates = d3.mouse(this);
 
@@ -1000,7 +1016,7 @@ function generateHist(data){
                 yield_color(data[0].Year);
                 var bin_min = d3.min(this.__data__);
                 var bin_max = d3.max(this.__data__);
-                d3.select('#hist').select('#'+this.id).style('fill', highlight_color);
+                hist_canvas.select('#'+this.id).style('fill', highlight_color);
                 var highlightd_counties = [];
                 
                 for (i=0; i<data.length; i++){
@@ -1018,15 +1034,15 @@ function generateHist(data){
         })
 
       .on('mouseout', function(){
-            d3.select('#weather').selectAll(".highlighted_weather").remove();
-            d3.select('#weather').selectAll('.HL_avg_temps').remove();
-            d3.select('#hist').select('#bcount_tip').remove();})
+            weather_vis.selectAll(".highlighted_weather").remove();
+            weather_vis.selectAll('.HL_avg_temps').remove();
+            hist_canvas.select('#bcount_tip').remove();})
             
       .on('click', function(){
             yield_color(data[0].Year)
             var bin_min = d3.min(this.__data__);
             var bin_max = d3.max(this.__data__);
-            d3.select('#hist').select('#'+this.id).style('fill', highlight_color)
+            hist_canvas.select('#'+this.id).style('fill', highlight_color)
             var highlightd_counties = [] ;
             
             for (i=0; i<data.length; i++){
@@ -1061,8 +1077,8 @@ function selected_county_vis(data){
     d3.select('#vis').select("#avg_title").remove();
 
     var count_data = county_ids[data.id];
-    var xscale_selectvis = d3.scale.linear().domain([parseFloat(d3.min(years)), parseFloat(d3.max(years))]).range([0, TimeVis.w]);
-    var yscale_selectvis = d3.scale.linear().domain(d3.extent(all_yields)).range([0, TimeVis.h]);
+    var xscale_selectvis = d3.scale.linear().domain([parseFloat(d3.min(years)), parseFloat(d3.max(years))]).range([0, timeVis.w]);
+    var yscale_selectvis = d3.scale.linear().domain(d3.extent(all_yields)).range([0, timeVis.h]);
 
     //timeslider.append('rect').attr('x',0).attr('y',histVis.y).attr('width', histVis.w).attr('height', histVis.h).attr('fill', 'white').attr('class', 'selectVis')
     timeslider.append('text')
@@ -1087,7 +1103,7 @@ function selected_county_vis(data){
 
         timeslider.append('rect')
                    .attr('x', xpos)
-                   .attr('y', TimeVis.h-ypos-margin.top)
+                   .attr('y', timeVis.h-ypos-margin.top)
                    .attr('width', delta)
                    .attr('height', ypos)
                    .attr('class', 'selectVis')
@@ -1117,12 +1133,16 @@ function selected_county_vis(data){
 
 
 // Create 2D Brush Selector
-var x_2d = d3.scale.identity().domain([0, width]);
-var y_2d = d3.scale.identity().domain([0, height]);
+var x_2d = d3.scale.identity().domain([0, mapVis.w]);
+var y_2d = d3.scale.identity().domain([0, mapVis.h]);
 var brush_2d = d3.svg.brush().x(x_2d).y(y_2d).on('brush', brushed_2d);
 
-canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush');
-
+Map.append('g').attr('class', 'brush')
+    .attr('fill', 'none')
+    .attr('stroke', 'black')
+    .call(brush_2d)
+    .call(brush_2d.event);
+// brushed_2d();
 
 function brushed_2d(){
     checked = false;
@@ -1136,11 +1156,11 @@ function brushed_2d(){
     //select counties
     for(i=0; i<keys.length; i++){
         var key = keys[i];
-        var county = d3.select('#vis').select('#'+key);
+        var county = Map.select('#'+key);
 
         if (county[0][0] != null){
             var xpos = county[0][0].getAttribute('xpos');
-            var ypos = county[0][0].getAttribute('ypos');
+            var ypos = county[0][0].getAttribute('ypos') - margin_buffer;
             
             if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
                 selected_data.push(key);
@@ -1168,11 +1188,65 @@ function brushed_2d(){
     generate_WeatheVis(selected_stations, gdd_path, select_year);
 }
 
+animate_year = 1910
+animate_stop = false
+
+function step() {
+    canvas.transition().ease("linear").call(time_brush.event)
+
+    animate_year +=1; 
+    if ((animate_year < 2012) && (!animate_stop))
+        setTimeout(step, 300);
+}
 
 // Radial Button Toggle
 // button updates:
-d3.select("input[value=\"Point\"]").on("click", function(){d3.selectAll('.brush').remove()});
+d3.select("input[value=\"Point\"]").on("click", function(){
+    animate_stop = false;
+    step();
+    
+    
+      // .attr("width", 0)
+    //   .attr("height", 0)
+    //   .style("opacity", 0)
+    // d3.select("#localVis")
+    //     .transition().duration(1500)
+    //     .style("opacity", 1)
+    //     .style("z-index", 9999)
+    // //     .attr("transform", "translate(0,0)");
+    // for(y = 1910; y< 2013; y++) {
+    //     //fix timeslider vis:
+    //     d3.selectAll('.selectVis').remove();
+        
+    //     // //brush        
+    //     // var value = time_brush.extent()[0];
+        
+    //     // if (d3.event.sourceEvent){
+    //     //     value = xtime_range.invert(d3.mouse(this)[0]);
+    //     //     time_brush.extent([value, value]);
+    //     //     select_year = d3.round(value, 0);
+    //     // }
+    //     // handle.attr('cx', xtime_range(value))
+    //     handle.attr('x', xtime_range(y) - 20);
+    //     //update color 
+    //     yield_color(y);
+    //     //load weather data:
+    //     generate_WeatheVis(selected_stations, gdd_path, y);
+    //     sleep(100000);
+
+    // }
+  // canvas.attr("visibility", "hidden");
+  d3.selectAll('.brush').remove()});
+
+
 d3.select("input[value=\"Brush\"]").on("click", function(){
+    animate_stop = true
+
+    canvas.transition().duration(1500)
+      // .attr("width", width)
+      .attr("height", height)
+      .style("opacity", 1)
+
   d3.selectAll('.selectVis').remove();
   canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush')});
 

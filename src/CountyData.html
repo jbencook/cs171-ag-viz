@@ -1,53 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/css/bootstrap.css" media="screen">
     <link rel="stylesheet" href="/css/bootswatch.min.css">
-  </head>
-  <body>
+
     <script src="/libs/bsa.js"></script>
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/libs/d3.v3.min.js"></script>
+    <script type="text/javascript" src="/libs/topojson.v1.min.js"></script>
+    <script type="text/javascript" src="/libs/d3.tip.v0.6.3.js"></script>
+    <script type="text/javascript" src="/libs/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="/libs/colorbrewer.js"></script>
+    <script type="text/javascript" src="/libs/queue.v1.min.js"></script>
+    <script src="/libs/bootstrap.min.js"></script>
+    <script src="/libs/bootswatch.js"></script>
 
+<!--     <div class="page-header">
+    </div>
+ -->
     <div class="navbar navbar-default navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-collapse collapse" id="navbar-main">
-          <ul class="nav navbar-nav">       
-            <li>
-            <a href="/">Home</a>
-            </li>
-          </ul>
+        <div class="container">
+            <div class="navbar-collapse collapse" id="navbar-main">
+                <ul class="nav navbar-nav">       
+                    <li><a href="/">Home</a></li>
+                </ul>
+                
+                <h1 class='title'>A Century of Corn</h1>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="https://github.com/jbencook/cs171-ag-viz" target="_blank">GitHub</a></li>
 
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="https://github.com/jbencook/cs171-ag-viz" target="_blank">GitHub</a></li>
-         </ul>
-
+                </ul>
+            </div>
         </div>
-      </div>
     </div> 
 
-    <div class="container">
-    <form>
-  Selection Type:
-    <label><input type="radio" name="layout" value="Point" > Point</label>
-    <label><input type="radio" name="layout" value="Brush" checked> Brush</label>
-  </form>
-    <title></title>
+<div class="container">
+    <title>County Level Corn Yield</title>
 </head>
 
 
 <body>
-<script type="text/javascript" src="/libs/d3.v3.min.js"></script>
-<script type="text/javascript" src="/libs/topojson.v1.min.js"></script>
-<script type="text/javascript" src="/libs/d3.tip.v0.6.3.js"></script>
-<script type="text/javascript" src="/libs/jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="/libs/colorbrewer.js"></script>
-<script type="text/javascript" src="/libs/queue.v1.min.js"></script>
-
 <style type="text/css">
+body { padding-top: 100px; }
+
     .background {
-      fill: none;
+      fill: #ccc;
       pointer-events: all;
     }
 
@@ -146,23 +144,27 @@
 </style>
 
 <div id="title"></div>
-
-<table>
+<div id="vis" style="float:left"></div><div id="timeslider" style="float:left"></div>
+<div id="weather" style="float:right"></div><div id="hist" style="float:right"></div>
+<!-- <table>
     <tr>
         <td id='left'><div id="vis"></div><div id="timeslider"></div></td>
         <td id='right'><div id="weather"></div><div id="hist"></div></td>
    </tr>
      
-</table>
-<table>
-    
- </table>
-
+</table> -->
+<div id="localVis">
+    <iframe style="position:absolute; top: 160px; left: 0px border: 0px;" src="LocalYield.html" height="900" width="1300" scrolling="yes">
+        <p>Your browser does not support iframes.</p>
+    </iframe>
+</div>
+<form>
+    Selection Type:
+    <label><input type="radio" name="layout" value="Point" > Point</label>
+    <label><input type="radio" name="layout" value="Brush" checked> Brush</label>
+</form>
 <script src="CountyData.js"></script>
 
 </div>
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="/libs/bootstrap.min.js"></script>
-    <script src="/libs/bootswatch.js"></script>
 </body>
 </html>
