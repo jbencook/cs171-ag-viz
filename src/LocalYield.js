@@ -50,6 +50,7 @@ var colors_grey = d3.scale.quantize()
 // Define map projection
 var projection = d3.geo.albers().scale(5000000);
 
+
 // Define path generator
 var path = d3.geo.path().projection(projection);
 
@@ -170,16 +171,26 @@ d3.select("input[value=\"Brush\"]").on("click", function(){
 
 // Load data and create visualizations
 queue()
-    .defer(d3.json, "../data/nebraska.geojson")
-    .defer(d3.csv, "../data/wmk5_2009_small.csv")
+    // .defer(d3.json, "../data/nebraska.geojson")
+    // .defer(d3.csv, "../data/wmk5_2009_small.csv")
+    .defer(d3.csv, "../data/kn40_soy_2008.csv_small.csv")
     .defer(d3.csv, "../data/price.csv")
     .await(createVis);
 
-function createVis(error, geo_data, yield_data, price) {
+function createVis(error, yield_data, price) {
     createYieldMeta();
-    var x = path.centroid(geo_data.features[2]);
+    // var x = path.centroid(geo_data.features[2]);
 
-    // loadMap(x)
+    lat = []
+    lon = []
+    yield_data.forEach(function(d){
+        lat.push(parseFloat(d.lat))
+        lon.push(parseFloat(d.lon))
+    });
+
+    x = projection([d3.mean(lon), d3.mean(lat)])
+
+    // loadMap([d3.mean(lon), d3.mean(lat)])
     projection.translate([bbFieldVis.w - x[0], bbFieldVis.h - x[1]]);
     timeSeries(price);
 
@@ -254,6 +265,7 @@ function createVis(error, geo_data, yield_data, price) {
 
 function loadMap(center_coord) {    
     //console.log(center_coord);
+
     map.center = new google.maps.LatLng(41.2531, -97.1440);
     var overlay = new google.maps.OverlayView();
 
