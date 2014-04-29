@@ -92,7 +92,7 @@ var weather_colors = colorbrewer.RdBu[9];
 var checked = false;
 var keep_marks = false;
 
-var animate_year = 1910
+var animate_year = 2013
 var sanimate_stop = false
 
 //Global variables (initialize)
@@ -187,6 +187,8 @@ weather_vis.append("rect")
     .attr("class", "background")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
+    .style("fill", "gray")
+
 
 var story_nav = canvas.append("svg")
     .attr("width", 270)
@@ -567,7 +569,7 @@ function generate_legend(data){
 
     var tick_size = (yield_range[1]-yield_range[0]) / (legend_ticks)
 
-    for (i=0; i<=legend_ticks; i++){
+    for (i=1; i<=legend_ticks; i++){
         legend.append('rect')
               .attr('class', 'legend_box')
               .attr('x', 0)
@@ -606,7 +608,7 @@ function generate_legend(data){
 
 
         
-    legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', -5).text('Bu/Acre');
+    legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', 5).text('Bu/Acre');
     // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
     // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
 
@@ -760,7 +762,8 @@ function process_data(path){
         }
         
         generate_average_scatterplot(yield_average);
-        yield_color(parseFloat(animate_year));
+        yield_color(animate_year);
+        canvas.transition().ease("linear").call(time_brush.event)
     });        
 }
 
@@ -1023,7 +1026,7 @@ function generateHist(data){
     }
 
     var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([5,histVis.w - padding]);
-    var yscale_hist = d3.scale.linear().domain([0, 500]).range([5,histVis.h - padding]);
+    var yscale_hist = d3.scale.linear().domain([0, 550]).range([5,histVis.h - padding]);
 
     var hist_data = d3.layout.histogram().bins(xscale_hist.ticks(bin_num))(bin_values);
     var data_for_bins = {};
