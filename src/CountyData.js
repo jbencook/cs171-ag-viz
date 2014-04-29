@@ -81,7 +81,8 @@ var weather_radius = 10;
 
 var station_path = '../data/station_03312014.csv';
 var gdd_path = "../data/gdd.json";
-var yield_path = '../data/county_yield_small_1910_2013.csv';
+// var yield_path = '../data/county_yield_small_1910_2013.csv';
+var yield_path = '../data/yield_data_full.csv';
 
 
 var brush_highlight_color = '#FFFF6C';
@@ -90,6 +91,9 @@ var weather_colors = colorbrewer.RdBu[9];
 
 var checked = false;
 var keep_marks = false;
+
+var animate_year = 1910
+var sanimate_stop = false
 
 //Global variables (initialize)
 var county_num2name = {};
@@ -854,6 +858,7 @@ function generateMap(error, us) {
        
     process_data(yield_path);
     load_station_Data(station_path);
+
 }
 
   
@@ -1249,9 +1254,6 @@ function brushed_2d(){
     generate_average_scatterplot(yield_average);
     generate_WeatheVis(selected_stations, gdd_path, select_year);
 }
-
-animate_year = 1910
-animate_stop = false
 
 function step() {
     canvas.transition().ease("linear").call(time_brush.event)
