@@ -83,6 +83,7 @@ var formatCoords = d3.format(".4f");
 
 
 var field_file = "../data/local_yields2/koz3_2009.csv_small.csv"
+var field_file2 = "../data/local_yields2/koz3_2008.csv_small.csv"
 var field_img = "../img/koz3.jpg"
 
 // // Create the Google Map…
@@ -181,6 +182,20 @@ d3.select("input[value=\"Point\"]").on("click", function(){
 d3.select("input[value=\"Brush\"]").on("click", function(){
   // d3.selectAll('.selectVis').remove()
   canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
+d3.select("input[value=\"o8\"]").on("click", function(){
+    queue()
+        .defer(d3.csv, field_file)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+});
+d3.select("input[value=\"o9\"]").on("click", function(){
+    queue()
+        .defer(d3.csv, field_file2)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+
+});
+
 
 // Load data and create visualizations
 queue()
@@ -190,10 +205,40 @@ queue()
     .defer(d3.csv, "../data/price.csv")
     .await(createVis);
 
+
+function remakeVis(error, yield_data, price) {
+    yieldHist.remove()
+    yieldHist = d3.select("#yieldHist").append("svg").attr({
+        width: bbYieldHist.w,
+        height: bbYieldHist.h
+    });
+    yieldMeta.append("rect")
+        .attr("class", "background")
+        .attr("width", bbYieldMeta.w)
+        .attr("height", bbYieldMeta.h);    
+    lat = []
+    lon = []
+    yield_data.forEach(function(d){
+        lat.push(parseFloat(d.lat))
+        lon.push(parseFloat(d.lon))
+    });
+    yield_data_filtered = [];
+    hist_values = [];
+    yield_data.forEach(function(d) {
+        if(d.val > 0) {
+            hist_values.push(parseInt(d.val));
+            yield_data_filtered.push(d);
+        }
+        
+        
+    });
+    histYield(yield_data_filtered)  
+}    
+
 function createVis(error, yield_data, price) {
     createYieldMeta();
     // var x = path.centroid(geo_data.features[2]);
-
+    console.log(yield_data)
     lat = []
     lon = []
     yield_data.forEach(function(d){
@@ -431,10 +476,12 @@ function histYield(yield_data) {
 }
 
 
+var histYield_data2;
+
 function histYield_select(select_values) {
 
     // Generate a histogram using twenty uniformly-spaced bins.
-    var histYield_data2 = d3.layout.histogram()
+    histYield_data2 = d3.layout.histogram()
         .range(d3.extent(hist_values))
         .bins(bins)
         (select_values);
