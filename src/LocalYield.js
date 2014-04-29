@@ -9,6 +9,7 @@ var margin = {
 
 var width = 1300 - margin.left - margin.right;
 var height = 800 - margin.bottom - margin.top;
+var koz = true;
 
 var bbFieldVis = {
     x: 0,
@@ -49,8 +50,6 @@ var colors_grey = d3.scale.quantize()
 
 // Define map projection
 var projection = d3.geo.albers().scale(18000000);
-
-
 // Define path generator
 var path = d3.geo.path().projection(projection);
 
@@ -82,9 +81,10 @@ var formatCount = d3.format(",.2f");
 var formatCoords = d3.format(".4f");
 
 
-var field_file = "../data/local_yields2/koz3_2009.csv_small.csv"
-var field_file2 = "../data/local_yields2/koz3_2008.csv_small.csv"
-var field_img = "../img/koz3.jpg"
+var field_file = "../data/local_yields2/koz3_2008.csv_small.csv"
+var field_file1 = "../data/local_yields2/koz3_2009.csv_small.csv"
+var field_file2 = "../data/local_yields2/wmk5_soy_2008.csv_small.csv"
+var field_file3 = "../data/local_yields2/wmk5_2009.csv_small.csv"
 
 // // Create the Google Map…
 // var fieldLoc = new google.maps.LatLng(41.2531, -97.1440);
@@ -135,10 +135,10 @@ var canvas = d3.select("#fieldVis").append("svg").attr({
 //             histYield_select(select_values);            
 //     })
 
-canvas.append("g").append('image').attr('class', 'rect')
-    .attr("xlink:href", field_img)
-    .attr("width", bbFieldVis.w)
-    .attr("height", bbFieldVis.h)
+// canvas.append("g").append('image').attr('class', 'rect')
+//     .attr("xlink:href", field_img)
+//     .attr("width", bbFieldVis.w)
+//     .attr("height", bbFieldVis.h)
 
 
 var fieldVis = canvas.append("g");
@@ -182,19 +182,38 @@ d3.select("input[value=\"Point\"]").on("click", function(){
 d3.select("input[value=\"Brush\"]").on("click", function(){
   // d3.selectAll('.selectVis').remove()
   canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
-d3.select("input[value=\"o8\"]").on("click", function(){
+d3.select("a[value=\"koz3a\"]").on("click", function(){
+    koz = true;
     queue()
         .defer(d3.csv, field_file)
         .defer(d3.csv, "../data/price.csv")
         .await(remakeVis);
 });
-d3.select("input[value=\"o9\"]").on("click", function(){
+d3.select("a[value=\"koz3b\"]").on("click", function(){
+    koz = true;
+    queue()
+        .defer(d3.csv, field_file1)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+
+});
+d3.select("a[value=\"wmk5a\"]").on("click", function(){
+    koz = false;
     queue()
         .defer(d3.csv, field_file2)
         .defer(d3.csv, "../data/price.csv")
         .await(remakeVis);
 
 });
+d3.select("a[value=\"wmk5b\"]").on("click", function(){
+    koz = false;
+    queue()
+        .defer(d3.csv, field_file3)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+
+});
+
 
 
 // Load data and create visualizations
@@ -232,13 +251,92 @@ function remakeVis(error, yield_data, price) {
         
         
     });
+
+    point.remove()
+    createYieldMeta();
+    if (koz) {
+        projection = d3.geo.albers().scale(18000000);
+        // Define path generator
+        path = d3.geo.path().projection(projection);
+        x = projection([d3.mean(lon), d3.mean(lat)])
+        projection.translate([bbFieldVis.w - x[0] + 30, bbFieldVis.h - x[1]]);           
+    } else {
+        projection = d3.geo.albers().scale(4000000);
+        // Define path generator
+        path = d3.geo.path().projection(projection);
+        x = projection([d3.mean(lon), d3.mean(lat)])
+        projection.translate([bbFieldVis.w - x[0] + 75, bbFieldVis.h - x[1] - 50]); 
+    }
+     
+
+    xScale = d3.scale.linear()
+        .domain([d3.min(hist_values),d3.max(hist_values)])
+        .range([25, bbYieldHist.w - 25]);    
+
+    colors.domain(d3.extent(hist_values));
+    colors_grey.domain(d3.extent(hist_values));
+
+    point = fieldVis.selectAll(".point")
+        .data(yield_data_filtered)
+        .enter()
+        .append("rect")
+        .attr("class", "point")
+        .attr("soil", function(d) {
+            return d.soil
+        })
+        .attr("x", function(d) {
+            return projection([d.lon, d.lat])[0];
+        })
+        .attr("y", function(d) {
+            return projection([d.lon, d.lat])[1];
+        })
+        .attr("width", 7)
+        .attr("height", 7)
+        .attr("yield", function(d) {
+            return d.val;
+        })
+        .style("opacity", 0.7)
+        .on("mouseover", showYield)
+        .on("mouseout", hideYield)
+        .on("click", function(d) {
+            var select_values = []
+            fieldVis.selectAll(".point")
+                .transition().duration(0)
+                .style("fill", function(d){return colors_grey(d.val)})
+            fieldVis.selectAll("[soil = '" + d.soil + "']")
+                .transition().duration(0)
+                .style("fill", function(d){
+                    select_values.push(parseInt(d.val)); 
+                    return colors(d.val)
+                })
+            histYield_select(select_values);
+        });
+        
+    fieldVis.selectAll(".background")
+        .on("click", function(d) {
+            fieldVis.selectAll(".point")
+                .transition().duration(0)
+                .style("opacity", 1)            
+        });
+
+    brushField = d3.svg.brush()
+        .x(d3.scale.identity().domain([0, bbFieldVis.w]))
+        .y(d3.scale.identity().domain([0, bbFieldVis.h]))
+        .on("brush", brushedField);
+
+    fieldVis.append("g")
+        .attr("class", "brush")
+        .call(brushField);
+
+
     histYield(yield_data_filtered)  
+    histSoil(yield_data_filtered);
+    d3.selectAll('.brush').remove()
 }    
 
 function createVis(error, yield_data, price) {
     createYieldMeta();
     // var x = path.centroid(geo_data.features[2]);
-    console.log(yield_data)
     lat = []
     lon = []
     yield_data.forEach(function(d){
@@ -247,9 +345,7 @@ function createVis(error, yield_data, price) {
     });
 
     x = projection([d3.mean(lon), d3.mean(lat)])
-
-    // loadMap([d3.mean(lon), d3.mean(lat)])
-    projection.translate([bbFieldVis.w - x[0] +20, bbFieldVis.h - x[1] - 40]);
+    projection.translate([bbFieldVis.w - x[0] + 30, bbFieldVis.h - x[1]]); 
     timeSeries(price);
 
     hist_values = [];
@@ -259,8 +355,6 @@ function createVis(error, yield_data, price) {
             hist_values.push(parseInt(d.val));
             yield_data_filtered.push(d);
         }
-        
-        
     });
 
     xScale = d3.scale.linear()
@@ -326,6 +420,7 @@ function createVis(error, yield_data, price) {
 
     histYield(yield_data_filtered);
     histSoil(yield_data_filtered);
+    d3.selectAll('.brush').remove()
 }
 
 
@@ -397,8 +492,6 @@ function histYield(yield_data) {
         //.bins(xScale.ticks(20))
         (hist_values);
 
-
-    console.log(hist_values)
     //console.log(histYield_data, d3.extent(hist_values));
     //console.log(histYield_data[0].x, histYield_data[0].dx, Math.ceil(histYield_data[histYield_data.length-1].x + histYield_data[0].dx));
 

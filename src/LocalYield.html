@@ -138,11 +138,19 @@
               <label><input type="radio" name="layout" value="Point" checked> Point</label>
               <label><input type="radio" name="layout" value="Brush"> Area</label>
           </form>
-          <form>
-              Year:
-              <label><input type="radio" name="layout" value="o8" checked> 2008</label>
-              <label><input type="radio" name="layout" value="o9"> 2009</label>
-          </form>          
+      <div class="btn-group">
+        <button type="button" class="btn btn-danger">Field</button>
+        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="#" value="koz3a">koz3 2008: Corn</a></li>
+          <li><a href="#" value="koz3b">koz3 2009: Corn</a></li>
+          <li><a href="#" value="wmk5a">wmk5 2008: Soybeans</a></li>
+          <li><a href="#" value="wmk5b">wmk5 2009: Corn</a></li>
+        </ul>
+      </div>         
       </div>
 
       <script src="LocalYield.js"></script> 
