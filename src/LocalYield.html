@@ -30,7 +30,7 @@
   }
 
   .background {
-    fill: none;
+    fill: #ccc;
     stroke: none;
     pointer-events: all;
   }
@@ -71,6 +71,10 @@
     fill: none;
     stroke: #ccc;
     shape-rendering: crispEdges;
+  }
+
+  .point {
+    opacity: 0.4;
   }
 
   .point.scanned {
@@ -119,23 +123,6 @@
     <script src="/libs/bootstrap.min.js"></script>
     <script src="/libs/bootswatch.js"></script>
 
-    <div class="navbar navbar-default navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-collapse collapse" id="navbar-main">
-          <ul class="nav navbar-nav">       
-            <li>
-            <a href="/">Home</a>
-            </li>
-          </ul>
-
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="https://github.com/jbencook/cs171-ag-viz" target="_blank">GitHub</a></li>
-          </ul>
-
-        </div>
-      </div>
-    </div>    
-
     <div class="container"> 
       <table>
         <tr><td colspan="2"><div id="title"></div></td></tr>
@@ -145,12 +132,13 @@
         <tr><td><div id="yieldDetail2"></div></td></tr>
       </table>
 
-      <form>
-        Selection Type:
-        <label><input type="radio" name="layout" value="Point" checked> Point</label>
-        <label><input type="radio" name="layout" value="Brush" > Brush</label>
-      </form>
-        
+      <div id="selectionType" style="position:absolute; top: 100px; left: 100px;">
+          <form>
+              Selection:
+              <label><input type="radio" name="layout" value="Point" checked> Point</label>
+              <label><input type="radio" name="layout" value="Brush"> Area</label>
+          </form>
+      </div>
 
       <script src="LocalYield.js"></script> 
     </div>
