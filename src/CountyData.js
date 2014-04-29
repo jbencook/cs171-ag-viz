@@ -622,9 +622,10 @@ function yield_color(year){
    
     if (selected_data.length == 0 && data != null){
         for (i=0; i<data.length;i++){
-            var stateANSI = parseFloat(data[i]['State ANSI']);
-            var countyANSI = data[i]['County ANSI'];
-            var county_id = ""+stateANSI+""+countyANSI;
+            // var stateANSI = parseFloat(data[i]['State ANSI']);
+            // var countyANSI = data[i]['County ANSI'];
+            // var county_id = ""+stateANSI+""+countyANSI;
+            var county_id = data[i]['FIPS'];
 
             d3.selectAll('.counties').select('#c'+county_id)
               .attr('fill', yield_color_scale(parseFloat(data[i].Value)));
@@ -637,9 +638,11 @@ function yield_color(year){
         d3.selectAll('.counties').selectAll('path').attr('fill', 'none');
         
         for (i=0; i<data.length;i++){
-            var stateANSI = parseFloat(data[i]['State ANSI']);
-            var countyANSI = data[i]['County ANSI'];
-            var county_id = ""+stateANSI+""+countyANSI;
+            // var stateANSI = parseFloat(data[i]['State ANSI']);
+            // var countyANSI = data[i]['County ANSI'];
+            // var county_id = ""+stateANSI+""+countyANSI;
+            var county_id = data[i]['FIPS'];
+
             var gray_scale = true;
             
             for(j=0; j<selected_data.length; j++){
@@ -726,7 +729,8 @@ function process_data(path){
                     data_by_year[current_year] = data_for_year;
                 }
 
-                var current_id = ('c'+parseFloat(data[i]['State ANSI'])+data[i]['County ANSI']);
+                // var current_id = ('c'+parseFloat(data[i]['State ANSI'])+data[i]['County ANSI']);
+                var current_id = ('c'+parseFloat(data[i]['FIPS']));
                 var current_list = county_ids[current_id];
                 
                 if (current_list != null){
@@ -882,7 +886,6 @@ function time_brushed(){
     // handle.attr('cx', xtime_range(value))
     handle.transition(100).attr('x', xtime_range(value));
     animate_year = d3.round(value, 0);
-    console.log(animate_year)
     //update color 
     yield_color(select_year);
     //load weather data:
@@ -1088,9 +1091,10 @@ function generateHist(data){
                 
                 for (i=0; i<data.length; i++){
                     if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
-                        var stateANSI = parseFloat(data[i]['State ANSI']);
-                        var countyANSI = data[i]['County ANSI'];
-                        var county_id = ""+stateANSI+""+countyANSI;
+                        // var stateANSI = parseFloat(data[i]['State ANSI']);
+                        // var countyANSI = data[i]['County ANSI'];
+                        // var county_id = ""+stateANSI+""+countyANSI;
+                        var county_id = data[i]['FIPS']
                         d3.selectAll('.counties').select('#c'+county_id).attr('fill', highlight_color);
                         highlightd_counties.push('c'+county_id);
                     }
@@ -1114,9 +1118,11 @@ function generateHist(data){
             
             for (i=0; i<data.length; i++){
                 if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
-                    var stateANSI = parseFloat(data[i]['State ANSI']);
-                    var countyANSI = data[i]['County ANSI'];
-                    var county_id = ""+stateANSI+""+countyANSI;
+                    // var stateANSI = parseFloat(data[i]['State ANSI']);
+                    // var countyANSI = data[i]['County ANSI'];
+                    // var county_id = ""+stateANSI+""+countyANSI;
+                    var county_id = data[i]['FIPS']
+
                     d3.selectAll('.counties').select('#c'+county_id).attr('fill', highlight_color);
                     highlightd_counties.push('c'+county_id);
                 }
