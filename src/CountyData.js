@@ -760,7 +760,7 @@ function process_data(path){
         }
         
         generate_average_scatterplot(yield_average);
-        yield_color(parseFloat(d3.min(years)));
+        yield_color(parseFloat(animate_year));
     });        
 }
 
@@ -861,7 +861,7 @@ function generateMap(error, us) {
     //     .attr("d", path)
        
     process_data(yield_path);
-    load_station_Data(station_path);
+    // load_station_Data(station_path);
 
 }
 
@@ -889,7 +889,7 @@ function time_brushed(){
     //update color 
     yield_color(select_year);
     //load weather data:
-    generate_WeatheVis(selected_stations, gdd_path, select_year);
+    // generate_WeatheVis(selected_stations, gdd_path, select_year);
 
 }
 
