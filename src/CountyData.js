@@ -7,32 +7,32 @@
 // Calls
 
 // Overall page margins
-var margin_buffer = 50;
+var padding = 50;
 var margin = {
-    top: margin_buffer,
-    right: margin_buffer,
-    bottom: margin_buffer,
-    left: margin_buffer
+    top: padding,
+    right: padding,
+    bottom: padding,
+    left: padding
 };
 
-var width = 1600 - margin.left - margin.right;
-var height = 900 - margin.bottom - margin.top;
+var width = 1400 - margin.left - margin.right;
+var height = 800 - margin.bottom - margin.top;
 var centered;
 
 
 // Individual vis bounding boxes
 var mapVis = {
-    x: 0,
+    x: 100,
     y: 0,
     w: width * 0.8,
     h: height * 0.8
 };
 
 var timeVis = {
-    x: 0,
-    y: mapVis.h,
-    w: mapVis.w, 
-    h: height - mapVis.h
+    x: 330,
+    y: mapVis.h - 100,
+    w: mapVis.w * 0.5, 
+    h: height - mapVis.h + 100
 }
 
 var histVis = {
@@ -49,13 +49,14 @@ var weatherVis = {
     h: height - histVis.h
 }
 
+
 /////////////////////////
 ////////////////////////
 // Global Variables (Scoping)
 ////////////////////////
 /////////////////////
 var projection = d3.geo.albersUsa()
-    .scale(1500)
+    .scale(1000)
     .translate([mapVis.w/2, mapVis.h/2]);
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 
@@ -110,17 +111,9 @@ var selected_stations = [];
 var years;
 var selected_data;
 var select_year;
+var yield_range;
 
 // Create Canvases
-//title vis:
-var title = d3.select("#title")
-    .style("text-align", "center")
-    .append("text").attr("class", "title")
-    .attr("text-anchor", "middle")
-    .attr("x", width/2)
-    .attr("y", 0)
-    .text("County Level Crop Yield");
-
 var canvas = d3.select("#vis").append("svg")
     .attr("width", width)
     .attr("height", height);
@@ -129,7 +122,7 @@ canvas.append("rect")
     .attr("class", "background")
     .attr("width", width)
     .attr("height", height)
-    .style("fill", "blue");
+    // .style("fill", "blue");
 
 var Map = canvas.append("svg")
     .attr("width", mapVis.w)
@@ -141,6 +134,21 @@ Map.append("rect")
     .attr("class", "background")
     .attr("width", mapVis.w)
     .attr("height", mapVis.h)
+
+//title vis:
+canvas.append("text").attr("class", "title")
+    .attr("text-anchor", "middle")
+    .attr("x", width/2)
+    .attr("y", 30)
+    .style("text-align", "center")
+    .html("A Century of Corn<br>");
+
+canvas.append("text").attr("class", "subtitle")
+    .attr("text-anchor", "middle")
+    .attr("x", width/2)
+    .attr("y", 60)
+    .style("text-align", "center")
+    .html("Harvesting America's Crop Yield Data");
 
 var timeslider = canvas.append("svg")
     .attr("width", timeVis.w)
@@ -163,6 +171,7 @@ hist_canvas.append("rect")
     .attr("class", "background")
     .attr("width", histVis.w)
     .attr("height", histVis.h)
+    .style("fill", "gray")
 
 var weather_vis = canvas.append('svg')
     .attr("width", weatherVis.w)
@@ -175,8 +184,27 @@ weather_vis.append("rect")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
 
+var story_nav = canvas.append("svg")
+    .attr("width", 270)
+    .attr("height", 400)
+    .attr("x", 0)
+    .attr("y", 290)
+
+story_nav.append("rect")
+    .attr("class", "background")
+    .attr("width", 270)
+    .attr("height", 400)
+    .style("fill", "gray")
+
+// story_pages = [0,1,2,3,4]
+
+// story_pages.forEach(function(d) {
+//     story_page_select = story_nav.selectAll(".storypage")
+//         .enter().
+// })
+
 // Create Time Range Slider
-var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, timeVis.w]).clamp(true);
+var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, timeVis.w - padding]).clamp(true);
 var time_brush = d3.svg.brush().x(xtime_range).on('brush', time_brushed);
 var slider = timeslider.append('g').attr('class', 'slider').attr('fill', 'gray').call(time_brush);
 
@@ -184,21 +212,17 @@ timeslider.append('g')
           .attr('class', 'axis')
           .attr('height',20)
           .attr('width', 100)
-          .attr('transform', 'translate('+0+','+ (timeVis.h - margin.top) +")")
+          .attr('transform', 'translate('+padding/2+','+ (timeVis.h - padding/2) +")")
           .call(d3.svg.axis().scale(xtime_range)
-          .orient('bottom').tickFormat(d3.format("d")));
-// var handle = slider.append('circle').attr('class', 'handle').attr('transform', 'translate('+0+','+(margin.top+hist_height)+")").attr('r', 9)
-//     slider.selectAll('.extent, .resize' ).remove();
-
+          .orient('bottom').tickFormat(d3.format("d")))
+          .style("z-index", 999);;
 
 var handle = slider.append('image').attr('class', 'handle')
     .attr("xlink:href", "../img/corn_icon.svg")
-    .attr("x", -20)
-    .attr("y", function(){return (timeVis.h - margin.top) - 25})
-    // .attr('transform', 'translate('+0+','+(margin.top+hist_height)+")")
+    // .attr("y", function(){return (timeVis.h - padding)})
+    .attr('transform', 'translate('+0+','+(timeVis.h - padding)+")")
     .attr("width", 40)
-    .attr("height", 40)
-    .style("z-index", 999);
+    .attr("height", 40);
     // .attr('r', 9)
     
 // slider.selectAll('.extent, .resize' ).remove();
@@ -534,21 +558,53 @@ function generate_legend(data){
     //quantized color scale:
     var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(color_range);
 
-    var legend = Map.append('g').attr('class', 'legend');
+    var legend = Map.append('g').attr('class', 'legend')
+        .attr("transform", "translate("+ (mapVis.w - 200) + "," + (mapVis.h/2 - 50) + ")");
+
+    var tick_size = (yield_range[1]-yield_range[0]) / (legend_ticks)
 
     for (i=0; i<=legend_ticks; i++){
         legend.append('rect')
               .attr('class', 'legend_box')
-              .attr('x', mapVis.w - 100)
-              .attr('y', mapVis.h/2+ (legend_height/legend_ticks)*i)
-              .attr('height', 10)
+              .attr('x', 0)
+              .attr('y', (legend_height/legend_ticks)*i)
+              .attr('height', (legend_height/legend_ticks) - 1)
               .attr('width', 10)
-              .style('fill', legend_color_scale(i));
+              .style('fill', legend_color_scale(legend_ticks - i));
+
+        legend.append('text')
+           .attr('class', 'legend_tick')
+           .attr('x', 13)
+           .attr('y', (legend_height/legend_ticks)*i + 10)
+           .attr('height', 10)
+           .attr('width', 10)
+           // .style('fill', legend_color_scale(legend_ticks-i))
+           .text(d3.round(yield_range[1] - (i)*tick_size) + " to " + d3.round(yield_range[1] - (i-1)*tick_size) )
     }
+
+    legend.append('rect')
+              .attr('class', 'legend_box')
+              .attr('x', 0)
+              .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 5)
+              .attr('height', (legend_height/legend_ticks) - 1)
+              .attr('width', 10)
+              .style('fill', county_fill_color);
+
+    legend.append('text')
+       .attr('class', 'legend_tick')
+       .attr('x', 13)
+       .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 15)
+       .attr('height', 10)
+       .attr('width', 10)
+       // .style('fill', legend_color_scale(legend_ticks-i))
+       .text("No Data")
+
+
+
         
-    legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2-15).text('Bu/Acre');
-    legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
-    legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
+    legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', -5).text('Bu/Acre');
+    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
+    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
 
 }
 
@@ -620,12 +676,16 @@ function yield_color(year){
     generate_average_scatterplot(yield_average);
 
     //add year to map:
-    Map.select('#yrtooptip').remove();
-    Map.append('text').attr('y',mapVis.y+margin.top).attr('x',mapVis.w)
-       .text('Year: '+year)
-       .attr('id', 'yrtooptip')
-       .attr('font-weight', 'bold')
-       .style('font-size', 20);
+    canvas.select('#yrtoptip').remove();
+    canvas.append('text')
+        .attr('y',mapVis.y+85)
+        .attr('x',width/2)
+        .attr("text-anchor", "middle")
+        .style("text-align", "center")
+        .text('Year: '+year)
+        .attr('id', 'yrtoptip')
+        .attr('font-weight', 'bold')
+        .style('font-size', 20);
 }
 
 
@@ -671,7 +731,7 @@ function process_data(path){
             }
         }
             
-        var yield_range = d3.extent(all_yields);
+        yield_range = d3.extent(all_yields);
         generate_color_scale(yield_range);
         generate_legend(all_yields);
 
@@ -815,7 +875,7 @@ function time_brushed(){
         select_year = animate_year;
     }
     // handle.attr('cx', xtime_range(value))
-    handle.transition(100).attr('x', xtime_range(value) - 20);
+    handle.transition(100).attr('x', xtime_range(value));
     animate_year = d3.round(value, 0);
     console.log(animate_year)
     //update color 
@@ -845,8 +905,8 @@ function generate_average_scatterplot(data){
             var datum = data[year];
 
             timeslider.append('rect')
-                      .attr('x', xscale(year))
-                      .attr('y', timeVis.h - yscale(datum)-margin.top)
+                      .attr('x', xtime_range(year) + padding/2)
+                      .attr('y', timeVis.h - yscale(datum) - padding/2)
                       .attr('width', 5)
                       .attr('height', 5)
                       .attr('value', datum)
@@ -954,8 +1014,8 @@ function generateHist(data){
           }
     }
 
-    var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([0,histVis.w]);
-    var yscale_hist = d3.scale.linear().domain([0, bin_values.length]).range([5,histVis.h]);
+    var xscale_hist = d3.scale.linear().domain(d3.extent(all_yields)).range([5,histVis.w - padding]);
+    var yscale_hist = d3.scale.linear().domain([0, 500]).range([5,histVis.h - padding]);
 
     var hist_data = d3.layout.histogram().bins(xscale_hist.ticks(bin_num))(bin_values);
     var data_for_bins = {};
@@ -970,13 +1030,13 @@ function generateHist(data){
                     }
                 })
                .attr('width', histVis.w/bin_num)
-               .attr('x', function(d,i){return i*histVis.w/bin_num})
+               .attr('x', function(d,i){return i*histVis.w/bin_num + 15})
                .attr('y', function(d,i){
                     if(d.y == 0){ 
-                        return histVis.h;
+                        return histVis.h - padding;
                     }
                     if(d.y != 0){
-                        return histVis.h - yscale_hist(d.y);
+                        return histVis.h - yscale_hist(d.y) - padding;
                     }
                 })
                .attr('fill', function(d,i){return yield_color_scale(d.x);})
@@ -989,13 +1049,15 @@ function generateHist(data){
     var xAxis = d3.svg.axis().scale(xscale_hist).orient('bottom').tickFormat(d3.format("d"));
    
     hist_canvas.append('g')
-               .call(xAxis).attr('transform',  "translate("+(0)+","+(histVis.h)+")")
-               .attr('class', 'axis')
-               .selectAll('text')
-               .attr('y',0)
-               .attr('x',+20)
-               .attr('transform', 'rotate(90)')  
-               .style('font-size', 10);
+        .call(xAxis).attr('transform',  "translate("+(10)+","+(histVis.h - padding)+")")
+        .attr('class', 'axis')
+        .selectAll('text')
+        .attr('y',0)
+        .attr('x',-20)
+        .style("text-anchor", "middle")
+        .style("text-align", "right")
+        .attr('transform', 'rotate(-70)')  
+        .style('font-size', 10);
     //hist_canvas.append('text').attr('y', histVis.h).attr('x', histVis.w/2-margin.left).text('Yield').style('font-weight', 'bold').attr('class', 'axis')
 
     hist_canvas.selectAll('.bars')
@@ -1006,8 +1068,8 @@ function generateHist(data){
 
             //add bin count tool tip:
             hist_canvas.append('text')
-                       .attr('x', coordinates[0]+5)
-                       .attr('y', coordinates[1]-5)
+                       .attr('x', coordinates[0]+10)
+                       .attr('y', coordinates[1]-5 + padding)
                        .text('Bin Count: '+bin_count)
                        .attr('id', 'bcount_tip')
                        .style('font-weight', 'bold');
@@ -1097,13 +1159,13 @@ function selected_county_vis(data){
     for (i=0; i<count_data.length;i++){
 
         var year = parseFloat(count_data[i].Year);
-        var xpos = xscale_selectvis(year);
+        var xpos = xtime_range(year) + padding/2;
         var yield = parseFloat(count_data[i].Value);
         var ypos = yscale_selectvis(yield);
 
         timeslider.append('rect')
                    .attr('x', xpos)
-                   .attr('y', timeVis.h-ypos-margin.top)
+                   .attr('y', timeVis.h-ypos-padding/2)
                    .attr('width', delta)
                    .attr('height', ypos)
                    .attr('class', 'selectVis')
@@ -1160,7 +1222,7 @@ function brushed_2d(){
 
         if (county[0][0] != null){
             var xpos = county[0][0].getAttribute('xpos');
-            var ypos = county[0][0].getAttribute('ypos') - margin_buffer;
+            var ypos = county[0][0].getAttribute('ypos') - padding;
             
             if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
                 selected_data.push(key);
@@ -1201,6 +1263,21 @@ function step() {
 
 // Radial Button Toggle
 // button updates:
+d3.select("button[value=\"Play\"]").on("click", function(){
+    d3.select("#localVis")
+        .style("z-index", 100)
+        .transition().duration(1500)
+        .style("opacity", 1)
+    d3.select("#storyControls")
+        .transition().duration(1500)
+        .style("left", "850px")
+    d3.select("#animate")
+        .transition()
+        .style("opacity", 0)
+            
+            // .attr("transform", "translate(0,0)");
+});
+
 d3.select("input[value=\"Point\"]").on("click", function(){
     animate_stop = false;
     step();
@@ -1209,11 +1286,6 @@ d3.select("input[value=\"Point\"]").on("click", function(){
       // .attr("width", 0)
     //   .attr("height", 0)
     //   .style("opacity", 0)
-    // d3.select("#localVis")
-    //     .transition().duration(1500)
-    //     .style("opacity", 1)
-    //     .style("z-index", 9999)
-    // //     .attr("transform", "translate(0,0)");
     // for(y = 1910; y< 2013; y++) {
     //     //fix timeslider vis:
     //     d3.selectAll('.selectVis').remove();

@@ -16,36 +16,44 @@
     <script src="/libs/bootstrap.min.js"></script>
     <script src="/libs/bootswatch.js"></script>
 
-<!--     <div class="page-header">
-    </div>
- -->
-    <div class="navbar navbar-default navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-collapse collapse" id="navbar-main">
-                <ul class="nav navbar-nav">       
-                    <li><a href="/">Home</a></li>
-                </ul>
-                
-                <h1 class='title'>A Century of Corn</h1>
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="https://github.com/jbencook/cs171-ag-viz" target="_blank">GitHub</a></li>
 
-                </ul>
-            </div>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand">Century of Corn</a>
         </div>
-    </div> 
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://github.com/jbencook/cs171-ag-viz">Git Repository</a></li>
+            <li><a href="http://www.cs171.org">CS171</a></li>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
 
-<div class="container">
+
+<div class="container-fluid">
     <title>County Level Corn Yield</title>
 </head>
 
 
 <body>
 <style type="text/css">
-body { padding-top: 100px; }
+body { padding-top: 70; }
 
     .background {
-      fill: #ccc;
+      fill: #eee;
       pointer-events: all;
     }
 
@@ -77,7 +85,17 @@ body { padding-top: 100px; }
     }
 
     .title {
-        font: 36px sans-serif;
+        font: 40px Helvetica;
+        font-variant: small-caps;
+        /*font-weight: bold;*/
+        text-align: center;
+        margin: auto;
+    }
+
+    .subtitle {
+        font: 20px Helvetica;
+        /*font-variant: small-caps;
+        font-weight: bold;*/
         text-align: center;
         margin: auto;
     }
@@ -143,28 +161,66 @@ body { padding-top: 100px; }
 
 </style>
 
-<div id="title"></div>
-<div id="vis" style="float:left"></div><div id="timeslider" style="float:left"></div>
+<!-- <div id="title"></div> -->
+<div id="vis" style="float:left"><!-- </div><div id="timeslider" style="float:left"></div>
 <div id="weather" style="float:right"></div><div id="hist" style="float:right"></div>
-<!-- <table>
+<table>
     <tr>
         <td id='left'><div id="vis"></div><div id="timeslider"></div></td>
         <td id='right'><div id="weather"></div><div id="hist"></div></td>
    </tr>
      
 </table> -->
-<div id="localVis">
-    <iframe style="position:absolute; top: 160px; left: 0px border: 0px;" src="LocalYield.html" height="900" width="1300" scrolling="yes">
+<!-- <div id="localVis" style="position:absolute; z-index:-1; top: 0px left: 0px border: 0px; opacity: 0;">
+    <iframe src="LocalYield.html" height="800" width="1300" scrolling="yes">
         <p>Your browser does not support iframes.</p>
     </iframe>
+</div> -->
+<div id="selectionType" style="position:absolute; top: 500px; left: 350px;">
+    <form>
+        Selection:
+        <label><input type="radio" name="layout" value="Point" checked> Point</label>
+        <label><input type="radio" name="layout" value="Brush"> Area</label>
+    </form>
 </div>
-<form>
-    Selection Type:
-    <label><input type="radio" name="layout" value="Point" > Point</label>
-    <label><input type="radio" name="layout" value="Brush" checked> Brush</label>
-</form>
-<script src="CountyData.js"></script>
+<div id="storyControls" style="position:absolute; top:680px; left:25px; z-index: 999;">
+    <div id="storyPages" class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-default">&laquo</button>
+        <button type="button" class="btn btn-default">1</button>
+        <button type="button" class="btn btn-default">2</button>
+        <button type="button" class="btn btn-default">3</button>
+        <button type="button" class="btn btn-default">4</button>
+        <button type="button" class="btn btn-default">5</button>
+        <button type="button" class="btn btn-default">6</button>
+        <button type="button" class="btn btn-default">7</button>
+        <button type="button" class="btn btn-default">&raquo</button>
+        <!-- <ul class="pagination pagination-sm">
+            <li><a href="#">&laquo;</a></li>
+            <li><a href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">4</a></li>
+            <li><a href="#">5</a></li>
+            <li><a href="#">6</a></li>
+            <li><a href="#">7</a></li>
+            <li><a href="#">&raquo;</a></li>
+        </ul> -->
+    </div>
+    <div id="animate" class="btn-group" style="position:relative; top:-50px; left:-155px">
+        <button type="button" class="btn btn-default" value="Play">Play</button>
+    </div>
+</div>
 
+<div id="timeSliderControl">
+    <button type="button" class="btn btn-default btn-sm" style="position:absolute; top:712px; left:320px;" value="timeDown">
+        <span class="glyphicon glyphicon-circle-arrow-left"></span>
+    </button>
+    <button type="button" class="btn btn-default btn-sm" style="position:absolute; top:712px; left:850px;" value="timeUp">
+        <span class="glyphicon glyphicon-circle-arrow-right"></span>
+    </button>
+</div>
+
+    <script src="CountyData.js"></script>
 </div>
 </body>
 </html>

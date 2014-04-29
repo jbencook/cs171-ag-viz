@@ -48,7 +48,7 @@ var colors_grey = d3.scale.quantize()
     .range(colorbrewer.Greys[9]);
 
 // Define map projection
-var projection = d3.geo.albers().scale(5000000);
+var projection = d3.geo.albers().scale(18000000);
 
 
 // Define path generator
@@ -80,6 +80,10 @@ var yieldMean_select;
 // Formatters
 var formatCount = d3.format(",.2f");
 var formatCoords = d3.format(".4f");
+
+
+var field_file = "../data/local_yields2/koz3_2009.csv_small.csv"
+var field_img = "../img/koz3.jpg"
 
 // // Create the Google Map…
 // var fieldLoc = new google.maps.LatLng(41.2531, -97.1440);
@@ -121,14 +125,20 @@ var canvas = d3.select("#fieldVis").append("svg").attr({
     height: bbFieldVis.h
 });
 
-canvas.append("rect")
-    .attr("class", "background")
+// canvas.append("rect")
+//     .attr("class", "background")
+//     .attr("width", bbFieldVis.w)
+//     .attr("height", bbFieldVis.h)
+//     .on("click", function(d) {
+//             var select_values = [];
+//             histYield_select(select_values);            
+//     })
+
+canvas.append("g").append('image').attr('class', 'rect')
+    .attr("xlink:href", field_img)
     .attr("width", bbFieldVis.w)
     .attr("height", bbFieldVis.h)
-    .on("click", function(d) {
-            var select_values = [];
-            histYield_select(select_values);            
-    })
+
 
 var fieldVis = canvas.append("g");
 
@@ -164,7 +174,10 @@ yieldMeta.append("rect")
 
 // Radial Button Toggle
 // button updates:
-d3.select("input[value=\"Point\"]").on("click", function(){d3.selectAll('.brush').remove()});
+d3.select("input[value=\"Point\"]").on("click", function(){
+    // Point.transition
+    d3.selectAll('.brush').remove()
+});
 d3.select("input[value=\"Brush\"]").on("click", function(){
   // d3.selectAll('.selectVis').remove()
   canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
@@ -173,7 +186,7 @@ d3.select("input[value=\"Brush\"]").on("click", function(){
 queue()
     // .defer(d3.json, "../data/nebraska.geojson")
     // .defer(d3.csv, "../data/wmk5_2009_small.csv")
-    .defer(d3.csv, "../data/kn40_soy_2008.csv_small.csv")
+    .defer(d3.csv, field_file)
     .defer(d3.csv, "../data/price.csv")
     .await(createVis);
 
@@ -191,11 +204,19 @@ function createVis(error, yield_data, price) {
     x = projection([d3.mean(lon), d3.mean(lat)])
 
     // loadMap([d3.mean(lon), d3.mean(lat)])
-    projection.translate([bbFieldVis.w - x[0], bbFieldVis.h - x[1]]);
+    projection.translate([bbFieldVis.w - x[0] +20, bbFieldVis.h - x[1] - 40]);
     timeSeries(price);
 
     hist_values = [];
-    yield_data.forEach(function(d) {hist_values.push(parseInt(d.yld))});
+    yield_data_filtered = [];
+    yield_data.forEach(function(d) {
+        if(d.val > 0) {
+            hist_values.push(parseInt(d.val));
+            yield_data_filtered.push(d);
+        }
+        
+        
+    });
 
     xScale = d3.scale.linear()
         .domain([d3.min(hist_values),d3.max(hist_values)])
@@ -205,7 +226,7 @@ function createVis(error, yield_data, price) {
     colors_grey.domain(d3.extent(hist_values));
 
     point = fieldVis.selectAll(".point")
-        .data(yield_data)
+        .data(yield_data_filtered)
         .enter()
         .append("rect")
         .attr("class", "point")
@@ -221,21 +242,21 @@ function createVis(error, yield_data, price) {
         .attr("width", 7)
         .attr("height", 7)
         .attr("yield", function(d) {
-            return d.yld;
+            return d.val;
         })
-        .style("opacity", 1)
+        .style("opacity", 0.7)
         .on("mouseover", showYield)
         .on("mouseout", hideYield)
         .on("click", function(d) {
             var select_values = []
             fieldVis.selectAll(".point")
                 .transition().duration(0)
-                .style("fill", function(d){return colors_grey(d.yld)})
+                .style("fill", function(d){return colors_grey(d.val)})
             fieldVis.selectAll("[soil = '" + d.soil + "']")
                 .transition().duration(0)
                 .style("fill", function(d){
-                    select_values.push(parseInt(d.yld)); 
-                    return colors(d.yld)
+                    select_values.push(parseInt(d.val)); 
+                    return colors(d.val)
                 })
             histYield_select(select_values);
         });
@@ -258,8 +279,8 @@ function createVis(error, yield_data, price) {
         // .selectAll("rect")
         // .attr("height", bbFieldVis.h);
 
-    histYield(yield_data);
-    histSoil(yield_data);
+    histYield(yield_data_filtered);
+    histSoil(yield_data_filtered);
 }
 
 
@@ -318,7 +339,7 @@ var histYield_data, binWidth;
 function histYield(yield_data) {
 
     // hist_values = []
-    // yield_data.forEach(function(d) {hist_values.push(parseInt(d.yld))})
+    // yield_data.forEach(function(d) {hist_values.push(parseInt(d.val))})
 
     // xScale = d3.scale.linear()
     //     .domain([d3.min(hist_values),d3.max(hist_values)])
@@ -331,6 +352,8 @@ function histYield(yield_data) {
         //.bins(xScale.ticks(20))
         (hist_values);
 
+
+    console.log(hist_values)
     //console.log(histYield_data, d3.extent(hist_values));
     //console.log(histYield_data[0].x, histYield_data[0].dx, Math.ceil(histYield_data[histYield_data.length-1].x + histYield_data[0].dx));
 
@@ -340,10 +363,10 @@ function histYield(yield_data) {
     //console.log(binWidth);
 
     point.attr("bin", function(d) {
-            return Math.round((d.yld / binWidth) - 1);
+            return Math.round((d.val / binWidth) - 1);
         })
         .style("fill", function(d) {
-            return colors(d.yld);
+            return colors(d.val);
         });
 
     yScale = d3.scale.linear()
@@ -384,6 +407,7 @@ function histYield(yield_data) {
         .attr("y", 25)
         .attr("height", bbYieldHist.h - 50);
         // .on("mouseup", highlightBrushedYield);
+    
 
     yieldMean = yieldHist.append("line")
         .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
@@ -418,7 +442,7 @@ function histYield_select(select_values) {
     if (select_values.length == 0) { 
         fieldVis.selectAll(".point")
             .transition().duration(0)
-            .style("fill", function(d){return colors(d.yld)})
+            .style("fill", function(d){return colors(d.val)})
         yieldMean_select.attr("visibility", "hidden");
     };
     
@@ -482,12 +506,12 @@ function brushedHist() {
 function highlightBrushedYield(){
     var extent = brushHist.extent();
     point.transition().style("fill", function(pt) {
-        if(pt.yld >= Math.floor((extent[0] / binWidth) - 1) * binWidth & pt.yld <= Math.ceil((extent[1] / binWidth)) * binWidth) {
+        if(pt.val >= Math.floor((extent[0] / binWidth) - 1) * binWidth & pt.val <= Math.ceil((extent[1] / binWidth)) * binWidth) {
             // return "#f1a340";
-            return colors(pt.yld);
+            return colors(pt.val);
         } 
         else {
-            return colors_grey(pt.yld);
+            return colors_grey(pt.val);
         }
     });
 }
@@ -504,11 +528,11 @@ function brushedField() {
     var select_values = []
     point.transition().duration(0).style("fill", function(pt) {
         if(pt.lon >= brush_min[0] && pt.lon <= brush_max[0] && pt.lat >= brush_max[1] && pt.lat <= brush_min[1]) {
-            select_values.push(parseInt(pt.yld))
-            return colors(pt.yld);
+            select_values.push(parseInt(pt.val))
+            return colors(pt.val);
         } 
         else {
-            return colors_grey(pt.yld);
+            return colors_grey(pt.val);
         }
     });
     histYield_select(select_values);
@@ -517,9 +541,9 @@ function brushedField() {
 
 var showYield = function(d) {
     yieldMeta.selectAll('[kind="yield"]')
-      .text(formatCount(d.yld) + " (bu / ac)");
+      .text(formatCount(d.val) + " (bu / ac)");
     yieldMeta.selectAll('[kind="elevation"]')
-      .text(Math.round(d.elevation) + " (ft)");
+      .text(Math.round(d.elevation_) + " (ft)");
     yieldMeta.selectAll('[kind="soil"]')
       .text(d.soil)
       // .style("fill", "blue")
