@@ -80,7 +80,7 @@ var weather_radius = 10
 var weather_radius = 10;
 
 var station_path = '../data/station_03312014.csv';
-var gdd_path = "../data/gdd.json";
+var gdd_path = "../data/yield_data_full.csv";
 // var yield_path = '../data/county_yield_small_1910_2013.csv';
 var yield_path = '../data/yield_data_full.csv';
 
@@ -111,11 +111,12 @@ var yield_average = {};
 
 var all_stations = [];
 var selected_stations = [];
-
+var selected_counties;
 var years;
 var selected_data;
 var select_year;
 var yield_range;
+var weather_dict = {};
 
 // Create Canvases
 var canvas = d3.select("#vis").append("svg")
@@ -375,8 +376,8 @@ function create_hlchecks(){
         });
 }
 
-function generate_WeatheVis(stations, path, year){
-  
+function generate_WeatheVis(counties, year){
+    
     d3.select('#weather').selectAll(".axis").remove();
     d3.select('#weather').selectAll(".temps").remove();
     d3.select('#weather').selectAll(".highlighted_weather").remove();
@@ -391,19 +392,21 @@ function generate_WeatheVis(stations, path, year){
     var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h]);
     var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors);
     
-    d3.json(path, function(data){
+
+
         var station_totals = {};
-        if (stations.length != 0){
+        if (counties.length != 0){
         
             for (i=weather_range[0]; i<=weather_range[1];i++ ){
                 station_totals[i] = {"sum":0, 'count':0, 'average':0};
             }
             
-            for(i=0; i < stations.length; i++){
-                var key = stations[i]+String(select_year);
-                var ggd_data = data[key];
+            for(i=0; i < counties.length; i++){
+                var key = counties[i]+String(select_year);
+                console.log(key)
+                var ggd_data = weather_dict[key];
                 var weather_path = '';
-                
+                console.log(ggd_data)
                 if(ggd_data != null){
                     for (j=weather_range[0]; j<=weather_range[1]; j++){
                     
@@ -472,7 +475,7 @@ function generate_WeatheVis(stations, path, year){
                 }  
             }
         }
-    }); 
+   
 }
 
 
@@ -701,6 +704,7 @@ function yield_color(year){
 function process_data(path){  
 
     d3.csv(path, function(data){
+
         var start_year = 0;
         var data_for_year = [];
         var start_id = 0;
@@ -740,6 +744,15 @@ function process_data(path){
                 }
             }
         }
+
+        //Create Weather Data:
+        weather_dict 
+        for(i=0; i<data.length; i++){
+          weather_dict[String(data[i]['FIPS']+data[i]['Year'])] = data[i]
+        }
+        
+
+
             
         yield_range = d3.extent(all_yields);
         generate_color_scale(yield_range);
@@ -809,7 +822,7 @@ function load_station_Data(path){
             }
         }
         
-        generate_WeatheVis(all_stations, gdd_path, select_year);
+        generate_WeatheVis(selected_counties, select_year);
 
     });
 }
@@ -892,7 +905,7 @@ function time_brushed(){
     //update color 
     yield_color(select_year);
     //load weather data:
-    // generate_WeatheVis(selected_stations, gdd_path, select_year);
+    //generate_WeatheVis(selected_counties, select_year);
 
 }
 
@@ -1226,7 +1239,7 @@ function brushed_2d(){
     var extent = d3.event.target.extent();
     var test = 0;
     selected_data = [];
-
+    selected_counties = [];
     var keys = Object.keys(county_ids);
 
     //select counties
@@ -1240,28 +1253,18 @@ function brushed_2d(){
             
             if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
                 selected_data.push(key);
+                selected_counties.push(key.slice(1))
             }
         }
     }
+    
+    
 
-    //select weather station
-    for(i=0; i<all_stations.length; i++){
-        var station = all_stations[i];
-        var station_data = d3.select('#vis').select('#s'+station);
-
-        if (station_data[0][0] != null){
-            var xpos = station_data[0][0].getAttribute('cx');
-            var ypos = station_data[0][0].getAttribute('cy');
-            
-            if(extent[0][0] <= xpos && xpos< extent[1][0] && extent[0][1] <= ypos && ypos < extent[1][1]){ 
-                selected_stations.push(station);
-            }
-        }
-    }
-
-    brushed_county_vis(selected_data);
+    
     generate_average_scatterplot(yield_average);
-    generate_WeatheVis(selected_stations, gdd_path, select_year);
+    if (selected_data.length >0){
+    brushed_county_vis(selected_data);
+    generate_WeatheVis(selected_counties, select_year);}
 }
 
 function step() {
