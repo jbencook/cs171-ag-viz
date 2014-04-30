@@ -87,10 +87,10 @@ var formatCount = d3.format(",.2f");
 var formatCoords = d3.format(".4f");
 
 
-var field_file = "../data/local_yields2/koz3_2008.csv_small.csv"
-var field_file1 = "../data/local_yields2/koz3_2009.csv_small.csv"
-var field_file2 = "../data/local_yields2/wmk5_soy_2008.csv_small.csv"
-var field_file3 = "../data/local_yields2/wmk5_2009.csv_small.csv"
+var field_file = "../data/local_yields/koz3_2008.csv_small.csv"
+var field_file1 = "../data/local_yields/koz3_2009.csv_small.csv"
+var field_file2 = "../data/local_yields/wmk5_soy_2008.csv_small.csv"
+var field_file3 = "../data/local_yields/wmk5_2009.csv_small.csv"
 
 // Declare visualization areas
 var canvas = d3.select("#fieldVis").append("svg")
@@ -186,11 +186,10 @@ queue()
     // .defer(d3.json, "../data/nebraska.geojson")
     // .defer(d3.csv, "../data/wmk5_2009_small.csv")
     .defer(d3.csv, field_file)
-    .defer(d3.csv, "../data/price.csv")
     .await(createVis);
 
 
-function remakeVis(error, yield_data, price) {
+function createVis(error, yield_data) {
     yieldHist.remove()
     yieldHist = canvas.append("svg").attr({
         width: bbYieldHist.w,
@@ -221,7 +220,7 @@ function remakeVis(error, yield_data, price) {
         
     });
 
-    point.remove()
+    fieldVis.selectAll(".point").remove()
     createYieldMeta();
     if (koz) {
         projection = d3.geo.albers().scale(18000000);
@@ -308,121 +307,98 @@ function remakeVis(error, yield_data, price) {
     d3.selectAll('.brush').remove()
 }    
 
-function createVis(error, yield_data, price) {
-    createYieldMeta();
-    // var x = path.centroid(geo_data.features[2]);
-    lat = []
-    lon = []
-    yield_data.forEach(function(d){
-        lat.push(parseFloat(d.lat))
-        lon.push(parseFloat(d.lon))
-    });
+// function createVis(error, yield_data) {
+//     createYieldMeta();
 
-    x = projection([d3.mean(lon), d3.mean(lat)])
-    projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]); 
-    timeSeries(price);
+//     lat = []
+//     lon = []
+//     yield_data.forEach(function(d){
+//         lat.push(parseFloat(d.lat))
+//         lon.push(parseFloat(d.lon))
+//     });
 
-    hist_values = [];
-    yield_data_filtered = [];
-    yield_data.forEach(function(d) {
-        if(d.val > 0) {
-            hist_values.push(parseInt(d.val));
-            yield_data_filtered.push(d);
-        }
-    });
+//     x = projection([d3.mean(lon), d3.mean(lat)])
+//     projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]); 
+//     // timeSeries(price);
 
-    xScale = d3.scale.linear()
-        .domain([d3.min(hist_values),d3.max(hist_values)])
-        .range([25, bbYieldHist.w - 25]);
+//     hist_values = [];
+//     yield_data_filtered = [];
+//     yield_data.forEach(function(d) {
+//         if(d.val > 0) {
+//             hist_values.push(parseInt(d.val));
+//             yield_data_filtered.push(d);
+//         }
+//     });
 
-    colors.domain(d3.extent(hist_values));
-    colors_grey.domain(d3.extent(hist_values));
+//     xScale = d3.scale.linear()
+//         .domain([d3.min(hist_values),d3.max(hist_values)])
+//         .range([25, bbYieldHist.w - 25]);
 
-    point = fieldVis.selectAll(".point")
-        .data(yield_data_filtered)
-        .enter()
-        .append("rect")
-        .attr("class", "point")
-        .attr("soil", function(d) {
-            return d.soil
-        })
-        .attr("x", function(d) {
-            return projection([d.lon, d.lat])[0];
-        })
-        .attr("y", function(d) {
-            return projection([d.lon, d.lat])[1];
-        })
-        .attr("width", 7)
-        .attr("height", 7)
-        .attr("yield", function(d) {
-            return d.val;
-        })
-        .style("opacity", 0.7)
-        .on("mouseover", showYield)
-        .on("mouseout", hideYield)
-        .on("click", function(d) {
-            var select_values = []
-            fieldVis.selectAll(".point")
-                .transition().duration(0)
-                .style("fill", function(d){return colors_grey(d.val)})
-            fieldVis.selectAll("[soil = '" + d.soil + "']")
-                .transition().duration(0)
-                .style("fill", function(d){
-                    select_values.push(parseInt(d.val)); 
-                    return colors(d.val)
-                })
-            histYield_select(select_values);
-        });
-        
-    fieldVis.selectAll(".background")
-        .on("click", function(d) {
-            fieldVis.selectAll(".point")
-                .transition().duration(0)
-                .style("opacity", 1)            
-        });
+//     colors.domain(d3.extent(hist_values));
+//     colors_grey.domain(d3.extent(hist_values));
 
-    brushField = d3.svg.brush()
-        .x(d3.scale.identity().domain([0, bbFieldVis.w]))
-        .y(d3.scale.identity().domain([0, bbFieldVis.h]))
-        .on("brush", brushedField);
-
-    fieldVis.append("g")
-        .attr("class", "brush")
-        .attr("id", "fieldBrush")
-        .call(brushField);
-        // .selectAll("rect")
-        // .attr("height", bbFieldVis.h);
-
-    yield_range = d3.extent(hist_values)
-
-    histYield(yield_data_filtered);
-    histSoil(yield_data_filtered);
-    generate_legend(hist_values)
-    d3.selectAll('.brush').remove()
-}
-
-
-// function generate_legend(data){
-//     var legend_ticks = 100;
-//     var legend_height = 75;
-//     var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9]);
-    
-//     d3.range(legend_ticks).reverse().forEach(function(i) {
-//         //console.log(i)
-//         yieldMeta.append('rect')
-//            .attr('class', 'legend_box')
-//            .attr('x', bbYieldMeta.w-100)
-//            .attr('y',  (legend_height/legend_ticks)*(legend_ticks.length - i) + 100)
-//            .attr('height', 10)
-//            .attr('width', 10)
-//            .style('fill', legend_color_scale(i))
+//     point = fieldVis.selectAll(".point")
+//         .data(yield_data_filtered)
+//         .enter()
+//         .append("rect")
+//         .attr("class", "point")
+//         .attr("soil", function(d) {
+//             return d.soil
+//         })
+//         .attr("x", function(d) {
+//             return projection([d.lon, d.lat])[0];
+//         })
+//         .attr("y", function(d) {
+//             return projection([d.lon, d.lat])[1];
+//         })
+//         .attr("width", 7)
+//         .attr("height", 7)
+//         .attr("yield", function(d) {
+//             return d.val;
+//         })
+//         .style("opacity", 0.7)
+//         .on("mouseover", showYield)
+//         .on("mouseout", hideYield)
+//         .on("click", function(d) {
+//             var select_values = []
+//             fieldVis.selectAll(".point")
+//                 .transition().duration(0)
+//                 .style("fill", function(d){return colors_grey(d.val)})
+//             fieldVis.selectAll("[soil = '" + d.soil + "']")
+//                 .transition().duration(0)
+//                 .style("fill", function(d){
+//                     select_values.push(parseInt(d.val)); 
+//                     return colors(d.val)
+//                 })
+//             histYield_select(select_values);
 //         });
         
-//     yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  15).text('Bu/Acre');
-//     yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y', 30).text(d3.max(data));
-//     yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  30+legend_height).text(d3.min(data));
-// }
+//     fieldVis.selectAll(".background")
+//         .on("click", function(d) {
+//             fieldVis.selectAll(".point")
+//                 .transition().duration(0)
+//                 .style("opacity", 1)            
+//         });
 
+//     brushField = d3.svg.brush()
+//         .x(d3.scale.identity().domain([0, bbFieldVis.w]))
+//         .y(d3.scale.identity().domain([0, bbFieldVis.h]))
+//         .on("brush", brushedField);
+
+//     fieldVis.append("g")
+//         .attr("class", "brush")
+//         .attr("id", "fieldBrush")
+//         .call(brushField);
+//         // .selectAll("rect")
+//         // .attr("height", bbFieldVis.h);
+
+//     yield_range = d3.extent(hist_values)
+
+//     histYield(yield_data_filtered);
+//     histSoil(yield_data_filtered);
+//     generate_legend(hist_values)
+//     d3.selectAll('.brush').remove()
+// }
 var histYield_data, binWidth;
 
 
@@ -468,8 +444,15 @@ function histYield(yield_data) {
     yieldHist.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + (bbYieldHist.h - 25) + ")")
-        .call(xAxis);
-
+        .call(xAxis)
+        .selectAll('text')
+            .attr('y',0)
+            .attr('x',-15)
+            .style("text-anchor", "middle")
+            .style("text-align", "right")
+            .attr('transform', 'rotate(-70)')  
+            .style('font-size', 10);
+    
     bar = yieldHist.selectAll(".bar")
         .data(histYield_data)
         .enter().append("g")
@@ -931,14 +914,14 @@ d3.select("a[value=\"koz3a\"]").on("click", function(){
     queue()
         .defer(d3.csv, field_file)
         .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
+        .await(createVis);
 });
 d3.select("a[value=\"koz3b\"]").on("click", function(){
     koz = true;
     queue()
         .defer(d3.csv, field_file1)
         .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
+        .await(createVis);
 
 });
 d3.select("a[value=\"wmk5a\"]").on("click", function(){
@@ -946,7 +929,7 @@ d3.select("a[value=\"wmk5a\"]").on("click", function(){
     queue()
         .defer(d3.csv, field_file2)
         .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
+        .await(createVis);
 
 });
 d3.select("a[value=\"wmk5b\"]").on("click", function(){
@@ -954,7 +937,7 @@ d3.select("a[value=\"wmk5b\"]").on("click", function(){
     queue()
         .defer(d3.csv, field_file3)
         .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
+        .await(createVis);
 
 });
 
