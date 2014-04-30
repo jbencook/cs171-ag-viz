@@ -188,6 +188,7 @@ weather_vis.append("rect")
     .attr("class", "background")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
+    .attr('id', 'weather')
     // .style("fill", "gray")
 
 
@@ -386,50 +387,67 @@ function generate_WeatheVis(counties, year){
   
     // var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
 
-    
+    console.log('hi')
 
     var weather_xscale = d3.scale.linear().domain(weather_range).range([0, weatherVis.w]);
-    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h]);
+    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h/2 - 100]);
     var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors);
     
-
-
         var station_totals = {};
         if (counties.length != 0){
-        
+       
             for (i=weather_range[0]; i<=weather_range[1];i++ ){
                 station_totals[i] = {"sum":0, 'count':0, 'average':0};
             }
             
             for(i=0; i < counties.length; i++){
                 var key = counties[i]+String(select_year);
-                console.log(key)
-                var ggd_data = weather_dict[key];
+                var start_path = 0
+                var start_idx = NaN
+                var weather_datum = weather_dict[key];
                 var weather_path = '';
-                console.log(ggd_data)
-                if(ggd_data != null){
+                if (weather_datum != null){
+                var P_data = weather_datum['Prcp_monthly'];
+                var T_data = weather_datum['Tavg_monthly'];
+                var T_datum = T_data.split(',')
+                console.log(T_datum)
+                var current_T = [];
+                var current_P = [];
+                for(j=0; j<T_datum.length; j++){
+                    var TempList = T_datum[j].split("'")
+                    var Temp = TempList[1]
+                    if (Temp == null){Temp = NaN}
+                    current_T.push(Temp)
+                }
+
+                  if (current_T.length > weather_range[0]){
                     for (j=weather_range[0]; j<=weather_range[1]; j++){
-                    
-                        station_totals[j].sum += ggd_data[j];
+                        var Temp = current_T[j]
+                        
+                        if (!isNaN(Temp)){
+                        station_totals[j].sum += Temp;
                         station_totals[j].count += 1;
                         var xpos = weather_xscale(j);
-                        var ypos = weather_yscale(ggd_data[j]);
-                        
-                        if (j == weather_range[0]){
+                        var ypos = weather_yscale(Temp);
+       
+                        if (start_path == 0){
                             weather_path = 'M '+xpos+" "+ypos;
+                            start_path = 1
+                            start_idx = j
+
                         }
-                        if (j != weather_range[0]){
+                        if (j > start_idx){
                             weather_path += " L "+xpos+" "+ypos;
                         }
-                    }
-          
+                    }}}
+                    console.log(weather_path)
                     weather_vis.append('path')
                                .attr('d', weather_path)
                                .attr('class', 'temps')
                                .attr('fill', 'none')
                                .attr('stroke', 'black');
-                }
-            };
+                
+            }};
 
             var avg_weather_path = '';
             var start = 0 ;
@@ -463,15 +481,15 @@ function generate_WeatheVis(counties, year){
                                .attr('transform', 'rotate(90)')  
                                .style('font-size', 10);
 
-                    create_checks();
+                    //create_checks();
                     
-                    weather_vis.append('path')
-                               .attr('d', avg_weather_path)
-                               .attr('class', 'avg_temps')
-                               .attr('fill', 'none')
-                               .attr('stroke', 'none')
-                               .attr('stroke-width', 5)
-                               .attr('stroke-dasharray', "5,5");
+                   // weather_vis.append('path')
+                    //           .attr('d', avg_weather_path)
+                     //          .attr('class', 'avg_temps')
+                     //          .attr('fill', 'none')
+                     //          .attr('stroke', 'none')
+                     //          .attr('stroke-width', 5)
+                     //          .attr('stroke-dasharray', "5,5");
                 }  
             }
         }
