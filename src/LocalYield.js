@@ -7,28 +7,28 @@ var margin = {
     left: 50
 };
 
-var width = 1300 - margin.left - margin.right;
-var height = 800 - margin.bottom - margin.top;
+var width = 1000;
+var height = 700;
 var koz = true;
 
 var bbFieldVis = {
     x: 0,
     y: 0,
-    w: width*0.60,
-    h: height - 150
+    w: width* 0.6,
+    h: height* 0.8
 };
 
 var bbYieldMeta = {
     x: 0,
-    y: height - 150,
+    y: bbFieldVis.h,
     w: width*0.60,
-    h: 150
+    h: height - bbFieldVis.h
 };
 
 var bbYieldHist = {
     x: bbFieldVis.w,
     y: 0,
-    w: width*0.40,
+    w: width - bbFieldVis.w,
     h: height/2
 };
 
@@ -40,8 +40,9 @@ var bbPrice = {
 };
 
 // Color scale for field -- Needs work
+var color_range = colorbrewer.YlGn[9];
 var colors = d3.scale.quantize()
-    .range(colorbrewer.YlGn[9]);
+    .range(color_range);
     // .range([colorMin, colorMax])
     // .interpolate(d3.interpolateHcl);
     
@@ -75,6 +76,11 @@ var brushField;
 
 var yieldMean;
 var yieldMean_select;
+var yield_range;
+
+
+var legend_ticks = color_range.length;
+var legend_height = 125;
 
 // Formatters
 var formatCount = d3.format(",.2f");
@@ -86,54 +92,16 @@ var field_file1 = "../data/local_yields2/koz3_2009.csv_small.csv"
 var field_file2 = "../data/local_yields2/wmk5_soy_2008.csv_small.csv"
 var field_file3 = "../data/local_yields2/wmk5_2009.csv_small.csv"
 
-// // Create the Google Map…
-// var fieldLoc = new google.maps.LatLng(41.2531, -97.1440);
-// var bounds = new google.maps.LatLngBounds();
-// bounds.extend(fieldLoc);
-// bounds.extend(new google.maps.LatLng(41.258, -97.1460));
-
-
-// var map = new google.maps.Map(d3.select("#map").node(), {
-//     zoom: 16,
-//     center: new google.maps.LatLng(41.2531, -97.1440),
-//     mapTypeId: google.maps.MapTypeId.HYBRID,
-//     panControl: false,
-//     zoomControl: false,
-//     mapTypeControl: false,
-//     scaleControl: false,
-//     streetViewControl: false,
-//     overviewMapControl: false
-// });
-
-// map.fitBounds(bounds);
-
-// console.log(map)
-// .on("click", function() {console.log("click")})
-// google.maps.event.clearListeners(map, function(d){console.log("click"); return 'click'})
-
-// Add Title
-var title = d3.select("#title")
-    .style("text-align", "center")
-    .append("text").attr("class", "title")
-    .attr("text-anchor", "middle")
-    .attr("x", width/2)
-    .attr("y", 0)
-    .text("Local Crop Yield");
-
 // Declare visualization areas
-var canvas = d3.select("#fieldVis").append("svg").attr({
-    width: bbFieldVis.w,
-    height: bbFieldVis.h
-});
+var canvas = d3.select("#fieldVis").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-// canvas.append("rect")
-//     .attr("class", "background")
-//     .attr("width", bbFieldVis.w)
-//     .attr("height", bbFieldVis.h)
-//     .on("click", function(d) {
-//             var select_values = [];
-//             histYield_select(select_values);            
-//     })
+canvas.append("rect")
+    .attr("class", "background")
+    .attr("width", width)
+    .attr("height", height)
+    // .style("fill", "blue");
 
 // canvas.append("g").append('image').attr('class', 'rect')
 //     .attr("xlink:href", field_img)
@@ -141,7 +109,23 @@ var canvas = d3.select("#fieldVis").append("svg").attr({
 //     .attr("height", bbFieldVis.h)
 
 
-var fieldVis = canvas.append("g");
+var fieldVis = canvas.append("svg")
+    .attr({
+        width: bbFieldVis.w,
+        height: bbFieldVis.h,
+        x: bbFieldVis.x,
+        y: bbFieldVis.y
+    });
+
+fieldVis.append("rect")
+    .attr("class", "background")
+    .attr("width", bbFieldVis.w)
+    .attr("height", bbFieldVis.h)
+    .on("click", function(d) {
+            var select_values = [];
+            histYield_select(select_values);            
+    })
+
 
 var price = d3.select("#yieldDetail").append("svg").attr({
     width: bbPrice.w,
@@ -153,9 +137,11 @@ price.append("rect")
      .attr("width", bbPrice.w)
      .attr("height", bbPrice.h);
 
-var yieldHist = d3.select("#yieldHist").append("svg").attr({
+var yieldHist = canvas.append("svg").attr({
     width: bbYieldHist.w,
-    height: bbYieldHist.h
+    height: bbYieldHist.h,
+    x: bbYieldHist.x,
+    y: bbYieldHist.y
 });
 
 yieldHist.append("rect")
@@ -163,58 +149,37 @@ yieldHist.append("rect")
     .attr("width", bbYieldHist.w)
     .attr("height", bbYieldHist.h);
 
-var yieldMeta = d3.select("#yieldDetail2").append("svg").attr({
+// Add Title
+canvas.append("text").attr("class", "text")
+    .attr("x", bbYieldHist.x + bbYieldHist.w/2)
+    .attr("y", bbYieldHist.h + 20)
+    .attr("text-anchor", "middle")
+    .style("text-align", "center")
+    .style("fill", "black")
+    // .style("font-weight", "bold")
+    .style("font-size", 18)                
+    .text("Yield Distribution (Bu/Ac)");
+
+var yieldMeta = canvas.append("svg")
+    .attr({
     width: bbYieldMeta.w,
-    height: bbYieldMeta.h
-});
+    height: bbYieldMeta.h,
+    x: bbYieldMeta.x,
+    y: bbYieldMeta.y
+    });
 
 yieldMeta.append("rect")
     .attr("class", "background")
     .attr("width", bbYieldMeta.w)
     .attr("height", bbYieldMeta.h);
 
-// Radial Button Toggle
-// button updates:
-d3.select("input[value=\"Point\"]").on("click", function(){
-    // Point.transition
-    d3.selectAll('.brush').remove()
-});
-d3.select("input[value=\"Brush\"]").on("click", function(){
-  // d3.selectAll('.selectVis').remove()
-  canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
-d3.select("a[value=\"koz3a\"]").on("click", function(){
-    koz = true;
-    queue()
-        .defer(d3.csv, field_file)
-        .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
-});
-d3.select("a[value=\"koz3b\"]").on("click", function(){
-    koz = true;
-    queue()
-        .defer(d3.csv, field_file1)
-        .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
-
-});
-d3.select("a[value=\"wmk5a\"]").on("click", function(){
-    koz = false;
-    queue()
-        .defer(d3.csv, field_file2)
-        .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
-
-});
-d3.select("a[value=\"wmk5b\"]").on("click", function(){
-    koz = false;
-    queue()
-        .defer(d3.csv, field_file3)
-        .defer(d3.csv, "../data/price.csv")
-        .await(remakeVis);
-
-});
-
-
+// Add Title
+var title = canvas.append("text").attr("class", "title")
+    .attr("x", width/2 - 110)
+    .attr("y", 35)
+    .attr("text-anchor", "middle")
+    .style("text-align", "center")
+    .text("Local Crop Yield");
 
 // Load data and create visualizations
 queue()
@@ -227,16 +192,20 @@ queue()
 
 function remakeVis(error, yield_data, price) {
     yieldHist.remove()
-    yieldHist = d3.select("#yieldHist").append("svg").attr({
+    yieldHist = canvas.append("svg").attr({
         width: bbYieldHist.w,
-        height: bbYieldHist.h
+        height: bbYieldHist.h,
+        x: bbYieldHist.x,
+        y: bbYieldHist.y
     });
     yieldMeta.append("rect")
         .attr("class", "background")
         .attr("width", bbYieldMeta.w)
-        .attr("height", bbYieldMeta.h);    
+        .attr("height", bbYieldMeta.h);  
+
     lat = []
     lon = []
+
     yield_data.forEach(function(d){
         lat.push(parseFloat(d.lat))
         lon.push(parseFloat(d.lon))
@@ -259,7 +228,7 @@ function remakeVis(error, yield_data, price) {
         // Define path generator
         path = d3.geo.path().projection(projection);
         x = projection([d3.mean(lon), d3.mean(lat)])
-        projection.translate([bbFieldVis.w - x[0] + 30, bbFieldVis.h - x[1]]);           
+        projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]);           
     } else {
         projection = d3.geo.albers().scale(4000000);
         // Define path generator
@@ -326,11 +295,16 @@ function remakeVis(error, yield_data, price) {
 
     fieldVis.append("g")
         .attr("class", "brush")
+        .attr("id", "fieldBrush")
         .call(brushField);
 
 
+    yield_range = d3.extent(hist_values)
+
     histYield(yield_data_filtered)  
     histSoil(yield_data_filtered);
+    generate_legend(hist_values)
+
     d3.selectAll('.brush').remove()
 }    
 
@@ -345,7 +319,7 @@ function createVis(error, yield_data, price) {
     });
 
     x = projection([d3.mean(lon), d3.mean(lat)])
-    projection.translate([bbFieldVis.w - x[0] + 30, bbFieldVis.h - x[1]]); 
+    projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]); 
     timeSeries(price);
 
     hist_values = [];
@@ -414,64 +388,40 @@ function createVis(error, yield_data, price) {
 
     fieldVis.append("g")
         .attr("class", "brush")
+        .attr("id", "fieldBrush")
         .call(brushField);
         // .selectAll("rect")
         // .attr("height", bbFieldVis.h);
 
+    yield_range = d3.extent(hist_values)
+
     histYield(yield_data_filtered);
     histSoil(yield_data_filtered);
+    generate_legend(hist_values)
     d3.selectAll('.brush').remove()
 }
 
 
-function loadMap(center_coord) {    
-    //console.log(center_coord);
-
-    map.center = new google.maps.LatLng(41.2531, -97.1440);
-    var overlay = new google.maps.OverlayView();
-
-    // Add the container when the overlay is added to the map.
-    overlay.onAdd = function() {
-        // Draw each marker as a separate SVG element.
-        overlay.draw = function() {
-            var projection = this.getProjection(),
-                padding = 10;
-
-            function transform(d) {
-            d = new google.maps.LatLng(d.value[1], d.value[0]);
-            d = projection.fromLatLngToDivPixel(d);
-            return d3.select(this)
-                .style("left", (d.x - padding) + "px")
-                .style("top", (d.y - padding) + "px");
-            }
-        };
-    };
-     
-    // bind overlay to map…
-    overlay.setMap(map);
-}
-
-
-function generate_legend(data){
-    var legend_ticks = 100;
-    var legend_height = 75;
-    var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9]);
+// function generate_legend(data){
+//     var legend_ticks = 100;
+//     var legend_height = 75;
+//     var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(colorbrewer.YlGn[9]);
     
-    d3.range(legend_ticks).reverse().forEach(function(i) {
-        //console.log(i)
-        yieldMeta.append('rect')
-           .attr('class', 'legend_box')
-           .attr('x', bbYieldMeta.w-100)
-           .attr('y',  (legend_height/legend_ticks)*(legend_ticks.length - i) + 100)
-           .attr('height', 10)
-           .attr('width', 10)
-           .style('fill', legend_color_scale(i))
-        });
+//     d3.range(legend_ticks).reverse().forEach(function(i) {
+//         //console.log(i)
+//         yieldMeta.append('rect')
+//            .attr('class', 'legend_box')
+//            .attr('x', bbYieldMeta.w-100)
+//            .attr('y',  (legend_height/legend_ticks)*(legend_ticks.length - i) + 100)
+//            .attr('height', 10)
+//            .attr('width', 10)
+//            .style('fill', legend_color_scale(i))
+//         });
         
-    yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  15).text('Bu/Acre');
-    yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y', 30).text(d3.max(data));
-    yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  30+legend_height).text(d3.min(data));
-}
+//     yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  15).text('Bu/Acre');
+//     yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y', 30).text(d3.max(data));
+//     yieldMeta.append('text').attr('class', 'legend_tick').attr('x', bbYieldMeta.w-75).attr('y',  30+legend_height).text(d3.min(data));
+// }
 
 var histYield_data, binWidth;
 
@@ -535,17 +485,16 @@ function histYield(yield_data) {
     // Add histogram brush
     brushHist = d3.svg.brush()
         .x(d3.scale.linear().domain(d3.extent(hist_values)).range([25, bbYieldHist.w - 25]))
-        // .x(d3.scale.linear().domain([0, 100]).range([25, bbYieldHist.w - 25]))
         .on("brush", brushedHist);
 
     yieldHist.append("g")
         .attr("class", "brush")
+        .attr("id", "histBrush")
         .call(brushHist)
         .selectAll("rect")
-        .attr("y", 25)
+        .attr("y", bbYieldHist.y + 25)
         .attr("height", bbYieldHist.h - 50);
         // .on("mouseup", highlightBrushedYield);
-    
 
     yieldMean = yieldHist.append("line")
         .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
@@ -638,7 +587,7 @@ function brushedHist() {
             return null;
         }
     });
-    
+    brushField.extent([[0,0],[0,0]])
     highlightBrushedYield();
 }
 
@@ -647,7 +596,6 @@ function highlightBrushedYield(){
     var extent = brushHist.extent();
     point.transition().style("fill", function(pt) {
         if(pt.val >= Math.floor((extent[0] / binWidth) - 1) * binWidth & pt.val <= Math.ceil((extent[1] / binWidth)) * binWidth) {
-            // return "#f1a340";
             return colors(pt.val);
         } 
         else {
@@ -655,9 +603,6 @@ function highlightBrushedYield(){
         }
     });
 }
-
-// d3.selectAll(".brush").remove()
-
 
 function brushedField() {
     var extent = brushField.extent();
@@ -675,6 +620,7 @@ function brushedField() {
             return colors_grey(pt.val);
         }
     });
+    brushHist.extent([0,0])
     histYield_select(select_values);
 }
 
@@ -719,6 +665,65 @@ var hideYield = function(d) {
     //                                  .attr("target", "_blank");   
 }
 
+function generate_legend(data){
+    d3.select(".legend").remove()
+
+    //quantized color scale:
+    var legend_color_scale = d3.scale.quantize().domain([0,legend_ticks]).range(color_range);
+
+    var legend = fieldVis.append('g').attr('class', 'legend')
+        .attr("transform", "translate("+ (bbFieldVis.w - 85) + "," + (bbFieldVis.h/2 - 90) + ")");
+
+    var tick_size = (yield_range[1]-yield_range[0]) / (legend_ticks)
+
+    console.log(legend_ticks)
+
+    for (i=1; i<=legend_ticks; i++){
+        legend.append('rect')
+              .attr('class', 'legend_box')
+              .attr('x', 0)
+              .attr('y', (legend_height/legend_ticks)*i)
+              .attr('height', (legend_height/legend_ticks) - 1)
+              .attr('width', 10)
+              .style('fill', legend_color_scale(legend_ticks - i));
+
+        legend.append('text')
+           .attr('class', 'legend_tick')
+           .attr('x', 13)
+           .attr('y', (legend_height/legend_ticks)*i + 10)
+           .attr('height', 10)
+           .attr('width', 10)
+           // .style('fill', legend_color_scale(legend_ticks-i))
+           .text(d3.round(yield_range[1] - (i)*tick_size) + " to " + d3.round(yield_range[1] - (i-1)*tick_size) )
+    }
+
+    // legend.append('rect')
+    //           .attr('class', 'legend_box')
+    //           .attr('x', 0)
+    //           .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 5)
+    //           .attr('height', (legend_height/legend_ticks) - 1)
+    //           .attr('width', 10)
+    //           .style('fill', county_fill_color);
+
+    // legend.append('text')
+    //    .attr('class', 'legend_tick')
+    //    .attr('x', 13)
+    //    .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 15)
+    //    .attr('height', 10)
+    //    .attr('width', 10)
+    //    // .style('fill', legend_color_scale(legend_ticks-i))
+    //    .text("No Data")
+
+
+
+        
+    legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', 5).text('Bu/Acre');
+    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
+    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
+
+}
+
+
 
 function createYieldMeta() {
     yieldMeta.append("text")
@@ -727,47 +732,47 @@ function createYieldMeta() {
        .text("Elevation")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 16);                    
+       .style("font-size", 14);                    
 
     yieldMeta.append("text")
        .attr("x", 10)
-       .attr("y", 50)
+       .attr("y", 40)
        .attr("kind", "elevation")
        .style("fill", "grey")
        .style("font-weight", "bold")
-       .style("font-size", 20);        
+       .style("font-size", 16);        
+
+    yieldMeta.append("text")
+       .attr("x", 10)
+       .attr("y", 60)
+       .text("Longitude")
+       .style("fill", "black")
+       .style("font-weight", "bold")
+       .style("font-size", 14);                    
 
     yieldMeta.append("text")
        .attr("x", 10)
        .attr("y", 75)
-       .text("Longitude")
-       .style("fill", "black")
+       .attr("kind", "lon")
+       .style("fill", "grey")
        .style("font-weight", "bold")
-       .style("font-size", 16);                    
+       .style("font-size", 16);       
 
     yieldMeta.append("text")
        .attr("x", 10)
        .attr("y", 95)
-       .attr("kind", "lon")
-       .style("fill", "grey")
-       .style("font-weight", "bold")
-       .style("font-size", 20);       
-
-    yieldMeta.append("text")
-       .attr("x", 10)
-       .attr("y", 120)
        .text("Latitude")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 16);                    
+       .style("font-size", 14);                    
 
     yieldMeta.append("text")
        .attr("x", 10)
-       .attr("y", 140)
+       .attr("y", 110)
        .attr("kind", "lat")
        .style("fill", "grey")
        .style("font-weight", "bold")
-       .style("font-size", 20);        
+       .style("font-size", 16);        
 
     yieldMeta.append("text")
        .attr("x", 240)
@@ -787,21 +792,21 @@ function createYieldMeta() {
 
     yieldMeta.append("text")
        .attr("x", 240)
-       .attr("y", 100)
+       .attr("y", 85)
        .text("Soil Profile")
        .style("fill", "black")
        .style("font-weight", "bold")
-       .style("font-size", 20);
+       .style("font-size", 18);
 
     yieldMeta.append("a")
         .attr("kind", "soil_link")
         .append("text")
         .attr("x", 240)
-        .attr("y", 125)
+        .attr("y", 105)
         .attr("kind", "soil")                       
         .style("fill", "grey")
         .style("font-weight", "bold")
-        .style("font-size", 16);
+        .style("font-size", 18);
 
     // yieldMeta.append("a")
     //     .attr("kind", "soil_link")
@@ -898,3 +903,65 @@ var timeSeries = function(data) {
           .attr("visibility", "visible");
       });
 }
+
+
+///////////////////////////
+//// BUTTON FUNCTIONS  ////
+///////////////////////////
+
+// Radial Button Toggle
+$('#selectionType .btn').on("click", function(d){
+    if ($(this).children()[0].value == 'point'){
+        d3.selectAll('.brush').remove()
+    } 
+    else if($(this).children()[0].value == 'brush') {
+        canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event)
+            .attr('class', 'brush');
+        yieldHist.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushHist).call(brushHist.event)
+            .attr('class', 'brush')
+            .selectAll("rect")
+            .attr("y", bbYieldHist.y + 25)
+            .attr("height", bbYieldHist.h - 50);;
+    }
+})
+
+d3.select("input[value=\"Brush\"]").on("click", function(){
+  // d3.selectAll('.selectVis').remove()
+  canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
+d3.select("a[value=\"koz3a\"]").on("click", function(){
+    koz = true;
+    queue()
+        .defer(d3.csv, field_file)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+});
+d3.select("a[value=\"koz3b\"]").on("click", function(){
+    koz = true;
+    queue()
+        .defer(d3.csv, field_file1)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+
+});
+d3.select("a[value=\"wmk5a\"]").on("click", function(){
+    koz = false;
+    queue()
+        .defer(d3.csv, field_file2)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+
+});
+d3.select("a[value=\"wmk5b\"]").on("click", function(){
+    koz = false;
+    queue()
+        .defer(d3.csv, field_file3)
+        .defer(d3.csv, "../data/price.csv")
+        .await(remakeVis);
+
+});
+
+
+
+
+
+

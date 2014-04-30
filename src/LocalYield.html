@@ -1,118 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/css/bootstrap.css" media="screen">
     <link rel="stylesheet" href="/css/bootswatch.min.css">
-  <script type="text/javascript" src="/libs/d3.v3.min.js"></script>
-  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>      
+    <script type="text/javascript" src="/libs/d3.v3.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>      
 <style> 
 
-  html, body { margin:0; padding:0; overflow:hidden; }
+    html, body { margin:0; padding:0; overflow:hidden; }
 
-  #map {
-    /*height: 50%;*/
-    /*position: absolute; */
-    /*top: 25px; */
-    /*height: 400px;*/
-    /*bottom: 280px; */
-    /*left: 250px; */
-    /*right: 670px; */
-    /*width: 600px;*/
-    z-index: -1;
-  }
+    /*#map {
+        height: 50%;
+        position: absolute; 
+        top: 25px; 
+        height: 400px;
+        bottom: 280px; 
+        left: 250px; 
+        right: 670px; 
+        width: 600px;
+        z-index: -1;
+    }*/
 
-  .title {
-    font: 36px sans-serif;
-    text-align: center;
-    margin: auto;
-  }
+    .background {
+        fill: none;
+        stroke: none;
+        pointer-events: all;
+    }
 
-  .background {
-    fill: #ccc;
-    stroke: none;
-    pointer-events: all;
-  }
+    .title {
+        font: 40px Helvetica;
+        font-variant: small-caps;
+        /*font-weight: bold;*/
+        text-align: center;
+        margin: auto;
+    }
 
-  .d3-tip {
-    line-height: 1;
-    font-weight: bold;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    border-radius: 2px;
-  }
+    .subtitle {
+        font: 20px Helvetica;
+        /*font-variant: small-caps;
+        font-weight: bold;*/
+        text-align: center;
+        margin: auto;
+    }
 
-  .d3-tip:after {
-    box-sizing: border-box;
-    display: inline;
-    font-size: 10px;
-    width: 100%;
-    line-height: 1;
-    color: rgba(0, 0, 0, 0.8);
-    content: "\25BC";
-    position: absolute;
-    text-align: center;
-  }
 
-  .d3-tip.n:after {
-    margin: -1px 0 0 0;
-    top: 100%;
-    left: 0;
-  }   
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+    }
 
-  .brush .extent{
-      fill:gray;
-      opacity: .3;
-  }
+    .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+    }
 
-  .node {
-    fill: none;
-    stroke: #ccc;
-    shape-rendering: crispEdges;
-  }
+    .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
+    }   
 
-  .point {
-    opacity: 0.4;
-  }
+    .brush .extent{
+        fill:gray;
+        opacity: .3;
+    }
 
-  .point.scanned {
-    fill: orange;
-    fill-opacity: 1;
-    stroke: brown;
-  }
+    .node {
+        fill: none;
+        stroke: #ccc;
+        shape-rendering: crispEdges;
+    }
 
-  .point.selected {
-    fill: red;
-    fill-opacity: 1;
-  }
+    .point {
+    orphanspacity: 0.4;
+    }
 
-  .bar rect {
-    fill: steelblue;
-    shape-rendering: crispEdges;
-  }
+    .point.scanned {
+        fill: orange;
+        fill-opacity: 1;
+        stroke: brown;
+    }
 
-  .bar text {
-    fill: #000;
-    font-size: 10px;
-  }
+    .point.selected {
+        fill: red;
+        fill-opacity: 1;
+    }
 
-  .axis path, .axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-  }
+    .bar rect {
+        fill: steelblue;
+        shape-rendering: crispEdges;
+    }
 
-.line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}  
+    .bar text {
+        fill: #000;
+        font-size: 10px;
+    }
+
+    .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .line {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 1.5px;
+    }  
 
 </style>
-  </head>
-  <body>
+</head>
+<body>
     <script src="/libs/bsa.js"></script>
     <script type="text/javascript" src="../libs/topojson.v1.min.js"></script>
     <script type="text/javascript" src="../libs/d3.tip.v0.6.3.js"></script>
@@ -123,38 +134,56 @@
     <script src="/libs/bootstrap.min.js"></script>
     <script src="/libs/bootswatch.js"></script>
 
-    <div class="container"> 
-      <table>
-        <tr><td colspan="2"><div id="title"></div></td></tr>
-        <tr><td rowspan="3"><div id="fieldVis"></div><div id="map"></div></td></tr>
-        <tr><td rowspan="1"><div id="yieldHist"></div></td></tr>
-        <tr><td rowspan="2"><div id="yieldDetail"></div></td></tr>
-        <tr><td><div id="yieldDetail2"></div></td></tr>
-      </table>
+    <!-- <div class="container-fluid">  -->
 
-      <div id="selectionType" style="position:absolute; top: 100px; left: 100px;">
-          <form>
-              Selection:
-              <label><input type="radio" name="layout" value="Point" checked> Point</label>
-              <label><input type="radio" name="layout" value="Brush"> Area</label>
-          </form>
-      <div class="btn-group">
-        <button type="button" class="btn btn-danger">Field</button>
-        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown">
-          <span class="caret"></span>
-          <span class="sr-only">Toggle Dropdown</span>
+    <div id="fieldVis"></div>
+
+
+
+  <!-- <table>
+    <tr><td colspan="2"><div id="title"></div></td></tr>
+    <tr><td rowspan="3"><div id="fieldVis"></div><div id="map"></div></td></tr>
+    <tr><td rowspan="1"><div id="yieldHist"></div></td></tr>
+    <tr><td rowspan="2"><div id="yieldDetail"></div></td></tr>
+    <tr><td><div id="yieldDetail2"></div></td></tr>
+  </table> -->
+
+    <!-- <div id="selectionType" style="position:absolute; top: 100px; left: 100px;">
+        <form>
+            Selection:
+            <label><input type="radio" name="layout" value="Point" checked> Point</label>
+            <label><input type="radio" name="layout" value="Brush"> Area</label>
+        </form>
+    </div> -->
+    <div id="selectionType" style="position:absolute; top: 505px; left: 25px;">
+    Selection Type:<br>
+        <div class="btn-group btn-group-sm" data-toggle="buttons">
+          <label id="point" class="btn btn-default"><input value="point" type="radio" name="options" checked> Point</label>
+          <label id="brush" class="btn btn-default"><input value="brush" type="radio" name="options" > Area</label>
+        </div>
+    </div>
+
+    <div class="btn-group" style="position:absolute; top: 525px; left: 150px;" >
+        <button type="button" class="btn btn-default btn-sm" value="yearDown">
+            <span class="glyphicon glyphicon-circle-arrow-left"></span>
+        </button>
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" style="width:300px"> Field
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
         </button>
         <ul class="dropdown-menu" role="menu">
-          <li><a href="#" value="koz3a">koz3 2008: Corn</a></li>
-          <li><a href="#" value="koz3b">koz3 2009: Corn</a></li>
-          <li><a href="#" value="wmk5a">wmk5 2008: Soybeans</a></li>
-          <li><a href="#" value="wmk5b">wmk5 2009: Corn</a></li>
+            <li><a value="koz3a">koz3 2008: Corn</a></li>
+            <li><a value="koz3b">koz3 2009: Corn</a></li>
+            <li><a value="wmk5a">wmk5 2008: Soybeans</a></li>
+            <li><a value="wmk5b">wmk5 2009: Corn</a></li>
         </ul>
-      </div>         
-      </div>
+        <button type="button" class="btn btn-default btn-sm" value="yearUp">
+            <span class="glyphicon glyphicon-circle-arrow-right"></span>
+        </button>
+    </div>         
 
-      <script src="LocalYield.js"></script> 
-    </div>
+    <script src="LocalYield.js"></script> 
+    <!-- </div> -->
     
-  </body>
+</body>
 </html>
