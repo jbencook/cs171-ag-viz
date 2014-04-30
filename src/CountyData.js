@@ -390,7 +390,7 @@ function generate_WeatheVis(counties, year){
     console.log('hi')
 
     var weather_xscale = d3.scale.linear().domain(weather_range).range([0, weatherVis.w]);
-    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h/2 - 100]);
+    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h- histVis.h]);
     var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors);
     
         var station_totals = {};
