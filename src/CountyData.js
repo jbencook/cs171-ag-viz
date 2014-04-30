@@ -178,6 +178,16 @@ hist_canvas.append("rect")
     .attr("height", histVis.h)
     // .style("fill", "gray")
 
+canvas.append("text").attr("class", "text")
+    .attr("x", histVis.x + histVis.w/2)
+    .attr("y", histVis.h)
+    .attr("text-anchor", "middle")
+    .style("text-align", "center")
+    .style("fill", "black")
+    // .style("font-weight", "bold")
+    .style("font-size", 18)                
+    .text("Yield Distribution (Bu/Ac)");
+
 var weather_vis = canvas.append('svg')
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
@@ -227,7 +237,7 @@ timeslider.append('g')
 var handle = slider.append('image').attr('class', 'handle')
     .attr("xlink:href", "../img/corn_icon.svg")
     // .attr("y", function(){return (timeVis.h - padding)})
-    .attr('transform', 'translate('+0+','+(timeVis.h - padding)+")")
+    .attr('transform', 'translate('+5+','+(timeVis.h - padding)+")")
     .attr("width", 40)
     .attr("height", 40);
     // .attr('r', 9)
@@ -822,7 +832,7 @@ function load_station_Data(path){
             }
         }
         
-        generate_WeatheVis(selected_counties, select_year);
+        // generate_WeatheVis(selected_counties, select_year);
 
     });
 }
@@ -1263,79 +1273,91 @@ function brushed_2d(){
     
     generate_average_scatterplot(yield_average);
     if (selected_data.length >0){
-    brushed_county_vis(selected_data);
-    generate_WeatheVis(selected_counties, select_year);}
+        brushed_county_vis(selected_data);
+        // generate_WeatheVis(selected_counties, select_year);
+    };
 }
 
 function step() {
     canvas.transition().ease("linear").call(time_brush.event)
 
     animate_year +=1; 
-    if ((animate_year < 2012) && (!animate_stop))
+    if ((animate_year < 2013) && (!animate_stop))
         setTimeout(step, 300);
+    else {
+        animate_year = 1910;
+    }
 }
 
 // Radial Button Toggle
 // button updates:
 d3.select("button[value=\"Play\"]").on("click", function(){
-    d3.select("#localVis")
-        .style("z-index", 100)
-        .transition().duration(1500)
-        .style("opacity", 1)
-    // d3.select("#storyControls")
-    //     .transition().duration(1500)
-    //     .style("left", "850px")
-    // d3.select("#animate")
-    //     .transition()
-    //     .style("opacity", 0)
-            
-            // .attr("transform", "translate(0,0)");
-});
-
-d3.select("input[value=\"Point\"]").on("click", function(){
-    console.log("test")
     animate_stop = false;
     step();
-    
-    
-      // .attr("width", 0)
-    //   .attr("height", 0)
-    //   .style("opacity", 0)
-    // for(y = 1910; y< 2013; y++) {
-    //     //fix timeslider vis:
-    //     d3.selectAll('.selectVis').remove();
-        
-    //     // //brush        
-    //     // var value = time_brush.extent()[0];
-        
-    //     // if (d3.event.sourceEvent){
-    //     //     value = xtime_range.invert(d3.mouse(this)[0]);
-    //     //     time_brush.extent([value, value]);
-    //     //     select_year = d3.round(value, 0);
-    //     // }
-    //     // handle.attr('cx', xtime_range(value))
-    //     handle.attr('x', xtime_range(y) - 20);
-    //     //update color 
-    //     yield_color(y);
-    //     //load weather data:
-    //     generate_WeatheVis(selected_stations, gdd_path, y);
-    //     sleep(100000);
+});
 
-    // }
-  // canvas.attr("visibility", "hidden");
-  d3.selectAll('.brush').remove()});
+$('#selectionType .btn').on("click", function(d){
+    if ($(this).children()[0].value == 'point'){
+        d3.selectAll('.brush').remove();
+    } 
+    else if($(this).children()[0].value == 'brush') {
+        animate_stop = true
 
+        // canvas.transition().duration(1500)
+        //   // .attr("width", width)
+        //   .attr("height", height)
+        //   .style("opacity", 1)
 
-d3.select("input[value=\"Brush\"]").on("click", function(){
-    animate_stop = true
+        d3.selectAll('.selectVis').remove();
+        Map.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush');
+    }
+})
 
-    canvas.transition().duration(1500)
-      // .attr("width", width)
-      .attr("height", height)
-      .style("opacity", 1)
+$('#timeSliderControl .btn').on("click", function(d){
+    if ($(this).button()[0].value == 'timeDown'){
+        console.log("TestDown")
+        animate_stop = true;
+        if(animate_year>1910){
+            animate_year --;
+            canvas.transition().ease("linear").call(time_brush.event)
+        }
+        $(this).button('toggle')
 
-  d3.selectAll('.selectVis').remove();
-  canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush')});
+        // d3.selectAll('.brush').remove();
+    } 
+    else if($(this).button()[0].value == 'timeUp') {
+        animate_stop = true
+        if(animate_year<2013){
+            animate_year ++;
+            canvas.transition().ease("linear").call(time_brush.event)
+        }
+    }
+})
+
+$('#changeVis .btn').on("click", function(d){
+    // console.log($(this).button()[0].id)
+    if ($(this).button()[0].id == 'national'){
+        Map.transition().duration(1500)
+            .style("opacity", 1)
+
+        d3.select("#localVis")
+            .transition().duration(1500)
+            .style("opacity", 0)
+
+        d3.select("#localVis").transition().delay(1500).style("z-index", -999)
+
+        // d3.selectAll('.brush').remove();
+    } 
+    else if($(this).button()[0].id == 'local') {
+        d3.select("#localVis")
+            .style("z-index", 999)
+            .transition().duration(1500)
+            .style("opacity", 1)
+
+        Map.transition().duration(1500)
+            .style("opacity", 0)
+    }
+})
 
 // Calls
 queue()

@@ -676,8 +676,6 @@ function generate_legend(data){
 
     var tick_size = (yield_range[1]-yield_range[0]) / (legend_ticks)
 
-    console.log(legend_ticks)
-
     for (i=1; i<=legend_ticks; i++){
         legend.append('rect')
               .attr('class', 'legend_box')

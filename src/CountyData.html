@@ -26,7 +26,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/src/CountyData.html">Century of Corn</a>
+          <a class="navbar-brand" href="/">Century of Corn</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -179,13 +179,21 @@ body { padding-top: 70; }
 <div id="selectionType" style="position:absolute; top: 470px; left: 350px;">
 Selection Type:<br>
     <div class="btn-group btn-group-sm" data-toggle="buttons">
-      <label class="btn btn-default"><input type="radio" name="options" value="Point" checked> Point</label>
-      <label class="btn btn-default"><input type="radio" name="options" value="Brush"> Area</label>
+      <label id="point" class="btn btn-default"><input value="point" type="radio" name="options"> Point</label>
+      <label id="brush" class="btn btn-default"><input value="brush" type="radio" name="options" > Area</label>
+    </div>
+</div>
+
+<div id="changeVis" style="position:absolute; top: 280px; left: 25px; width:250px;">
+Explore:
+    <div class="btn-group btn-group-sm btn-group-justified" data-toggle="buttons">
+      <label id="national" class="btn btn-default"><input value="national" type="radio" name="options"> National</label>
+      <label id="local" class="btn btn-default"><input value="local" type="radio" name="options" > Local</label>
     </div>
 </div>
 
 
-<div id="storyControls" style="position:absolute; top:680px; left:25px; z-index: 999;">
+<!-- <div id="storyControls" style="position:absolute; top:680px; left:25px; z-index: 999;">
     <div id="storyPages" class="btn-group btn-group-sm">
         <button type="button" class="btn btn-default">&laquo</button>
         <button type="button" class="btn btn-default">1</button>
@@ -196,33 +204,123 @@ Selection Type:<br>
         <button type="button" class="btn btn-default">6</button>
         <button type="button" class="btn btn-default">7</button>
         <button type="button" class="btn btn-default">&raquo</button>
-        <!-- <ul class="pagination pagination-sm">
-            <li><a href="#">&laquo;</a></li>
-            <li><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
-            <li><a href="#">5</a></li>
-            <li><a href="#">6</a></li>
-            <li><a href="#">7</a></li>
-            <li><a href="#">&raquo;</a></li>
-        </ul> -->
     </div>
     <div id="animate" class="btn-group" style="position:relative; top:-50px; left:-155px">
         <button type="button" class="btn btn-default" value="Play">Play</button>
     </div>
+</div> -->
+
+<div id="storyBoard" class="carousel slide" data-ride="carousel" style="position:absolute; top:340px; left:15px; width:270px; height:400px;">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    <li data-slide-to="0" class="active"></li>
+    <li data-slide-to="1"></li>
+    <li data-slide-to="2"></li>
+  </ol>
+
+  <div class="carousel-inner">
+          <div class="item active">
+                <ul class="thumbnails">
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb1.jpg" alt="">
+                        </div>
+                        <p>First item<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb2.jpg" alt="">
+                        </div>
+                        <p>This is second<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb3.jpg" alt="">
+                        </div>
+                        <p>Third product<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb4.jpg" alt="">
+                        </div>
+                        <p>And the fourth<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                </ul>
+          </div>
+          <div class="item">
+                <ul class="thumbnails">
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb5.jpg" alt="">
+                        </div>
+                        <p>Another caption<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb6.jpg" alt="">
+                        </div>
+                        <p>Another caption<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb7.jpg" alt="">
+                        </div>
+                        <p>Another caption<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                    <li class="span3">
+                        <div class="thumbnail">
+                            <img src="assets/img/thumb8.jpg" alt="">
+                        </div>
+                        <p>Another caption<br>
+                        <small class="red">$19.99</small><br>
+                        <a href="#" class="btn btn-success">Buy Now</a></p>
+                    </li>
+                </ul>
+          </div>
+        </div>
+        <a data-slide="prev" href="#myCarousel" class="left carousel-control">‹</a>
+        <a data-slide="next" href="#myCarousel" class="right carousel-control">›</a>
 </div>
 
+
+
+
+
 <div id="timeSliderControl">
-    <button type="button" class="btn btn-default btn-sm" style="position:absolute; top:712px; left:320px;" value="timeDown">
-        <span class="glyphicon glyphicon-circle-arrow-left"></span>
+    <button type="button" class="btn btn-default btn-sm active" style="position:absolute; top:712px; left:320px;" value="timeDown">
+        <span class="glyphicon glyphicon-chevron-left"></span>
     </button>
     <button type="button" class="btn btn-default btn-sm" style="position:absolute; top:712px; left:850px;" value="timeUp">
-        <span class="glyphicon glyphicon-circle-arrow-right"></span>
+        <span class="glyphicon glyphicon-chevron-right"></span>
     </button>
 </div>
 
     <script src="CountyData.js"></script>
 </div>
 </body>
+
+<footer>
+<div class="row">
+  <div class="col-lg-12">
+    <p>
+      CS171 final project. Made with <a href="http://getbootstrap.com" rel="nofollow">Bootstrap</a>. Template by <a href="http://bootswatch.com/" rel="nofollow">Bootswatch</a>.
+    </p>
+  </div>
+</div>
+
+</footer>    
 </html>
