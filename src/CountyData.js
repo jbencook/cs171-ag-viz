@@ -192,13 +192,14 @@ var weather_vis = canvas.append('svg')
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
     .attr("x", weatherVis.x)
-    .attr("y", weatherVis.y);
-    .attr('id', 'weather')
+    .attr("y", weatherVis.y)
+    .attr('id', 'weather');
 
 weather_vis.append("rect")
     .attr("class", "background")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
+    .style("fill", "#ccc")
     
     // .style("fill", "gray")
 
@@ -1293,7 +1294,7 @@ function brushed_2d(){
     generate_average_scatterplot(yield_average);
     if (selected_data.length >0){
         brushed_county_vis(selected_data);
-        // generate_WeatheVis(selected_counties, select_year);
+        generate_WeatheVis(selected_counties, select_year);
     };
 }
 
