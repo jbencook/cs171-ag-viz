@@ -175,7 +175,7 @@ hist_canvas.append("rect")
     .attr("class", "background")
     .attr("width", histVis.w)
     .attr("height", histVis.h)
-    .style("fill", "gray")
+    // .style("fill", "gray")
 
 var weather_vis = canvas.append('svg')
     .attr("width", weatherVis.w)
@@ -187,7 +187,7 @@ weather_vis.append("rect")
     .attr("class", "background")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
-    .style("fill", "gray")
+    // .style("fill", "gray")
 
 
 var story_nav = canvas.append("svg")
@@ -1279,17 +1279,18 @@ d3.select("button[value=\"Play\"]").on("click", function(){
         .style("z-index", 100)
         .transition().duration(1500)
         .style("opacity", 1)
-    d3.select("#storyControls")
-        .transition().duration(1500)
-        .style("left", "850px")
-    d3.select("#animate")
-        .transition()
-        .style("opacity", 0)
+    // d3.select("#storyControls")
+    //     .transition().duration(1500)
+    //     .style("left", "850px")
+    // d3.select("#animate")
+    //     .transition()
+    //     .style("opacity", 0)
             
             // .attr("transform", "translate(0,0)");
 });
 
 d3.select("input[value=\"Point\"]").on("click", function(){
+    console.log("test")
     animate_stop = false;
     step();
     

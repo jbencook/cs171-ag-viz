@@ -171,18 +171,32 @@ body { padding-top: 70; }
    </tr>
      
 </table> -->
-<div id="localVis" style="position:absolute; z-index:-1; top: 0px left: 0px border: 0px; opacity: 0;">
-    <iframe src="LocalYield.html" height="800" width="1300" scrolling="yes">
+<div id="localVis" style="position:absolute; z-index:-1; top:0px; left:290px; border: 0px; opacity: 0;">
+    <iframe src="LocalYield.html" height="800" width="1010" scrolling="yes">
         <p>Your browser does not support iframes.</p>
     </iframe>
 </div>
-<div id="selectionType" style="position:absolute; top: 500px; left: 350px;">
+<!-- <div id="selectionType" style="position:absolute; top: 500px; left: 350px;">
     <form>
         Selection:
         <label><input type="radio" name="layout" value="Point" checked> Point</label>
         <label><input type="radio" name="layout" value="Brush"> Area</label>
     </form>
+</div> -->
+
+<div id="selectionType" style="position:absolute; top: 470px; left: 350px;">
+Selection Type:<br>
+    <div class="btn-group btn-group-sm" data-toggle="buttons">
+      <label class="btn btn-default">
+        <input type="radio" name="options" value="Point" checked> Point
+      </label>
+      <label class="btn btn-default">
+        <input type="radio" name="options" value="Brush"> Area
+      </label>
+    </div>
 </div>
+
+
 <div id="storyControls" style="position:absolute; top:680px; left:25px; z-index: 999;">
     <div id="storyPages" class="btn-group btn-group-sm">
         <button type="button" class="btn btn-default">&laquo</button>
