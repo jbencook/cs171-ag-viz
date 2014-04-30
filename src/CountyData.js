@@ -183,12 +183,13 @@ var weather_vis = canvas.append('svg')
     .attr("height", weatherVis.h)
     .attr("x", weatherVis.x)
     .attr("y", weatherVis.y);
+    .attr('id', 'weather')
 
 weather_vis.append("rect")
     .attr("class", "background")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
-    .attr('id', 'weather')
+    
     // .style("fill", "gray")
 
 
@@ -379,18 +380,18 @@ function create_hlchecks(){
 
 function generate_WeatheVis(counties, year){
     
-    d3.select('#weather').selectAll(".axis").remove();
-    d3.select('#weather').selectAll(".temps").remove();
-    d3.select('#weather').selectAll(".highlighted_weather").remove();
-    d3.select('#weather').selectAll('.avg_temps').remove();
-    d3.select('#weather').selectAll('.HL_avg_temps').remove();
+    weather_vis.selectAll(".axis").remove();
+    weather_vis.selectAll(".temps").remove();
+    weather_vis.selectAll(".highlighted_weather").remove();
+    weather_vis.selectAll('.avg_temps').remove();
+    weather_vis.selectAll('.HL_avg_temps').remove();
   
     // var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
 
     console.log('hi')
 
     var weather_xscale = d3.scale.linear().domain(weather_range).range([0, weatherVis.w]);
-    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h- histVis.h]);
+    var weather_yscale = d3.scale.linear().domain([60, -60]).range([histVis.h/2, weatherVis.h+ histVis.h/2]);
     var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors);
     
         var station_totals = {};
