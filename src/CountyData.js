@@ -220,16 +220,19 @@ weather_vis.append("rect")
     .attr("height", weatherVis.h)
 
 var story_nav = canvas.append("svg")
+    .attr("class", "story")
     .attr("width", 270)
     .attr("height", 400)
     .attr("x", 0)
-    .attr("y", 290)
+    .attr("y", 230)
 
 story_nav.append("rect")
     .attr("class", "background")
     .attr("width", 270)
     .attr("height", 400)
-    // .style("fill", "gray")
+    .style("fill", "#ccc")
+
+
 
 // story_pages = [0,1,2,3,4]
 
@@ -1220,10 +1223,10 @@ function step() {
 
 // Radial Button Toggle
 // button updates:
-d3.select("button[value=\"Play\"]").on("click", function(){
-    animate_stop = false;
-    step();
-});
+// d3.select("button[value=\"Play\"]").on("click", function(){
+//     animate_stop = false;
+//     step();
+// });
 
 $('#selectionType .btn').on("click", function(d){
     if ($(this).children()[0].value == 'point'){

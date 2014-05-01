@@ -167,6 +167,17 @@ body { padding-top: 70; }
         left: 0;
     }
 
+    .story {
+        line-height: 1;
+        border-color: steelblue;
+        border-style:solid;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border-radius: 20px;
+    }
+
 </style>
 
 <div id="vis"></div>
@@ -200,6 +211,9 @@ Explore:
     </div>
 </div>
 
+<div id="storyText" style="position:absolute; top:290px; left:25px; height:400px; width:270px; word-wrap:break-word;">
+    <p>Testing this paragraph for the storyline... Does it actually wraparound?</p>
+</div>
 
 <div id="storyControls" style="position:absolute; top:640px; left:25px; z-index: 999;">
     <div id="storyPages" class="btn-group btn-group-sm">
@@ -213,9 +227,9 @@ Explore:
         <button type="button" class="btn btn-default" value=7>7</button>
         <button type="button" class="btn btn-default" value='R'>&raquo</button>
     </div>
-    <div id="animate" class="btn-group" style="position:relative; top:-50px; left:-155px">
+    <!-- <div id="animate" class="btn-group" style="position:relative; top:-50px; left:-155px">
         <button type="button" class="btn btn-default" value="Play">Play</button>
-    </div>
+    </div> -->
 </div>
 
 <!-- <div id="storyBoard" class="carousel slide" data-ride="carousel" style="position:absolute; top:340px; left:15px; width:270px; height:400px;">
