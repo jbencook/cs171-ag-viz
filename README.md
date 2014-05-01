@@ -1,4 +1,4 @@
-Agri-gation Dashboard
+A Century of Corn
 =============
 
 Welcome to our CS171 final project, a <b>Century of Corn</b>. Our main website is: http://jbencook.github.io/cs171-ag-viz/
