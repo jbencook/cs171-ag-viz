@@ -305,7 +305,7 @@ function createVis(error, yield_data) {
 
     offx = 45;
     offy = -73;
-    proj = 6400000;
+    proj = 6100000;
 
     if(current_field.offx != '') {
         offx = parseFloat(current_field.offx);
