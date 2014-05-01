@@ -289,12 +289,8 @@ function init(error, data, weather){
     })
 
 
-<<<<<<< HEAD
     current_field = local_field_info[0]
     $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
-=======
-    current_field = local_field_info[6]
->>>>>>> f3ab70b495e2a9f990cfa89298ab6ed7ff49cafc
     select_year = current_field.year
     field_file = "../" + current_field['path'];
     queue()
