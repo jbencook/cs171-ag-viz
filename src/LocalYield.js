@@ -281,7 +281,7 @@ function init(error, data, weather){
     // })
 
 
-    current_field = local_field_info[0]
+    current_field = local_field_info[6]
     select_year = current_field.year
     field_file = "../" + current_field['path'];
     queue()
@@ -344,9 +344,9 @@ function createVis(error, yield_data) {
     fieldVis.selectAll(".point").remove()
     createYieldMeta();
 
-    offx = 85;
-    offy = -90;
-    proj = 4300000;
+    offx = 110;
+    offy = -100;
+    proj = 10000000;
 
     if(current_field.offx != '') {
         offx = parseFloat(current_field.offx);
