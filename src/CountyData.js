@@ -1299,26 +1299,34 @@ $('#changeVis .btn').on("click", function(d){
 
     } 
     if (idx_button == 1){
-        $('#storyText p').text(
-            "Testing this paragraph for the storyline... Does it actually wraparound?"
+        $('#storyText p').html(
+            "In America, corn is king. In 2013, America produced <b>13 billion bushels</b> from about <b>100 million acres</b>. How did this come to be?"
         )  
     }
     if (idx_button == 2){
-        $('#storyText p').text(
-            "Ryan Sucks... Does it actually wraparound?"
+        $('#storyText p').html(
+            "Our story starts in Nebraska in 1910. During the early 20th century, corn in the Midwest expanded. "
         ) 
     }
     if (idx_button == 3){
-    //text for the update
+        $('#storyText p').html(
+            "The 1960s arrive. The Green Revolution, and “Go Big or Go Home”  policies encourage rapid expansion of corn growing – more land, and more yield."
+        ) 
     }
     if (idx_button == 4){
-    //text for the update
+        $('#storyText p').html(
+            "The corn growing area decrease, accelerates in the 1990s; while from an efficiency standpoint, remaining corn yields reach higher still. This is the rise of smaller numbers of bigger farms: the aggregation of agribusiness."
+        ) 
     }
     if (idx_button == 5){
-    //text for the update
+        $('#storyText p').html(
+            "2000 hits, and with it, record long term droughts in the Southwest. Corn becomes less economically viable to grow where it was marginally successful before."
+        ) 
     }
     if (idx_button == 6){
-    //text for the update
+        $('#storyText p').html(
+            "The intensification of corn growing continues, and corn becomes regionalized once again to the Midwest region where it started out."
+        ) 
     }
     if (idx_button == 7){
     //text for the update
