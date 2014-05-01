@@ -240,7 +240,7 @@ function init(error, data, weather){
     $(".dropdown-menu li a").click(function(){
         current_field = local_field_info[$(this).attr('value')]
         field_file = "../" + current_field['path'];
-        $(".btn btn-default btn-sm dropdown-toggle").text('hi')
+        console.log($(".btn btn-default btn-sm dropdown-toggle").__data__)
        
         select_year = current_field.year
       
