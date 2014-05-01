@@ -87,10 +87,13 @@ var formatCount = d3.format(",.2f");
 var formatCoords = d3.format(".4f");
 
 
-var field_file = "../data/local_yields/koz3_2008.csv_small.csv"
-var field_file1 = "../data/local_yields/koz3_2009.csv_small.csv"
-var field_file2 = "../data/local_yields/wmk5_soy_2008.csv_small.csv"
-var field_file3 = "../data/local_yields/wmk5_2009.csv_small.csv"
+var field_list = "../data/local_fields.csv"
+
+var field_file;
+var local_field_info;
+var current_field;
+var offx, offy, proj;
+var field_image;
 
 // Declare visualization areas
 var canvas = d3.select("#fieldVis").append("svg")
@@ -103,11 +106,7 @@ canvas.append("rect")
     .attr("height", height)
     // .style("fill", "blue");
 
-// canvas.append("g").append('image').attr('class', 'rect')
-//     .attr("xlink:href", field_img)
-//     .attr("width", bbFieldVis.w)
-//     .attr("height", bbFieldVis.h)
-
+field_image = canvas.append("g").append('image').attr('class', 'image')
 
 var fieldVis = canvas.append("svg")
     .attr({
@@ -182,14 +181,95 @@ var title = canvas.append("text").attr("class", "title")
     .text("Local Crop Yield");
 
 // Load data and create visualizations
+
+
 queue()
-    // .defer(d3.json, "../data/nebraska.geojson")
-    // .defer(d3.csv, "../data/wmk5_2009_small.csv")
-    .defer(d3.csv, field_file)
-    .await(createVis);
+    .defer(d3.csv, field_list)
+    .await(init);
+
+function init(error, data){
+
+    local_field_info = data;
+
+    console.log(local_field_info)
+
+    local_field_info.forEach(function(d) {
+        // console.log(d[''])
+        d3.select("#fieldList").append("li").append("a")
+            .text(d.name + " " + d.year + " (" + d.crop + ")")
+            .attr("value", d[''])
+    });
+
+    $(".dropdown-menu li a").click(function(){
+        current_field = local_field_info[$(this).attr('value')]
+        field_file = "../" + current_field['path'];
+        console.log(current_field[''])
+        queue()
+            // .defer(d3.json, "../data/nebraska.geojson")
+            // .defer(d3.csv, "../data/wmk5_2009_small.csv")
+            .defer(d3.csv, field_file)
+            .await(createVis);
+       });
+
+    // $('#fieldSelect .btn').on("click", function(d){
+    //     console.log(current_field, parseInt(current_field['']))
+    //     console.log(local_field_info[parseInt(current_field[''])])
+    //     if ($(this).attr('value') == 'prev'){
+    //         console.log(current_field[''] - 1)
+    //         if(parseInt(current_field['']) > 0){
+
+    //             // current_field = local_field_info[parseInt(current_field['']) - 1]
+    //             field_file = "../" + current_field['path'];
+    //             queue()
+    //                 // .defer(d3.json, "../data/nebraska.geojson")
+    //                 // .defer(d3.csv, "../data/wmk5_2009_small.csv")
+    //                 .defer(d3.csv, field_file)
+    //                 .await(createVis);
+    //         };
+    //     } else if($(this).attr('value') == 'next') {
+    //         if(parseInt(current_field['']) < local_field_info.length - 1){
+    //             // current_field = local_field_info[parseInt(current_field['']) - 1]
+    //             field_file = "../" + current_field['path'];
+    //             queue()
+    //                 // .defer(d3.json, "../data/nebraska.geojson")
+    //                 // .defer(d3.csv, "../data/wmk5_2009_small.csv")
+    //                 .defer(d3.csv, field_file)
+    //                 .await(createVis);
+    //         };
+
+    //     }
+    // })
+
+
+    current_field = local_field_info[0]
+    
+    field_file = "../" + current_field['path'];
+    queue()
+        .defer(d3.csv, field_file)
+        .await(createVis);
+};
 
 
 function createVis(error, yield_data) {
+
+
+    if(typeof field_image != 'undefined') {
+        field_image.attr("opacity", 0)
+    }
+    if(parseInt(current_field.img) == 1) {
+        field_img = "../img/" + current_field.name + ".jpg"
+        console.log(field_img)
+
+        field_image.attr("xlink:href", field_img)
+        .attr("width", bbFieldVis.w)
+        .attr("height", bbFieldVis.h)
+        .attr("opacity", 1)
+    } else {
+        field_img = NaN;
+    }
+
+    
+
     yieldHist.remove()
     yieldHist = canvas.append("svg").attr({
         width: bbYieldHist.w,
@@ -222,19 +302,42 @@ function createVis(error, yield_data) {
 
     fieldVis.selectAll(".point").remove()
     createYieldMeta();
-    if (koz) {
-        projection = d3.geo.albers().scale(18000000);
-        // Define path generator
-        path = d3.geo.path().projection(projection);
-        x = projection([d3.mean(lon), d3.mean(lat)])
-        projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]);           
-    } else {
-        projection = d3.geo.albers().scale(4000000);
-        // Define path generator
-        path = d3.geo.path().projection(projection);
-        x = projection([d3.mean(lon), d3.mean(lat)])
-        projection.translate([bbFieldVis.w - x[0] + 75, bbFieldVis.h - x[1] - 50]); 
-    }
+
+    offx = 65;
+    offy = -73;
+    proj = 5700000;
+
+    if(current_field.offx != '') {
+        offx = parseFloat(current_field.offx);
+    } 
+    if(current_field.offy != '') {
+        offy = parseFloat(current_field.offy);
+    } 
+    if(current_field.proj != '') {
+        proj = parseFloat(current_field.proj);
+    } 
+
+    console.log(offx, offy, proj)
+
+    projection = d3.geo.albers().scale(parseInt(proj));
+    // Define path generator
+    path = d3.geo.path().projection(projection);
+    x = projection([d3.mean(lon), d3.mean(lat)])
+    projection.translate([bbFieldVis.w - x[0] + offx, bbFieldVis.h - x[1] + offy]);    
+
+    // if (koz) {
+    //     projection = d3.geo.albers().scale(18000000);
+    //     // Define path generator
+    //     path = d3.geo.path().projection(projection);
+    //     x = projection([d3.mean(lon), d3.mean(lat)])
+    //     projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]);           
+    // } else {
+    //     projection = d3.geo.albers().scale(4000000);
+    //     // Define path generator
+    //     path = d3.geo.path().projection(projection);
+    //     x = projection([d3.mean(lon), d3.mean(lat)])
+    //     projection.translate([bbFieldVis.w - x[0] + 75, bbFieldVis.h - x[1] - 50]); 
+    // }
      
 
     xScale = d3.scale.linear()
@@ -280,12 +383,12 @@ function createVis(error, yield_data) {
             histYield_select(select_values);
         });
         
-    fieldVis.selectAll(".background")
-        .on("click", function(d) {
-            fieldVis.selectAll(".point")
-                .transition().duration(0)
-                .style("opacity", 1)            
-        });
+    // fieldVis.selectAll(".background")
+    //     .on("click", function(d) {
+    //         fieldVis.selectAll(".point")
+    //             .transition().duration(0)
+    //             .style("opacity", 1)            
+    //     });
 
     brushField = d3.svg.brush()
         .x(d3.scale.identity().domain([0, bbFieldVis.w]))
@@ -906,43 +1009,8 @@ $('#selectionType .btn').on("click", function(d){
     }
 })
 
-d3.select("input[value=\"Brush\"]").on("click", function(){
-  // d3.selectAll('.selectVis').remove()
-  canvas.append('g').attr('fill', 'none').attr('stroke', 'black').call(brushField).call(brushField.event).attr('class', 'brush')});
-d3.select("a[value=\"koz3a\"]").on("click", function(){
-    koz = true;
-    queue()
-        .defer(d3.csv, field_file)
-        .defer(d3.csv, "../data/price.csv")
-        .await(createVis);
-});
-d3.select("a[value=\"koz3b\"]").on("click", function(){
-    koz = true;
-    queue()
-        .defer(d3.csv, field_file1)
-        .defer(d3.csv, "../data/price.csv")
-        .await(createVis);
-
-});
-d3.select("a[value=\"wmk5a\"]").on("click", function(){
-    koz = false;
-    queue()
-        .defer(d3.csv, field_file2)
-        .defer(d3.csv, "../data/price.csv")
-        .await(createVis);
-
-});
-d3.select("a[value=\"wmk5b\"]").on("click", function(){
-    koz = false;
-    queue()
-        .defer(d3.csv, field_file3)
-        .defer(d3.csv, "../data/price.csv")
-        .await(createVis);
-
-});
-
-
-
-
+$("#fieldList a").on("click", function(){
+    console.log($(this))
+})
 
 

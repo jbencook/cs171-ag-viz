@@ -121,6 +121,16 @@
         stroke-width: 1.5px;
     }  
 
+    .dropdown-menu {
+        max-height: 300px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .image {
+        box-shadow: 0px -2px 2px rgba(34,34,34,0.6);
+    }
+
 </style>
 </head>
 <body>
@@ -163,21 +173,21 @@
         </div>
     </div>
 
-    <div id="fieldSelect" class="btn-group" style="position:absolute; top: 525px; left: 150px;" >
-        <button type="button" class="btn btn-default btn-sm" value="yearDown">
+    <div id="fieldSelect" class="btn-group dropup" style="position:absolute; top: 525px; left: 150px;" >
+        <button type="button" class="btn btn-default btn-sm" value="prev">
             <span class="glyphicon glyphicon-circle-arrow-left"></span>
         </button>
         <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" style="width:300px"> Field
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
         </button>
-        <ul class="dropdown-menu" role="menu">
-            <li><a value="koz3a">koz3 2008: Corn</a></li>
+        <ul id="fieldList" class="dropdown-menu" style="left: 35px; width: 300px" role="menu">
+            <!-- <li><a value="koz3a">koz3 2008: Corn</a></li>
             <li><a value="koz3b">koz3 2009: Corn</a></li>
             <li><a value="wmk5a">wmk5 2008: Soybeans</a></li>
-            <li><a value="wmk5b">wmk5 2009: Corn</a></li>
+            <li><a value="wmk5b">wmk5 2009: Corn</a></li> -->
         </ul>
-        <button type="button" class="btn btn-default btn-sm" value="yearUp">
+        <button type="button" class="btn btn-default btn-sm" value="next">
             <span class="glyphicon glyphicon-circle-arrow-right"></span>
         </button>
     </div>         
