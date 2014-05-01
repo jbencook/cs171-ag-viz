@@ -1,10 +1,10 @@
 ,path,name,crop,year,county,offx,offy,proj,img
 0,data/local_yields/kn40_soy_2008.csv_small.csv,kn40,soy,2008,Butler,65.0,-73.0,5700000.0,1
-1,data/local_yields/koz1_2009.csv_small.csv,koz1,corn,2009,Butler,,,,0
-2,data/local_yields/koz1_2011.csv_small.csv,koz1,corn,2011,Butler,,,,0
-3,data/local_yields/koz1_soy_2008.csv_small.csv,koz1,soy,2008,Butler,,,,0
-4,data/local_yields/koz1_soy_2010.csv_small.csv,koz1,soy,2010,Butler,,,,0
-5,data/local_yields/koz1_soy_2012.csv_small.csv,koz1,soy,2012,Butler,,,,0
+1,data/local_yields/koz1_2009.csv_small.csv,koz1,corn,2009,Butler,45.0,-73.0,6400000.0,1
+2,data/local_yields/koz1_2011.csv_small.csv,koz1,corn,2011,Butler,45.0,-73.0,6400000.0,1
+3,data/local_yields/koz1_soy_2008.csv_small.csv,koz1,soy,2008,Butler,45.0,-73.0,6400000.0,1
+4,data/local_yields/koz1_soy_2010.csv_small.csv,koz1,soy,2010,Butler,45.0,-73.0,6400000.0,1
+5,data/local_yields/koz1_soy_2012.csv_small.csv,koz1,soy,2012,Butler,45.0,-73.0,6400000.0,1
 6,data/local_yields/koz2_2009.csv_small.csv,koz2,corn,2009,Butler,,,,0
 7,data/local_yields/koz2_2011.csv_small.csv,koz2,corn,2011,Butler,,,,0
 8,data/local_yields/koz2_soy_2008.csv_small.csv,koz2,soy,2008,Butler,,,,0

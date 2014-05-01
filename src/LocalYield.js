@@ -241,7 +241,7 @@ function init(error, data){
     // })
 
 
-    current_field = local_field_info[0]
+    current_field = local_field_info[2]
     
     field_file = "../" + current_field['path'];
     queue()
@@ -303,9 +303,9 @@ function createVis(error, yield_data) {
     fieldVis.selectAll(".point").remove()
     createYieldMeta();
 
-    offx = 65;
+    offx = 45;
     offy = -73;
-    proj = 5700000;
+    proj = 6400000;
 
     if(current_field.offx != '') {
         offx = parseFloat(current_field.offx);
@@ -366,7 +366,7 @@ function createVis(error, yield_data) {
         .attr("yield", function(d) {
             return d.val;
         })
-        .style("opacity", 0.7)
+        .style("opacity", 0.4)
         .on("mouseover", showYield)
         .on("mouseout", hideYield)
         .on("click", function(d) {
