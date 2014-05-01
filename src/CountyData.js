@@ -843,9 +843,13 @@ function time_brushed(){
         value = animate_year
         select_year = animate_year;
     }
-    handle.transition(100).attr('x', xtime_range(value));
+    // handle.transition(100).attr('x', xtime_range(value));
     animate_year = d3.round(value, 0);
     //update color 
+    if(select_year>2013){
+        select_year=2013
+    }
+    handle.transition(100).attr('x', xtime_range(animate_year));
     yield_color(select_year);
     //load weather data:
     generate_WeatheVis(selected_counties, select_year);
@@ -1377,7 +1381,7 @@ $(document).on('ready', function(){
             }
             if (idx_button == 6){
                 animate_stop = true;
-                animate_year = 2012;
+                animate_year = 2013;
                 animate_year_max = 2013;
                 canvas.transition().call(time_brush.event)
                 click_local();
@@ -1393,7 +1397,9 @@ $(document).on('ready', function(){
             }
             if (idx_button == 7){
                 click_national();
-                animate_year = 2012;
+                animate_stop = true;
+                animate_year = 2013;
+                animate_year_max = 2013;
                 canvas.transition().call(time_brush.event)
                 $('#storyText p').html(
                     "<span style=\"font-size: 14pt\"><q>The United States is, by far, the largest producer of corn in the world, producing <b>32 percent</b> of the world's corn crop in the early 2010s...</span><br><br>" +
