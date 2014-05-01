@@ -324,6 +324,7 @@ function createVis(error, yield_data) {
 
     lat = []
     lon = []
+    var yld_threshold = 5
 
     yield_data.forEach(function(d){
         lat.push(parseFloat(d.lat))
@@ -332,7 +333,7 @@ function createVis(error, yield_data) {
     yield_data_filtered = [];
     hist_values = [];
     yield_data.forEach(function(d) {
-        if(d.val > 0) {
+        if(d.val >= yld_threshold) {
             hist_values.push(parseInt(d.val));
             yield_data_filtered.push(d);
         }
@@ -343,9 +344,9 @@ function createVis(error, yield_data) {
     fieldVis.selectAll(".point").remove()
     createYieldMeta();
 
-    offx = 45;
-    offy = -73;
-    proj = 6100000;
+    offx = 85;
+    offy = -90;
+    proj = 4300000;
 
     if(current_field.offx != '') {
         offx = parseFloat(current_field.offx);
