@@ -43,9 +43,9 @@ var histVis = {
 };
 
 var weatherVis = {
-    x: mapVis.w,
+    x: mapVis.w-150,
     y: histVis.h,
-    w: width - mapVis.w,
+    w: width - mapVis.w+150,
     h: height - histVis.h
 }
 
@@ -75,16 +75,16 @@ var num_color_bins = 7;
 var hist_height = 100;
 var hist_length = 250;
 
-var weather_range = [3,9];
+var weather_range = [3,10];
 var weather_radius = 10
 var weather_radius = 10;
 
 var station_path = '../data/station_03312014.csv';
 var gdd_path = "../data/yield_data_full.csv";
-// var yield_path = '../data/county_yield_small_1910_2013.csv';
+
 var yield_path = '../data/yield_data_full.csv';
-
-
+var months = ['Jan', 'Feb', "Mar", 'Apr', 'May', "Jun", 'Jul', 'Aug', "Sep", "Oct", "Nov", "Dec"]
+var growing_months = [];
 var brush_highlight_color = '#FFFF6C';
 var county_fill_color = '#E2C670';
 var weather_colors = colorbrewer.RdBu[9];
@@ -100,7 +100,8 @@ var county_num2name = {};
 
 var yield_color_scale;
 var gray_color_scale;
-
+var temp_color = 'orange'
+var prcp_color = 'lightblue'
 var data_by_year = {};
 var data_by_id = {};
 var all_yields = [];
@@ -161,10 +162,10 @@ var timeslider = canvas.append("svg")
     .attr("x", timeVis.x)
     .attr("y", timeVis.y);
 
-timeslider.append("rect")
-    .attr("class", "background")
-    .attr("width", timeVis.w)
-    .attr("height", timeVis.h)
+//timeslider.append("rect")
+//    .attr("class", "background")
+//    .attr("width", timeVis.w)
+//    .attr("height", timeVis.h)
 
 var hist_canvas = canvas.append("svg")
     .attr("width", histVis.w)
@@ -179,19 +180,19 @@ hist_canvas.append("rect")
     // .style("fill", "gray")
 
 canvas.append("text").attr("class", "text")
-    .attr("x", histVis.x + histVis.w/2)
+    .attr("x", histVis.x + histVis.w/2-15)
     .attr("y", histVis.h)
     .attr("text-anchor", "middle")
     .style("text-align", "center")
     .style("fill", "black")
     // .style("font-weight", "bold")
-    .style("font-size", 18)                
+    .style("font-size", 15)                
     .text("Yield Distribution (Bu/Ac)");
 
 var weather_vis = canvas.append('svg')
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
-    .attr("x", weatherVis.x)
+    .attr("x", weatherVis.x+15)
     .attr("y", weatherVis.y)
     .attr('id', 'weather');
 
@@ -199,7 +200,7 @@ weather_vis.append("rect")
     .attr("class", "background")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
-    .style("fill", "#ccc")
+
     
     // .style("fill", "gray")
 
@@ -259,335 +260,291 @@ function generate_color_scale(yield_range){
     gray_color_scale = d3.scale.quantize().domain(yield_range).range(gray_range);
 }
 
-function create_checks(){
-    var Tcount = 0;
-    var avgTcount = 0;
 
-    d3.select("#right").select('#weather').select('#averageT_check').remove();
-    d3.select("#right").select('#weather').select('#averageP_check').remove();
-    d3.select("#right").select('#weather').select('#T_check').remove();
-    d3.select("#right").select('#weather').select('#P_check').remove();
-
-    d3.select("#right").select('#weather').select('svg')
-       .append("foreignObject")
-       .attr("width", 200)
-       .attr("height", 100)
-       .attr('x', 0)
-       .attr('y', weatherVis.h)
-       .attr("type", "checkbox")
-       .append("xhtml:body")
-       .html("<form><input type=checkbox id=avgT_check /> Average Temperature</form>")
-       .attr('id', 'averageT_check')
-       .on('change', function(){
-            if (avgTcount%2 != 0){
-                d3.select('#right').select('#weather').selectAll('.avg_temps').style('stroke', 'none');      
-            }     
-            if (avgTcount%2 == 0){
-                d3.select('#right').select('#weather').selectAll('.avg_temps').style('stroke', 'gray'); 
-            } 
-            avgTcount += 1;
-       });
-       
-    d3.select("#right").select('#weather').select('svg')
-       .append("foreignObject")
-       .attr("width", 200)
-       .attr("height", 100)
-       .attr('x', 150)
-       .attr('y', weatherVis.h)
-       .attr("type", "checkbox")
-       .append("xhtml:body")
-       .html("<form><input type=checkbox id=avgP_check /> Average Precipitation</form>")
-       .attr('id', 'averageP_check')
-       .on('change', function(){
-        //nothing here :-o
-       });
-       
-    d3.select("#right").select('#weather').select('svg')
-       .append("foreignObject")
-       .attr("width", 200)
-       .attr("height", 100)
-       .attr('x', 0)
-       .attr('y', weatherVis.h -25)
-       .attr("type", "checkbox")
-       .append("xhtml:body")
-       .html("<form><input type=checkbox id=T_check checked/> Temperature</form>")
-       .attr('id', 'T_check')
-       .on('change', function(){
-            if (Tcount%2 != 0){
-              d3.select('#right').select('#weather').selectAll('.temps').style('stroke', 'black');
-            }
-            if (Tcount%2 == 0){
-              d3.select('#right').select('#weather').selectAll('.temps').style('stroke', 'none');
-            }
-            Tcount += 1;
-       });
-       
-    d3.select("#right").select('#weather').select('svg')
-       .append("foreignObject")
-       .attr("width", 200)
-       .attr("height", 100)
-       .attr('x', 150)
-       .attr('y', weatherVis.h-25)
-       .attr("type", "checkbox")
-       .append("xhtml:body")
-       .html("<form><input type=checkbox id=P_check /> Precipitation</form>")
-       .attr('id', 'P_check')
-       .on('change', function(){console.log('hi')}); //lol, hi!
-
-}
-
-function create_hlchecks(){
-    var Tcount = 0;
-    var avgTcount = 0;
-
-    d3.select("#right").select('#weather').select('#HLaverageT_check').remove();
-    d3.select("#right").select('#weather').select('#HLT_check').remove();
-    d3.select("#right").select('#weather').select('svg');
-
-    d3.select("#right").select('#weather').select('svg')
-       .append("foreignObject")
-       .attr("width", 200)
-       .attr("height", 100)
-       .attr('x', 0)
-       .attr('y', weatherVis.h -50)
-       .attr("type", "checkbox")
-       .append("xhtml:body")
-       .html("<form><input type=checkbox id=HLT_check checked/> Highlighted Temp</form>")
-       .attr('id', 'HLT_check')
-       .on('change', function(){
-            if (Tcount%2 != 0){
-              HLT_color = 'blue';
-              d3.select('#right').select('#weather').selectAll('.highlighted_weather').style('stroke', HLT_color);       
-            }
-            if (Tcount%2 == 0){
-              HLT_color = 'none';
-              d3.select('#right').select('#weather').selectAll('.highlighted_weather').style('stroke', HLT_color);          
-            }
-            Tcount += 1;
-       });
-       
-    d3.select("#right").select('#weather').select('svg')
-       .append("foreignObject")
-       .attr("width", 200)
-       .attr("height", 100)
-       .attr('x', 150)
-       .attr('y', weatherVis.h-50)
-       .attr("type", "checkbox")
-       .append("xhtml:body")
-       .html("<form><input type=checkbox id=HLavgT_check /> Highligthed Average Temp</form>")
-       .attr('id', 'HLaverageT_check')
-       .on('change', function(){
-            if (avgTcount%2 != 0){
-              HLTavg_color = 'none';
-              d3.select('#right').select('#weather').selectAll('.HL_avg_temps').style('stroke', HLTavg_color);
-            }
-            if (avgTcount%2 == 0){
-              HLTavg_color = 'purple';
-              d3.select('#right').select('#weather').selectAll('.HL_avg_temps').style('stroke', HLTavg_color);   
-            }
-            avgTcount += 1;
-        });
-}
 
 function generate_WeatheVis(counties, year){
-    
+
     weather_vis.selectAll(".axis").remove();
     weather_vis.selectAll(".temps").remove();
     weather_vis.selectAll(".highlighted_weather").remove();
     weather_vis.selectAll('.avg_temps').remove();
     weather_vis.selectAll('.HL_avg_temps').remove();
-  
+
     // var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
 
-    console.log('hi')
-
-    var weather_xscale = d3.scale.linear().domain(weather_range).range([0, weatherVis.w]);
-    var weather_yscale = d3.scale.linear().domain([60, -60]).range([histVis.h/2, weatherVis.h+ histVis.h/2]);
-    var weather_color_scale = d3.scale.linear().domain([60, -60]).range(weather_colors);
     
-        var station_totals = {};
+    var weather_ordinal = d3.scale.ordinal().domain(growing_months).rangeRoundBands([margin.left, weatherVis.w-margin.left])
+    var weather_xscale = d3.scale.linear().domain(weather_range).range([margin.left, weatherVis.w-margin.left]);
+    var temp_yscale = d3.scale.linear().domain([100, 0]).range([margin.bottom, weatherVis.h-margin.top]);
+    var prcp_yscale = d3.scale.linear().domain([3, 0]).range([margin.bottom, weatherVis.h-margin.top]);
+    var num_path = 0
+        var temp_totals = {};
+        var prcp_totals = {};
         if (counties.length != 0){
-       
-            for (i=weather_range[0]; i<=weather_range[1];i++ ){
-                station_totals[i] = {"sum":0, 'count':0, 'average':0};
-            }
             
             for(i=0; i < counties.length; i++){
+
                 var key = counties[i]+String(select_year);
-                var start_path = 0
-                var start_idx = NaN
+                var start_pathT = 0
+                var start_pathP = 0
+                var start_idxT = NaN
+                var start_idxP = NaN
                 var weather_datum = weather_dict[key];
-                var weather_path = '';
+                var temp_path = '';
+                var prcp_path = '';
                 if (weather_datum != null){
                 var P_data = weather_datum['Prcp_monthly'];
                 var T_data = weather_datum['Tavg_monthly'];
                 var T_datum = T_data.split(',')
-                console.log(T_datum)
+                var P_datum = P_data.split(',')
                 var current_T = [];
                 var current_P = [];
+
                 for(j=0; j<T_datum.length; j++){
+                    
                     var TempList = T_datum[j].split("'")
                     var Temp = TempList[1]
                     if (Temp == null){Temp = NaN}
                     current_T.push(Temp)
                 }
-
+                for(j=0; j<P_datum.length; j++){
+                    
+                    var PrcpList = P_datum[j].split("'")
+                    var Prcp = PrcpList[1]
+                    if (Prcp == null){Prcp = NaN}
+                    current_P.push(Prcp)
+                }
+             
+                //create Temperature Path Element
                   if (current_T.length > weather_range[0]){
                     for (j=weather_range[0]; j<=weather_range[1]; j++){
                         var Temp = current_T[j]
                         
                         if (!isNaN(Temp)){
-                        station_totals[j].sum += Temp;
-                        station_totals[j].count += 1;
                         var xpos = weather_xscale(j);
-                        var ypos = weather_yscale(Temp);
+                        var ypos = temp_yscale(Temp);
        
-                        if (start_path == 0){
-                            weather_path = 'M '+xpos+" "+ypos;
-                            start_path = 1
-                            start_idx = j
+                        if (start_pathT == 0){
+                            temp_path = 'M '+xpos+" "+ypos;
+                            start_pathT = 1
+                            start_idxT = j
 
                         }
-                        if (j > start_idx){
-                            weather_path += " L "+xpos+" "+ypos;
+                        if (j > start_idxT){
+                            temp_path += " L "+xpos+" "+ypos;
                         }
                     }}}
-                    console.log(weather_path)
+
+                  //Create Prcp Path Element:
+                  if (current_P.length > weather_range[0]){
+                    for (j=weather_range[0]; j<=weather_range[1]; j++){
+                        var Prcp = current_P[j]
+                        
+                        if (!isNaN(Prcp)){
+                        var xpos = weather_xscale(j);
+                        var ypos = prcp_yscale(Prcp/100);
+       
+                        if (start_pathP == 0){
+                            prcp_path = 'M '+xpos+" "+ypos;
+                            start_pathP = 1
+                            start_idxP = j
+
+                        }
+                        if (j > start_idxP){
+                            prcp_path += " L "+xpos+" "+ypos;
+                        }
+                    }}}
+
+
+
+                    
+
+                    if(temp_path != ''){
+                    num_path += 1
                     weather_vis.append('path')
-                               .attr('d', weather_path)
+                               .attr('d', temp_path)
                                .attr('class', 'temps')
                                .attr('fill', 'none')
-                               .attr('stroke', 'black')
-                               //.attr('stroke-width', 5);
-                
+
+                               .attr('stroke', temp_color)
+                               .attr('stroke-width', 3);}
+                    if(prcp_path != ''){
+                      
+                    weather_vis.append('path')
+                               .attr('d', prcp_path)
+                               .attr('class', 'temps')
+                               .attr('fill', 'none')
+                               .attr('stroke', prcp_color)
+                               .attr('stroke-width', 3);}
+                    
             }};
 
-            var avg_weather_path = '';
-            var start = 0 ;
+            weather_vis.selectAll(".temps").attr('opacity', Math.sqrt(1/num_path))
+    
             
-            for (i=weather_range[0]; i<=weather_range[1];i++ ){
-                station_totals[i].average = station_totals[i].sum/station_totals[i].count;
-          
-                if (!isNaN(station_totals[i].average)){
-                    var xpos = weather_xscale(i);
-                    var ypos = weather_yscale(station_totals[i].average);
-                    
-                    if (start != 0){
-                        avg_weather_path += " L "+xpos+" "+ypos;
-                    }
-                    if (start == 0){
-                        avg_weather_path = 'M '+xpos+" "+ypos;
-                        start = 1;
-                    }
-                }
-                
-                if (avg_weather_path != ''){
-                    var yAxis = d3.svg.axis().scale(weather_yscale).orient('right').tickFormat(d3.format("d"));
-                    var xAxis = d3.svg.axis().scale(weather_xscale).orient('bottom').tickFormat(d3.format("d"));
-             
-                    weather_vis.append('g')
-                               .call(xAxis).attr('transform',  "translate("+(0)+","+(weatherVis.h-margin.top-25)+")")
-                               .attr('class', 'axis')
-                               .selectAll('text')
-                               .attr('y',0)
-                               .attr('x',+20)
-                               .attr('transform', 'rotate(90)')  
-                               .style('font-size', 10);
-
-                    //create_checks();
-                    
-                   // weather_vis.append('path')
-                    //           .attr('d', avg_weather_path)
-                     //          .attr('class', 'avg_temps')
-                     //          .attr('fill', 'none')
-                     //          .attr('stroke', 'none')
-                     //          .attr('stroke-width', 5)
-                     //          .attr('stroke-dasharray', "5,5");
-                }  
-            }
         }
-   
+          var yAxis1 = d3.svg.axis().scale(temp_yscale).orient('left').tickFormat(d3.format("d"));
+          var yAxis2 = d3.svg.axis().scale(prcp_yscale).orient('right').tickFormat(d3.format("d"));
+          var xAxis = d3.svg.axis().scale(weather_ordinal).orient('bottom')//.tickFormat(d3.format("d"));
+          weather_vis.append('text')
+                     .attr('x', (weatherVis.h-margin.top-margin.bottom)/2)
+                     .attr('y', -5)
+                     .text('Temperature (F)')
+                     .attr('transform', 'rotate(90)')  
+                    .attr('class', 'axis')
+                    .attr('fill', temp_color)
+          weather_vis.append('text')
+                     .attr('x', (weatherVis.h-margin.top-margin.bottom)/2)
+                     .attr('y', -weatherVis.w+margin.left-25)
+                     .text('Precipitation (Inches)')
+                     .attr('transform', 'rotate(90)')  
+                    .attr('class', 'axis')
+                    .attr('fill', prcp_color)
+
+          weather_vis.append('g')
+                     .call(xAxis).attr('transform',  "translate("+(0)+","+(weatherVis.h-margin.top)+")")
+                     .attr('class', 'axis')
+                     .selectAll('text')
+                     .attr('y',0)
+                     .attr('x',+20)
+                     .attr('transform', 'rotate(90)')  
+                     .style('font-size', 10);
+
+          weather_vis.append('g')
+                     .call(yAxis1).attr('transform',  "translate("+(margin.left)+","+(0)+")")
+                     .attr('class', 'axis')
+                     .selectAll('text')
+                     .attr('y',0)
+                     .attr('x',-10)
+                     .style('font-size', 10);
+
+
+          weather_vis.append('g')
+                     .call(yAxis2).attr('transform',  "translate("+(weatherVis.w-margin.left)+","+(0)+")")
+                     .attr('class', 'axis')
+                     .selectAll('text')
+                     .attr('y',0)
+                     .attr('x',+10)
+                     .style('font-size', 10);  
+          if (counties.length == 0 || num_path==0){
+            weather_vis.append('text')
+                     .attr('y',weatherVis.h/2)
+                     .attr('x',+(weatherVis.w-margin.left-margin.right)/2-30) 
+                     .text('No Weather for Selection')
+                     .attr('class', 'axis')
+                     .style('text-align', 'center')
+                     .style('font-style', 'italic')
+                     .style('font-size', 15);
+          }
 }
 
 
-function highlighted_weather(highlighted, path, year){
+function highlighted_weather(highlighted, year){
     d3.select('#weather').selectAll(".highlighted_weather").remove();
     d3.select('#weather').selectAll(".HL_avg_temps").remove();
-    var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
-    var weather_yscale = d3.scale.linear().domain([60, -60]).range([0, weatherVis.h]);
+    var weather_xscale = d3.scale.linear().domain(weather_range).range([margin.left, weatherVis.w-margin.left]);
+    var temp_yscale = d3.scale.linear().domain([100, 0]).range([margin.bottom, weatherVis.h-margin.top]);
+    var prcp_yscale = d3.scale.linear().domain([3, 0]).range([margin.bottom, weatherVis.h-margin.top]);
+    var num_path = 0
+      for(i=0; i< highlighted.length; i ++){
+          var key = highlighted[i]+String(select_year);
+          var start_pathT = 0
+          var start_pathP = 0
+          var start_idxT = NaN
+          var start_idxP = NaN
+          var weather_datum = weather_dict[key];
+          var temp_path = '';
+          var prcp_path = '';
 
-    d3.json(path, function(data){
-        var station_totals = {};
-        
-        for (i=weather_range[0]; i<=weather_range[1];i++ ){
-            station_totals[i] = {"sum":0, 'count':0, 'average':0};
-        }
+          if (weather_datum != null){
+              var P_data = weather_datum['Prcp_monthly'];
+              var T_data = weather_datum['Tavg_monthly'];
+              var T_datum = T_data.split(',')
+              var P_datum = P_data.split(',')
+              var current_T = [];
+              var current_P = [];
 
-        for(i=0; i< highlighted.length; i ++){
-            var stations = county_to_station[highlighted[i]];
-            
-            for(j=0; j<stations.length; j++){
-                var key = stations[j] + String(year);
-                var ggd_data = data[key];
-                var weather_path = '';
-                
-                if(ggd_data != null){                
-                    for (k=weather_range[0]; k<=weather_range[1]; k++){
-                        station_totals[k].sum += ggd_data[k];
-                        station_totals[k].count += 1;
-                        var xpos = weather_xscale(k);
-                        var ypos = weather_yscale(ggd_data[k]);
+              for(j=0; j<T_datum.length; j++){
+                  
+                  var TempList = T_datum[j].split("'")
+                  var Temp = TempList[1]
+                  if (Temp == null){Temp = NaN}
+                  current_T.push(Temp)
+              }
+              for(j=0; j<P_datum.length; j++){
+                  
+                  var PrcpList = P_datum[j].split("'")
+                  var Prcp = PrcpList[1]
+                  if (Prcp == null){Prcp = NaN}
+                  current_P.push(Prcp)
+              }
+
+              //create Temperature Path Element
+                  if (current_T.length > weather_range[0]){
+                    for (j=weather_range[0]; j<=weather_range[1]; j++){
+                        var Temp = current_T[j]
                         
-                        if (k == weather_range[0]){
-                            weather_path = 'M '+xpos+" "+ypos;
-                        }
-                        if (k != weather_range[0]){
-                            weather_path += " L "+xpos+" "+ypos;
-                        } 
-                    }
-                    
-                    weather_vis.append('path')
-                         .attr('d', weather_path)
-                         .attr('class', 'highlighted_weather')
-                         .attr('fill', 'none')
-                         .attr('stroke', HLT_color);
-                }
-            }
-        }
-        
-        var avg_weather_path = '';
-        var start = 0;
-        
-        for (i=weather_range[0]; i<=weather_range[1];i++ ){
-            station_totals[i].average = station_totals[i].sum/station_totals[i].count;
+                        if (!isNaN(Temp)){
+                        var xpos = weather_xscale(j);
+                        var ypos = temp_yscale(Temp);
+       
+                        if (start_pathT == 0){
+                            temp_path = 'M '+xpos+" "+ypos;
+                            start_pathT = 1
+                            start_idxT = j
 
-            if (!isNaN(station_totals[i].average)){
-                var xpos = weather_xscale(i);
-                var ypos = weather_yscale(station_totals[i].average);
-                if (start != 0){
-                    avg_weather_path += " L "+xpos+" "+ypos;
-                }
-                if (start == 0){
-                    avg_weather_path = 'M '+xpos+" "+ypos;
-                    start = 1;
-                }
-            }
-            
-            if (avg_weather_path != ''){
-                if (keep_marks == false){
-                    create_hlchecks();
-                }
-                checked = true;
-                weather_vis.append('path')
-                            .attr('d', avg_weather_path)
-                            .attr('class', 'HL_avg_temps')
-                            .attr('fill', 'none')
-                            .attr('stroke', HLTavg_color)
-                            .attr('stroke-width', 5)
-                            .attr('stroke-dasharray', "5,5");
-            }
-        }
-    });     
+                        }
+                        if (j > start_idxT){
+                            temp_path += " L "+xpos+" "+ypos;
+                        }
+                    }}}
+             
+                    //add temperature path
+                    if(temp_path != ''){
+                    num_path += 1
+                    weather_vis.append('path')
+                               .attr('d', temp_path)
+                               .attr('class', 'highlighted_weather')
+                               .attr('fill', 'none')
+                               .attr('stroke', temp_color)
+                               .attr('stroke-width', 3);}
+
+                //Create Prcp Path Element:
+                  if (current_P.length > weather_range[0]){
+                    for (j=weather_range[0]; j<=weather_range[1]; j++){
+                        var Prcp = current_P[j]
+                        
+                        if (!isNaN(Prcp)){
+                        var xpos = weather_xscale(j);
+                        var ypos = prcp_yscale(Prcp/100);
+       
+                        if (start_pathP == 0){
+                            prcp_path = 'M '+xpos+" "+ypos;
+                            start_pathP = 1
+                            start_idxP = j
+
+                        }
+                        if (j > start_idxP){
+                            prcp_path += " L "+xpos+" "+ypos;
+                        }
+                    }}}
+                  //add Prcp path:
+                    if(prcp_path != ''){
+                      
+                    weather_vis.append('path')
+                               .attr('d', prcp_path)
+                               .attr('class', 'highlighted_weather')
+                               .attr('fill', 'none')
+                               .attr('stroke', prcp_color)
+                               .attr('stroke-width', 3);}
+       
+   
+      }
+      }
+      weather_vis.selectAll(".highlighted_weather").attr('opacity', Math.sqrt(1/num_path))
+      weather_vis.selectAll(".temps").attr('opacity', (1/num_path))
+      weather_vis.selectAll(".temps").attr('stroke', 'grey')
+
 }
 
 
@@ -618,7 +575,6 @@ function generate_legend(data){
            .attr('y', (legend_height/legend_ticks)*i + 10)
            .attr('height', 10)
            .attr('width', 10)
-           // .style('fill', legend_color_scale(legend_ticks-i))
            .text(d3.round(yield_range[1] - (i)*tick_size) + " to " + d3.round(yield_range[1] - (i-1)*tick_size) )
     }
 
@@ -636,15 +592,12 @@ function generate_legend(data){
        .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 15)
        .attr('height', 10)
        .attr('width', 10)
-       // .style('fill', legend_color_scale(legend_ticks-i))
        .text("No Data")
 
 
 
         
     legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', 5).text('Bu/Acre');
-    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
-    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
 
 }
 
@@ -776,6 +729,15 @@ function process_data(path){
             }
         }
 
+        //create growing months:
+
+        for(i=weather_range[0]; i < weather_range[1]; i++){
+          growing_months.push(months[i])
+        }
+
+
+
+
         //Create Weather Data:
         weather_dict 
         for(i=0; i<data.length; i++){
@@ -812,51 +774,6 @@ function process_data(path){
 }
 
 
-function load_station_Data(path){
-
-    var station_over_lay = Map.append('g').attr('class', 'stations');
-    var keys = Object.keys(county_ids);
-
-    d3.csv(path, function(data){   
-        for(i=0; i<data.length; i++){
-            all_stations.push(data[i].code);
-            var coordinates = projection([parseFloat(data[i].lon),parseFloat(data[i].lat)]);
-
-        station_over_lay.append('circle')
-                        .attr('cx', coordinates[0])
-                        .attr('cy', coordinates[1])
-                        .attr('r', 0)
-                        .attr('id', 's'+ data[i].code)
-                        .attr('value', data[i].code)
-                        .attr('class', 'station');
-        }
-
-        //HUGE WASTE OF TIME Need to revamp the dataset:
-        for(i=0; i< keys.length; i ++){
-            var key = keys[i];
-        
-            if (d3.select('#vis').select('#'+key)[0][0] != null){
-                county_to_station[key] = {};
-                var xpos = d3.select('#vis').select('#'+key)[0][0].getAttribute('xpos');
-                var ypos = d3.select('#vis').select('#'+key)[0][0].getAttribute('ypos');
-                var current_set = [];
-                
-                for(j=0; j<data.length; j++){
-                    var coordinates = projection([parseFloat(data[j].lon),parseFloat(data[j].lat)]);
-                  
-                    if(coordinates[0] <= xpos+weather_radius && xpos-weather_radius< coordinates[0] && coordinates[1] <= ypos+weather_radius && ypos-weather_radius < coordinates[1]){
-                        current_set.push( data[j].code);
-                    }
-                }
-                
-                county_to_station[key] = current_set;
-            }
-        }
-        
-        // generate_WeatheVis(selected_counties, select_year);
-
-    });
-}
 
 var leading_zero = d3.format("05d");
 
@@ -908,7 +825,7 @@ function generateMap(error, us) {
     //     .attr("d", path)
        
     process_data(yield_path);
-    // load_station_Data(station_path);
+
 
 }
 
@@ -936,7 +853,7 @@ function time_brushed(){
     //update color 
     yield_color(select_year);
     //load weather data:
-    //generate_WeatheVis(selected_counties, select_year);
+    generate_WeatheVis(selected_counties, select_year);
 
 }
 
@@ -953,7 +870,8 @@ function generate_average_scatterplot(data){
                   .attr('x', 0)
                   .attr('y', margin.top)
                   .text('National Averages:')
-                  .attr('id', "avg_title");
+                  .attr('id', "avg_title")
+                  .style({'font-size':15});
 
         for(i=0;i<keys.length;i++){
             var year = keys[i];
@@ -974,11 +892,11 @@ function generate_average_scatterplot(data){
                             var avg_yield = this.getAttribute('value');
                             var avg_year = this.getAttribute('year');
                             timeslider.append('text')
-                                      .attr('x', coordinates[0]+5)
-                                      .attr('y', coordinates[1]-5)
+                                      .attr('x', 0)
+                                      .attr('y',margin.top +20)
                                       .text("Nat'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
                                       .attr('id', 'avg_yeildttip')
-                                      .style({'font-weight':'bold', 'font-size':15})
+                                      .style({'font-size':15})
                             })
                             
                       .on('mouseout', function(){
@@ -993,7 +911,8 @@ function generate_average_scatterplot(data){
                   .attr('x', 0)
                   .attr('y', margin.top)
                   .text('Regional Averages:')
-                  .attr('id', "avg_title");
+                  .attr('id', "avg_title")
+                  .style('font-size', 15);
 
         var regional_yields = {};
         
@@ -1033,11 +952,11 @@ function generate_average_scatterplot(data){
                                 var avg_yield = this.getAttribute('value');
                                 var avg_year = this.getAttribute('year');
                                 timeslider.append('text')
-                                          .attr('x', coordinates[0]+5)
-                                          .attr('y', coordinates[1]-5)
+                                          .attr('x', 0)
+                                          .attr('y', margin.top+20)
                                           .text("Reg'l Avg, "+avg_year+": "+d3.round(avg_yield, 2)+" Bu/acre")
                                           .attr('id', 'avg_yeildttip')
-                                          .style({'font-weight':'bold', 'font-size':15})
+                                          .style({ 'font-size':15})
                           })
                           .on('mouseout', function(){
                                 d3.select('#vis').select('#avg_yeildttip').remove();
@@ -1123,8 +1042,12 @@ function generateHist(data){
 
             //add bin count tool tip:
             hist_canvas.append('text')
-                       .attr('x', coordinates[0]+10)
-                       .attr('y', coordinates[1]-5 + padding)
+                       .attr('x', function(){
+                        if(coordinates[0]+10 < histVis.w-100){
+                          return coordinates[0]+10 }
+                        else{return  coordinates[0]-100 }
+                       })
+                       .attr('y', coordinates[1]-5)
                        .text('Bin Count: '+bin_count)
                        .attr('id', 'bcount_tip')
                        .style('font-weight', 'bold');
@@ -1162,7 +1085,6 @@ function generateHist(data){
             var bin_max = d3.max(this.__data__);
             hist_canvas.select('#'+this.id).style('fill', highlight_color)
             var highlightd_counties = [] ;
-            
             for (i=0; i<data.length; i++){
                 if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
                     // var stateANSI = parseFloat(data[i]['State ANSI']);
@@ -1171,10 +1093,10 @@ function generateHist(data){
                     var county_id = data[i]['FIPS']
 
                     d3.selectAll('.counties').select('#c'+county_id).attr('fill', highlight_color);
-                    highlightd_counties.push('c'+county_id);
+                    highlightd_counties.push(county_id);
                 }
             }
-            highlighted_weather(highlightd_counties, gdd_path, select_year);
+            highlighted_weather(highlightd_counties, select_year);
         });
 }   
 
@@ -1203,14 +1125,14 @@ function selected_county_vis(data){
     //timeslider.append('rect').attr('x',0).attr('y',histVis.y).attr('width', histVis.w).attr('height', histVis.h).attr('fill', 'white').attr('class', 'selectVis')
     timeslider.append('text')
              .attr('x', 0)
-             .attr('y',histVis.y+margin.top)
+             .attr('y',histVis.y+margin.top-15)
              .attr('class', 'selectVis')
-             .text('Time Series Data: ').style('font-weight', 'bold').style('font-size', 15);
+             .text('Time Series Data: ').style('font-size', 15);
     timeslider.append('text')
              .attr('x', 0)
-             .attr('y',histVis.y+margin.top+25)
+             .attr('y',histVis.y+margin.top)
              .attr('class', 'selectVis')
-             .text(data.getAttribute('name')+', '+count_data[0].State).style('font-weight', 'bold').style('font-size', 15);
+             .text(data.getAttribute('name')+', '+count_data[0].State).style('font-size', 15);
 
     var delta = hist_length/years.length;
 
@@ -1265,7 +1187,7 @@ Map.append('g').attr('class', 'brush')
 // brushed_2d();
 
 function brushed_2d(){
-    checked = false;
+    d3.select('#vis').select('#avg_yeildttip').remove()
 
     var extent = d3.event.target.extent();
     var test = 0;
@@ -1291,12 +1213,10 @@ function brushed_2d(){
     
     
 
-    
+    brushed_county_vis(selected_data);
     generate_average_scatterplot(yield_average);
-    if (selected_data.length >0){
-        brushed_county_vis(selected_data);
-        generate_WeatheVis(selected_counties, select_year);
-    };
+    generate_WeatheVis(selected_counties, select_year);
+
 }
 
 function step() {
@@ -1336,7 +1256,7 @@ $('#selectionType .btn').on("click", function(d){
 
 $('#timeSliderControl .btn').on("click", function(d){
     if ($(this).button()[0].value == 'timeDown'){
-        console.log("TestDown")
+ 
         animate_stop = true;
         if(animate_year>1910){
             animate_year --;
@@ -1354,6 +1274,9 @@ $('#timeSliderControl .btn').on("click", function(d){
         }
     }
 })
+.on("dblclick", function() {  
+ animate_stop = false;
+    step(); });
 
 $('#changeVis .btn').on("click", function(d){
     // console.log($(this).button()[0].id)
@@ -1379,6 +1302,13 @@ $('#changeVis .btn').on("click", function(d){
             .style("opacity", 0)
     }
 })
+$(document).ready(function() {
+    $("#changeVis .btn").first().button("toggle");
+      $("#selectionType .btn").first().button("toggle");
+    d3.selectAll('.brush').remove();
+});
+
+
 
 // Calls
 queue()
