@@ -1,8 +1,6 @@
 Agri-gation Dashboard
 =============
 
-Welcome to our CS171 final project. We are visualizing how data that affects a farm, changes over space and time. These variables have complex relationships with one another, that we represent using d3.
+Welcome to our CS171 final project. Our main website is: http://jbencook.github.io/cs171-ag-viz/
 
-To display the interactive visualizations locally, navigate to the project root directory and run: `python -m SimpleHTTPServer`
-
-Please check out our website: http://jbencook.github.io/cs171-ag-viz/
+We visualize how US corn yield has changed in the 20th century, along with indicators which may effect yield. To display the interactive visualizations locally, after putting the files on your computer navigate to the project root directory and run: `python -m SimpleHTTPServer`
