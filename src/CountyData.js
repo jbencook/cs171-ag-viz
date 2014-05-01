@@ -254,7 +254,7 @@ timeslider.append('g')
           .attr('transform', 'translate('+padding/2+','+ (timeVis.h - padding/2) +")")
           .call(d3.svg.axis().scale(xtime_range)
           .orient('bottom').tickFormat(d3.format("d")))
-          .style("z-index", 999);;
+          .style("z-index", 500);;
 
 var handle = slider.append('image').attr('class', 'handle')
     .attr("xlink:href", "../img/corn_icon.svg")
@@ -1229,6 +1229,29 @@ function step() {
 //     step();
 // });
 
+
+function click_local(){
+    d3.select("#localVis")
+        .style("z-index", 999)
+        .transition().duration(1500)
+        .style("opacity", 1)
+
+    Map.transition().duration(1500)
+        .style("opacity", 0)
+}
+
+function click_national(){
+    Map.transition().duration(1500)
+        .style("opacity", 1)
+
+    d3.select("#localVis")
+        .transition().duration(1500)
+        .style("opacity", 0)
+
+    d3.select("#localVis").transition().delay(1500).style("z-index", -999)
+}
+
+
 $('#selectionType .btn').on("click", function(d){
     if ($(this).children()[0].value == 'point'){
         d3.selectAll('.brush').remove();
@@ -1274,29 +1297,19 @@ $('#timeSliderControl .btn').on("click", function(d){
 });
 
 $('#changeVis .btn').on("click", function(d){
-    
+    console.log("Test")
     if ($(this).button()[0].id == 'national'){
-        Map.transition().duration(1500)
-            .style("opacity", 1)
+        click_national();
 
-        d3.select("#localVis")
-            .transition().duration(1500)
-            .style("opacity", 0)
-
-        d3.select("#localVis").transition().delay(1500).style("z-index", -999)
 
         // d3.selectAll('.brush').remove();
     } 
     else if($(this).button()[0].id == 'local') {
-        d3.select("#localVis")
-            .style("z-index", 999)
-            .transition().duration(1500)
-            .style("opacity", 1)
-
-        Map.transition().duration(1500)
-            .style("opacity", 0)
+        click_local();
     }
 })
+
+
 
 var story_slide = 1
 $(document).on('ready', function(){
@@ -1328,19 +1341,17 @@ $(document).on('ready', function(){
                 // animate_stop = true;
                 // canvas.transition().call(time_brush.event)
                 
-                $('#changeVis .btn[id=\'national\'').click()
+                click_national();
                 // $('#storyText p').html(
                 //     "<span style=\"display: block; margin: 0px auto; text-align: center;\"><strong>Test</strong></span><br>" + 
                 //     "Testing second line"
                 // )  
                 $('#storyText p').html(
                     "In 2013, America produced <b>13 billion bushels</b> of corn from nearly <b>100 million acres</b> of farmland.<br><br>"
-
-
                 ) 
             }
             if (idx_button == 2){
-                $('#changeVis .btn[id=\'national\'').click()
+                click_national();
                 animate_year = 1910
                 animate_year_max = 1959;
                 canvas.transition().call(time_brush.event)
@@ -1352,7 +1363,7 @@ $(document).on('ready', function(){
                 ) 
             }
             if (idx_button == 3){
-                $('#changeVis .btn[id=\'national\'').click()
+                click_national();
                 animate_stop = true;
                 animate_year = 1960
                 animate_year_max = 1979;
@@ -1365,8 +1376,7 @@ $(document).on('ready', function(){
                 )
             }
             if (idx_button == 4){
-                $('#changeVis .btn[id=\'national\'').click()
-
+                click_national();
                 animate_stop = true;
                 animate_year = 1980
                 animate_year_max = 1999;
@@ -1385,7 +1395,7 @@ $(document).on('ready', function(){
                 animate_stop = false;
                 step();
 
-                $('#changeVis .btn[id=\'national\'').click()
+                click_national();
                 $('#storyText p').html(
                     "Since 2000, the Southwest has experienced several periods of long-term droughts. Corn became less economically viable to grow in regions <br>where it was marginally successful before.<br><br>" + 
                     "However, farms in the Corn Belt states continue to produce higher yields."
@@ -1396,7 +1406,7 @@ $(document).on('ready', function(){
                 animate_year = 2012;
                 animate_year_max = 2013;
                 canvas.transition().call(time_brush.event)
-                $('#changeVis .btn[id=\'local\'').click()
+                click_local();
                 $('#storyText p').html(
                     "Today's growers have access to unprecedented amounts of data related to their fields.<br><br>" +
                     "Yield at the individual field level is driven by factors such as soil type, climate, crop rotation, and irrigation."
@@ -1408,9 +1418,9 @@ $(document).on('ready', function(){
                 // ) 
             }
             if (idx_button == 7){
+                click_national();
                 animate_year = 2013;
                 canvas.transition().call(time_brush.event)
-                $('#changeVis .btn[id=\'national\'').click()
                 $('#storyText p').html(
                     "<span style=\"font-size: 14pt\"><q>The United States is, by far, the largest producer of corn in the world, producing <b>32 percent</b> of the world's corn crop in the early 2010s...</span><br><br>" +
                     "<q>Additionally, corn farming has become exponentially more efficient. If U.S. farmers in <b>1931</b> wanted to equivalently yield the same amount of corn as farmers in <b>2008</b>, the 1931 farmers would need an <b>additional 490 million acres!</b></q><br>" + 
@@ -1435,8 +1445,11 @@ $(document).on('ready', function(){
 
 
 $(document).ready(function() {
-    $("#changeVis .btn").first().button("toggle");
-      $("#selectionType .btn").first().button("toggle");
+    $("#changeVis .btn[id=\'national\']").button("toggle");
+    
+    // $("#changeVis .btn[id=\'local\']").button("toggle");
+
+    $("#selectionType .btn").first().button("toggle");
     d3.selectAll('.brush').remove();
 });
 
