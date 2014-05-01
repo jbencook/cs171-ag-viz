@@ -457,7 +457,8 @@ function generate_WeatheVis(counties, year){
                                .attr('d', weather_path)
                                .attr('class', 'temps')
                                .attr('fill', 'none')
-                               .attr('stroke', 'black');
+                               .attr('stroke', 'black')
+                               //.attr('stroke-width', 5);
                 
             }};
 
