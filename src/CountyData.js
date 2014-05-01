@@ -1216,9 +1216,9 @@ function step() {
     animate_year +=1; 
     if ((animate_year < 2013) && (!animate_stop))
         setTimeout(step, 300);
-    else {
-        animate_year = 1910;
-    }
+    // else {
+    //     animate_year = 1910;
+    // }
 }
 
 // Radial Button Toggle
@@ -1265,9 +1265,12 @@ $('#timeSliderControl .btn').on("click", function(d){
         }
     }
 })
-.on("dblclick", function() {  
- animate_stop = false;
-    step(); });
+.on("dblclick", function() { 
+    if (animate_year < 2013){ 
+        animate_stop = false;
+        step(); 
+    }
+});
 
 $('#changeVis .btn').on("click", function(d){
     
@@ -1293,37 +1296,61 @@ $('#changeVis .btn').on("click", function(d){
             .style("opacity", 0)
     }
 })
- $('#storyControls #storyPages .btn').on("click", function(d){
-  var idx_button = $(this).attr('value')
-    if (idx_button != "L" & idx_button != "R"){
 
-    } 
-    if (idx_button == 1){
-        $('#storyText p').text(
-            "Testing this paragraph for the storyline... Does it actually wraparound?"
-        )  
+var story_slide = 1
+$('#storyControls #storyPages .btn').on("click", function(d){
+    console.log(story_slide)
+    var idx_button = $(this).attr('value')
+    if (idx_button == "L"){
+        if(story_slide > 1){
+            story_slide--
+            $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
+        }
+    } else if (idx_button == "R"){
+        if(story_slide < 7){
+            story_slide++
+            $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
+        }
+    } else {
+        if (idx_button == 1){
+            $('#changeVis .btn[id=\'national\'').click()
+            $('#storyText p').html(
+                "<span style=\"display: block; margin: 0px auto; text-align: center;\"><strong>Test</strong></span><br>" + 
+                "Testing second line"
+            )  
+        }
+        if (idx_button == 2){
+            $('#storyText p').html(
+                "Ryan Sucks... Does it actually wraparound?"
+            ) 
+        }
+        if (idx_button == 3){
+            $('#storyText p').html(
+                "3"
+            ) 
+        }
+        if (idx_button == 4){
+            $('#storyText p').html(
+                "4"
+            ) 
+        }
+        if (idx_button == 5){
+            $('#changeVis .btn[id=\'local\'').click()
+
+        }
+        if (idx_button == 6){
+            $('#storyText p').html(
+                "6"
+            ) 
+        }
+        if (idx_button == 7){
+            $('#storyText p').html(
+                "7"
+            ) 
+        }
+        story_slide = idx_button
     }
-    if (idx_button == 2){
-        $('#storyText p').text(
-            "Ryan Sucks... Does it actually wraparound?"
-        ) 
-    }
-    if (idx_button == 3){
-    //text for the update
-    }
-    if (idx_button == 4){
-    //text for the update
-    }
-    if (idx_button == 5){
-    //text for the update
-    }
-    if (idx_button == 6){
-    //text for the update
-    }
-    if (idx_button == 7){
-    //text for the update
-    }
-    })
+})
 
 
 
