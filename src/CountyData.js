@@ -144,17 +144,24 @@ Map.append("rect")
 //title vis:
 canvas.append("text").attr("class", "title")
     .attr("text-anchor", "middle")
-    .attr("x", width/2)
+    .attr("x", 135)
     .attr("y", 30)
     .style("text-align", "center")
     .html("A Century of Corn<br>");
 
 canvas.append("text").attr("class", "subtitle")
     .attr("text-anchor", "middle")
-    .attr("x", width/2)
-    .attr("y", 60)
+    .attr("x", 135)
+    .attr("y", 50)
     .style("text-align", "center")
-    .html("Harvesting America's Crop Yield Data");
+    .html("Harvesting U.S. Crop Yield Data");
+
+canvas.append("text").attr("class", "title")
+    .attr("text-anchor", "middle")
+    .attr("x", width/2)
+    .attr("y", 30)
+    .style("text-align", "center")
+    .html("National Yield by County");
 
 var timeslider = canvas.append("svg")
     .attr("width", timeVis.w)
@@ -177,7 +184,6 @@ hist_canvas.append("rect")
     .attr("class", "background")
     .attr("width", histVis.w)
     .attr("height", histVis.h)
-    // .style("fill", "gray")
 
 canvas.append("text").attr("class", "text")
     .attr("x", histVis.x + histVis.w/2-15)
@@ -213,10 +219,6 @@ weather_vis.append("rect")
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
 
-    
-    // .style("fill", "gray")
-
-
 var story_nav = canvas.append("svg")
     .attr("width", 270)
     .attr("height", 400)
@@ -227,7 +229,7 @@ story_nav.append("rect")
     .attr("class", "background")
     .attr("width", 270)
     .attr("height", 400)
-    .style("fill", "gray")
+    // .style("fill", "gray")
 
 // story_pages = [0,1,2,3,4]
 
@@ -691,7 +693,7 @@ function yield_color(year){
         .style("text-align", "center")
         .text('Year: '+year)
         .attr('id', 'yrtoptip')
-        .attr('font-weight', 'bold')
+        // .attr('font-weight', 'bold')
         .style('font-size', 20);
 }
 

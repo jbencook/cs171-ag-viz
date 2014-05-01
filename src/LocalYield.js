@@ -289,8 +289,12 @@ function init(error, data, weather){
     })
 
 
+<<<<<<< HEAD
     current_field = local_field_info[0]
     $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
+=======
+    current_field = local_field_info[6]
+>>>>>>> f3ab70b495e2a9f990cfa89298ab6ed7ff49cafc
     select_year = current_field.year
     field_file = "../" + current_field['path'];
     queue()
@@ -353,9 +357,9 @@ function createVis(error, yield_data) {
     fieldVis.selectAll(".point").remove()
     createYieldMeta();
 
-    offx = 85;
-    offy = -90;
-    proj = 4300000;
+    offx = 110;
+    offy = -100;
+    proj = 10000000;
 
     if(current_field.offx != '') {
         offx = parseFloat(current_field.offx);
@@ -1126,10 +1130,8 @@ $('#selectionType .btn').on("click", function(d){
     }
 })
 
-
 $(document).ready(function() {
       
       $("#selectionType .btn").first().button("toggle");
     d3.selectAll('.brush').remove();
 });
-
