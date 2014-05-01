@@ -5,4 +5,4 @@ Welcome to our CS171 final project. We are visualizing how data that affects a f
 
 To display the interactive visualizations locally, navigate to the project root directory and run: `python -m SimpleHTTPServer`
 
-Please check out our website: jbencook.github.io/cs171-ag-viz
+Please check out our website: http://jbencook.github.io/cs171-ag-viz/
