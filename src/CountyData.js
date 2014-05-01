@@ -1290,6 +1290,40 @@ $('#changeVis .btn').on("click", function(d){
             .style("opacity", 0)
     }
 })
+ $('#storyControls #storyPages .btn').on("click", function(d){
+  var idx_button = $(this).attr('value')
+  if (idx_button != "L" & idx_button != "R"){
+
+  } 
+  if (idx_button == 1){
+    //text for the update
+  }
+  if (idx_button == 2){
+    //text for the update
+  }
+  if (idx_button == 3){
+    //text for the update
+  }
+  if (idx_button == 4){
+    //text for the update
+  }
+  if (idx_button == 5){
+    //text for the update
+  }
+  if (idx_button == 6){
+    //text for the update
+  }
+  if (idx_button == 7){
+    //text for the update
+  }
+ })
+
+
+
+
+
+
+
 $(document).ready(function() {
     $("#changeVis .btn").first().button("toggle");
       $("#selectionType .btn").first().button("toggle");
