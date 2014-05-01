@@ -92,8 +92,9 @@ var weather_colors = colorbrewer.RdBu[9];
 var checked = false;
 var keep_marks = false;
 
-var animate_year = 2013
-var sanimate_stop = false
+var animate_year = 2013;
+var animate_stop = false;
+var animate_year_max = 2013;
 
 //Global variables (initialize)
 var county_num2name = {};
@@ -230,7 +231,7 @@ story_nav.append("rect")
     .attr("class", "background")
     .attr("width", 270)
     .attr("height", 400)
-    .style("fill", "#ccc")
+    // .style("fill", "#ccc")
 
 
 
@@ -1214,7 +1215,7 @@ function step() {
     canvas.transition().ease("linear").call(time_brush.event)
 
     animate_year +=1; 
-    if ((animate_year < 2013) && (!animate_stop))
+    if ((animate_year < animate_year_max) && (!animate_stop))
         setTimeout(step, 300);
     // else {
     //     animate_year = 1910;
@@ -1298,59 +1299,134 @@ $('#changeVis .btn').on("click", function(d){
 })
 
 var story_slide = 1
-$('#storyControls #storyPages .btn').on("click", function(d){
-    console.log(story_slide)
-    var idx_button = $(this).attr('value')
-    if (idx_button == "L"){
-        if(story_slide > 1){
-            story_slide--
-            $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
-        }
-    } else if (idx_button == "R"){
-        if(story_slide < 7){
-            story_slide++
-            $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
-        }
-    } else {
-        if (idx_button == 1){
-            $('#changeVis .btn[id=\'national\'').click()
-            $('#storyText p').html(
-                "<span style=\"display: block; margin: 0px auto; text-align: center;\"><strong>Test</strong></span><br>" + 
-                "Testing second line"
-            )  
-        }
-        if (idx_button == 2){
-            $('#storyText p').html(
-                "Ryan Sucks... Does it actually wraparound?"
-            ) 
-        }
-        if (idx_button == 3){
-            $('#storyText p').html(
-                "3"
-            ) 
-        }
-        if (idx_button == 4){
-            $('#storyText p').html(
-                "4"
-            ) 
-        }
-        if (idx_button == 5){
-            $('#changeVis .btn[id=\'local\'').click()
+$(document).on('ready', function(){
+    $('#storyControls #storyPages .btn[value=\'' + 1 + '\'').click()
 
+    $('#storyControls #storyPages .btn').on("click", function(d){
+        var idx_button = $(this).attr('value')
+        $('#storyControls #storyPages .btn').attr('class', 'btn btn-default')
+        if (idx_button == "L"){
+            if(story_slide > 1){
+                story_slide--
+                $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
+            } else {
+                $('#storyControls #storyPages .btn[value=\'' + 1 + '\']').attr('class', 'btn btn-default btn-primary')
+            }
+        } else if (idx_button == "R"){
+            if(story_slide < 7){
+                story_slide++
+                $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
+            } else {
+                story_slide = 1
+                $('#storyControls #storyPages .btn[value=\'' + (story_slide) + '\'').click()
+            }
+        } else {
+            $('#storyControls #storyPages .btn[value=\'' + idx_button + '\']').attr('class', 'btn btn-default btn-primary')
+            if (idx_button == 1){
+                // animate_year = 2012;
+                // animate_year_max = 2013;
+                // animate_stop = true;
+                // canvas.transition().call(time_brush.event)
+                
+                $('#changeVis .btn[id=\'national\'').click()
+                // $('#storyText p').html(
+                //     "<span style=\"display: block; margin: 0px auto; text-align: center;\"><strong>Test</strong></span><br>" + 
+                //     "Testing second line"
+                // )  
+                $('#storyText p').html(
+                    "In 2013, America produced <b>13 billion bushels</b> of corn from nearly <b>100 million acres</b> of farmland.<br><br>"
+
+
+                ) 
+            }
+            if (idx_button == 2){
+                $('#changeVis .btn[id=\'national\'').click()
+                animate_year = 1910
+                animate_year_max = 1959;
+                canvas.transition().call(time_brush.event)
+                animate_stop = false;
+                step();
+
+                $('#storyText p').html(
+                    "During the early 20th century, corn production expanded across the Midwest. "
+                ) 
+            }
+            if (idx_button == 3){
+                $('#changeVis .btn[id=\'national\'').click()
+                animate_stop = true;
+                animate_year = 1960
+                animate_year_max = 1979;
+                canvas.transition().call(time_brush.event)
+                animate_stop = false;
+                step();
+
+                $('#storyText p').html(
+                    "In the 1960s, rapid advancements in farming technology allowed for more land to be harvested with higher yields."
+                )
+            }
+            if (idx_button == 4){
+                $('#changeVis .btn[id=\'national\'').click()
+
+                animate_stop = true;
+                animate_year = 1980
+                animate_year_max = 1999;
+                canvas.transition().call(time_brush.event)
+                animate_stop = false;
+                step();
+                $('#storyText p').html(
+                    "In the 1990s, the number of corn producing counties decreases while from an efficiency standpoint, corn yields reached higher still.<br><br>This is the rise of smaller numbers of bigger farms: the aggregation of agribusiness."
+                )  
+            }
+            if (idx_button == 5){
+                
+                animate_year = 2000
+                animate_year_max = 2013;
+                canvas.transition().call(time_brush.event)
+                animate_stop = false;
+                step();
+
+                $('#changeVis .btn[id=\'national\'').click()
+                $('#storyText p').html(
+                    "Since 2000, the Southwest has experienced several periods of long-term droughts. Corn became less economically viable to grow in regions <br>where it was marginally successful before.<br><br>" + 
+                    "However, farms in the Corn Belt states continue to produce higher yields."
+                ) 
+            }
+            if (idx_button == 6){
+                animate_stop = true;
+                animate_year = 2012;
+                animate_year_max = 2013;
+                canvas.transition().call(time_brush.event)
+                $('#changeVis .btn[id=\'local\'').click()
+                $('#storyText p').html(
+                    "Today's growers have access to unprecedented amounts of data related to their fields.<br><br>" +
+                    "Yield at the individual field level is driven by factors such as soil type, climate, crop rotation, and irrigation."
+                ) 
+                
+
+                // $('#storyText p').html(
+                //     "The intensification of corn growing continues, and corn becomes regionalized once again to the Midwest region where it started out."
+                // ) 
+            }
+            if (idx_button == 7){
+                animate_year = 2013;
+                canvas.transition().call(time_brush.event)
+                $('#changeVis .btn[id=\'national\'').click()
+                $('#storyText p').html(
+                    "<span style=\"font-size: 14pt\"><q>The United States is, by far, the largest producer of corn in the world, producing <b>32 percent</b> of the world's corn crop in the early 2010s...</span><br><br>" +
+                    "<q>Additionally, corn farming has become exponentially more efficient. If U.S. farmers in <b>1931</b> wanted to equivalently yield the same amount of corn as farmers in <b>2008</b>, the 1931 farmers would need an <b>additional 490 million acres!</b></q><br>" + 
+                    "<span style=\"font-size: 12pt; display: block; margin: 0px auto; text-align: right;\"><i>– United States Environmental Protection Agency (April 2013)</i></span>"
+                ) 
+            }
+            story_slide = idx_button
         }
-        if (idx_button == 6){
-            $('#storyText p').html(
-                "6"
-            ) 
-        }
-        if (idx_button == 7){
-            $('#storyText p').html(
-                "7"
-            ) 
-        }
-        story_slide = idx_button
-    }
+    })
+
+    $('#storyControls #storyPages .btn[value=\'' + 1 + '\'').click()
+
 })
+
+
+
 
 
 
@@ -1363,6 +1439,11 @@ $(document).ready(function() {
       $("#selectionType .btn").first().button("toggle");
     d3.selectAll('.brush').remove();
 });
+
+canvas.on("click", function(){
+    animate_stop = true;
+    animate_year_max = 2013;
+})
 
 
 
