@@ -616,7 +616,8 @@ function histYield(yield_data) {
         .attr("x", 1)
         .attr("y", -25)
         .attr("width", 20)
-        .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); });
+        .attr("height", function(d) { return (bbYieldHist.h - yScale(d.y) - 25); })
+        .style("fill", function(d) { return colors(d.x)});
 
     // Add histogram brush
     brushHist = d3.svg.brush()
@@ -720,7 +721,7 @@ function brushedHist() {
             return "#f1a340";
         } 
         else {
-            return null;
+            return colors(d.x);
         }
     });
     brushField.extent([[0,0],[0,0]])
@@ -745,7 +746,7 @@ function brushedField() {
     var brush_min = projection.invert(extent[0]);
     var brush_max = projection.invert(extent[1]);
     
-    bar.selectAll("rect").style("fill", null);
+    bar.selectAll("rect").style("fill", function(d){return colors(d.x)});
     var select_values = []
     point.transition().duration(0).style("fill", function(pt) {
         if(pt.lon >= brush_min[0] && pt.lon <= brush_max[0] && pt.lat >= brush_max[1] && pt.lat <= brush_min[1]) {
@@ -1122,7 +1123,7 @@ $('#selectionType .btn').on("click", function(d){
             .attr('class', 'brush')
             .selectAll("rect")
             .attr("y", bbYieldHist.y + 25)
-            .attr("height", bbYieldHist.h - 50);;
+            .attr("height", bbYieldHist.h - 50);
     }
 })
 

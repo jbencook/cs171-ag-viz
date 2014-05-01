@@ -1295,31 +1295,35 @@ $('#changeVis .btn').on("click", function(d){
 })
  $('#storyControls #storyPages .btn').on("click", function(d){
   var idx_button = $(this).attr('value')
-  if (idx_button != "L" & idx_button != "R"){
+    if (idx_button != "L" & idx_button != "R"){
 
-  } 
-  if (idx_button == 1){
+    } 
+    if (idx_button == 1){
+        $('#storyText p').text(
+            "Testing this paragraph for the storyline... Does it actually wraparound?"
+        )  
+    }
+    if (idx_button == 2){
+        $('#storyText p').text(
+            "Ryan Sucks... Does it actually wraparound?"
+        ) 
+    }
+    if (idx_button == 3){
     //text for the update
-  }
-  if (idx_button == 2){
+    }
+    if (idx_button == 4){
     //text for the update
-  }
-  if (idx_button == 3){
+    }
+    if (idx_button == 5){
     //text for the update
-  }
-  if (idx_button == 4){
+    }
+    if (idx_button == 6){
     //text for the update
-  }
-  if (idx_button == 5){
+    }
+    if (idx_button == 7){
     //text for the update
-  }
-  if (idx_button == 6){
-    //text for the update
-  }
-  if (idx_button == 7){
-    //text for the update
-  }
- })
+    }
+    })
 
 
 
