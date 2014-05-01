@@ -39,6 +39,12 @@ var bbPrice = {
     h: height - bbYieldHist.h
 };
 
+var weatherVis = {
+    x: bbFieldVis.w,
+    y: bbYieldHist.h+margin.top-25,
+    w: 350,
+    h: 250
+}
 // Color scale for field -- Needs work
 var color_range = colorbrewer.YlGn[9];
 var colors = d3.scale.quantize()
@@ -88,12 +94,18 @@ var formatCoords = d3.format(".4f");
 
 
 var field_list = "../data/local_fields.csv"
-
+var field_weather = '../data/local_climate.csv'
 var field_file;
 var local_field_info;
 var current_field;
 var offx, offy, proj;
 var field_image;
+var select_year;
+var climate_data;
+var months = ['Jan', 'Feb', "Mar", 'Apr', 'May', "Jun", 'Jul', 'Aug', "Sep", "Oct", "Nov", "Dec"]
+var temp_color = ['orange']
+var prcp_color = ['lightblue']
+var weather_range = [3,10];
 
 // Declare visualization areas
 var canvas = d3.select("#fieldVis").append("svg")
@@ -148,6 +160,30 @@ yieldHist.append("rect")
     .attr("width", bbYieldHist.w)
     .attr("height", bbYieldHist.h);
 
+var weather_vis = canvas.append('svg')
+    .attr("width", weatherVis.w)
+    .attr("height", weatherVis.h)
+    .attr("x", weatherVis.x+15)
+    .attr("y", weatherVis.y)
+    .attr('id', 'weather')
+
+
+weather_vis.append("rect")
+    .attr("class", "background")
+    .attr("width", weatherVis.w)
+    .attr("height", weatherVis.h)
+
+canvas.append("text").attr("class", "text")
+    .attr("x", weatherVis.x+weatherVis.w/2+15)
+    .attr("y", weatherVis.y+weatherVis.h-5)
+    .attr("text-anchor", "middle")
+    .style("text-align", "center")
+    .style("fill", "black")
+    // .style("font-weight", "bold")
+    .style("font-size", 15)                
+    .text("Growing Season Weather");
+    
+
 // Add Title
 canvas.append("text").attr("class", "text")
     .attr("x", bbYieldHist.x + bbYieldHist.w/2)
@@ -156,7 +192,7 @@ canvas.append("text").attr("class", "text")
     .style("text-align", "center")
     .style("fill", "black")
     // .style("font-weight", "bold")
-    .style("font-size", 18)                
+    .style("font-size", 15)                
     .text("Yield Distribution (Bu/Ac)");
 
 var yieldMeta = canvas.append("svg")
@@ -185,13 +221,14 @@ var title = canvas.append("text").attr("class", "title")
 
 queue()
     .defer(d3.csv, field_list)
+    .defer(d3.csv, field_weather)
     .await(init);
 
-function init(error, data){
+function init(error, data, weather){
 
     local_field_info = data;
 
-    console.log(local_field_info)
+    climate_data = weather
 
     local_field_info.forEach(function(d) {
         // console.log(d[''])
@@ -203,7 +240,10 @@ function init(error, data){
     $(".dropdown-menu li a").click(function(){
         current_field = local_field_info[$(this).attr('value')]
         field_file = "../" + current_field['path'];
-        console.log(current_field[''])
+        $(".btn btn-default btn-sm dropdown-toggle").text('hi')
+       
+        select_year = current_field.year
+      
         queue()
             // .defer(d3.json, "../data/nebraska.geojson")
             // .defer(d3.csv, "../data/wmk5_2009_small.csv")
@@ -241,8 +281,8 @@ function init(error, data){
     // })
 
 
-    current_field = local_field_info[2]
-    
+    current_field = local_field_info[0]
+    select_year = current_field.year
     field_file = "../" + current_field['path'];
     queue()
         .defer(d3.csv, field_file)
@@ -258,7 +298,7 @@ function createVis(error, yield_data) {
     }
     if(parseInt(current_field.img) == 1) {
         field_img = "../img/" + current_field.name + ".jpg"
-        console.log(field_img)
+     
 
         field_image.attr("xlink:href", field_img)
         .attr("width", bbFieldVis.w)
@@ -317,7 +357,7 @@ function createVis(error, yield_data) {
         proj = parseFloat(current_field.proj);
     } 
 
-    console.log(offx, offy, proj)
+
 
     projection = d3.geo.albers().scale(parseInt(proj));
     // Define path generator
@@ -406,7 +446,7 @@ function createVis(error, yield_data) {
     histYield(yield_data_filtered)  
     histSoil(yield_data_filtered);
     generate_legend(hist_values)
-
+    weather_viz(select_year)
     d3.selectAll('.brush').remove()
 }    
 
@@ -903,89 +943,156 @@ function createYieldMeta() {
     //     .style("font-size", 16);                    
 }
 
-
-var timeSeries = function(data) {
-    var parseDate = d3.time.format("%Y-%m").parse;
-    var x = d3.time.scale().range([20, bbPrice.w - 50]);
-    var x_reversed = d3.scale.linear().domain([20, bbPrice.w-50]).range([1,20]);
-    var y = d3.scale.linear().range([bbPrice.h/2, 20]);
+function weather_viz(year){
+     weather_vis.selectAll(".temps").remove();
+    var growing_months = []
+    var num_path = 0
+    for(i=weather_range[0]; i<weather_range[1]; i++){
+        growing_months.push(months[i])
+    }
     
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom");
 
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .ticks(5)
-        .orient("right");
+    var climate_datum 
+    for(i=0; i<climate_data.length; i++){
+        if (climate_data[i].Year == year){
+        climate_datum = climate_data[i]}
+    }
+    var weather_ordinal = d3.scale.ordinal().domain(growing_months).rangeRoundBands([margin.left, weatherVis.w-margin.left])
+    var weather_xscale = d3.scale.linear().domain(weather_range).range([margin.left, weatherVis.w-margin.left]);
+    var temp_yscale = d3.scale.linear().domain([100, 0]).range([margin.bottom, weatherVis.h-margin.top]);
+    var prcp_yscale = d3.scale.linear().domain([3, 0]).range([margin.bottom, weatherVis.h-margin.top]);
+    var start_pathT = 0
+    var start_pathP = 0
+    var start_idxT = NaN
+    var start_idxP = NaN
+    var weather_datum = climate_datum
+    var temp_path = '';
+    var prcp_path = '';
 
-    var line = d3.svg.line()
-        .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.price); });
+    var P_data = weather_datum['Prcp_monthly'];
+    var T_data = weather_datum['Tavg_monthly'];
+    var T_datum = T_data.split(',')
+    var P_datum = P_data.split(',')
+    var current_T = [];
+    var current_P = [];
+    for(j=0; j<T_datum.length; j++){                   
+        var TempList = T_datum[j].split("'")
+        var Temp = TempList[1]
+        if (Temp == null){Temp = NaN}
+        current_T.push(Temp)
+    }
+    for(j=0; j<P_datum.length; j++){       
+        var PrcpList = P_datum[j].split("'")
+        var Prcp = PrcpList[1]
+        if (Prcp == null){Prcp = NaN}
+        current_P.push(Prcp)
+    }
+    //create Temperature Path Element
+      if (current_T.length > weather_range[0]){
+        for (j=weather_range[0]; j<=weather_range[1]; j++){
+            var Temp = current_T[j]
+            
+            if (!isNaN(Temp)){
+            var xpos = weather_xscale(j);
+            var ypos = temp_yscale(Temp);
 
-    data.forEach(function(d) {
-        d.date = parseDate(d.date);
-        d.price = +d.price;
-    });
+            if (start_pathT == 0){
+                temp_path = 'M '+xpos+" "+ypos;
+                start_pathT = 1
+                start_idxT = j
 
-    var values = data.map(function(d) {
-      return d.price;
-    })
+            }
+            if (j > start_idxT){
+                temp_path += " L "+xpos+" "+ypos;
+            }
+        }}}
 
-    x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extent(data, function(d) { return d.price; }));
+      //Create Prcp Path Element:
+      if (current_P.length > weather_range[0]){
+        for (j=weather_range[0]; j<=weather_range[1]; j++){
+            var Prcp = current_P[j]
+            
+            if (!isNaN(Prcp)){
+            var xpos = weather_xscale(j);
+            var ypos = prcp_yscale(Prcp/100);
 
-    price.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + (bbPrice.h/2 + 20) + ")")
-      .call(xAxis); 
+            if (start_pathP == 0){
+                prcp_path = 'M '+xpos+" "+ypos;
+                start_pathP = 1
+                start_idxP = j
 
-    price.append("g")
-      .attr("class", "y axis")
-      .attr("transform", "translate(" + (bbPrice.w - 40) + ",0)")
-      .call(yAxis)
-      .append("text")
-      .attr("dy", ".71em")
-      .style("text-anchor", "end");
+            }
+            if (j > start_idxP){
+                prcp_path += " L "+xpos+" "+ypos;
+            }
+        }}}
 
-    price.append("path")
-      .datum(data)
-      .attr("class", "line")
-      .attr("d", line);
+        if(temp_path != ''){
+        num_path += 1
+        weather_vis.append('path')
+                   .attr('d', temp_path)
+                   .attr('class', 'temps')
+                   .attr('fill', 'none')
 
-    price.append("text")
-       .attr("x", 20)
-       .attr("y", bbPrice.h/2 + 150)
-       .text("Value of Field:")
-       .style("fill", "black")
-       .style("font-weight", "bold")
-       .style("font-size", 20);
+                   .attr('stroke', temp_color)
+                   .attr('stroke-width', 3);}
+        if(prcp_path != ''){
+          
+        weather_vis.append('path')
+                   .attr('d', prcp_path)
+                   .attr('class', 'temps')
+                   .attr('fill', 'none')
+                   .attr('stroke', prcp_color)
+                   .attr('stroke-width', 3);}
 
-    var value = price.append("text")
-       .attr("x", 180)
-       .attr("y", bbPrice.h/2 + 150)
-       .attr("kind", "value")
-       .text("$ 134893")
-       .style("fill", "grey")
-       .style("font-weight", "bold")
-       .style("font-size", 24);
+          var yAxis1 = d3.svg.axis().scale(temp_yscale).orient('left').tickFormat(d3.format("d"));
+          var yAxis2 = d3.svg.axis().scale(prcp_yscale).orient('right').tickFormat(d3.format("d"));
+          var xAxis = d3.svg.axis().scale(weather_ordinal).orient('bottom')//.tickFormat(d3.format("d"));
+          weather_vis.append('text')
+                     .attr('x', (weatherVis.h-margin.top-margin.bottom)/2)
+                     .attr('y', -5)
+                     .text('Temperature (F)')
+                     .attr('transform', 'rotate(90)')  
+                    .attr('class', 'axis')
+                    .attr('fill', temp_color)
+          weather_vis.append('text')
+                     .attr('x', (weatherVis.h-margin.top-margin.bottom)/2-10)
+                     .attr('y', -weatherVis.w+margin.left-25)
+                     .text('Precipitation (Inches)')
+                     .attr('transform', 'rotate(90)')  
+                    .attr('class', 'axis')
+                    .attr('fill', prcp_color)
 
-//    var bfunc = function() {
-//      console.log("boom");
-//    }
+          weather_vis.append('g')
+                     .call(xAxis).attr('transform',  "translate("+(0)+","+(weatherVis.h-margin.top)+")")
+                     .attr('class', 'axis')
+                     .selectAll('text')
+                     .attr('y',0)
+                     .attr('x',-20)
+                     .attr('transform', 'rotate(-70)')  
+                     .style('font-size', 10);
 
-  var vertLine = price.append("line")
-    .attr({"x1": 10, "x2": 10, "y1": 20, "y2": bbPrice.h/2 + 20})
-    .attr("stroke-width", 3)
-    .attr("stroke", "red")
-    .attr("fill", "red")
-    .attr("visibility", "hidden");
+          weather_vis.append('g')
+                     .call(yAxis1).attr('transform',  "translate("+(margin.left)+","+(0)+")")
+                     .attr('class', 'axis')
+                     .selectAll('text')
+                     .attr('y',0)
+                     .attr('x',-10)
+                     .style('font-size', 10);
 
-  price.on("click", function() {
-      value.text("$ " + d3.round(data[d3.round(x_reversed(d3.mouse(this)[0]))].price * 29712))
-      vertLine.attr({"x1": d3.mouse(this)[0], "x2": d3.mouse(this)[0]})
-          .attr("visibility", "visible");
-      });
+
+          weather_vis.append('g')
+                     .call(yAxis2).attr('transform',  "translate("+(weatherVis.w-margin.left)+","+(0)+")")
+                     .attr('class', 'axis')
+                     .selectAll('text')
+                     .attr('y',0)
+                     .attr('x',+10)
+                     .style('font-size', 10);  
+
+
+
+
+
 }
 
 

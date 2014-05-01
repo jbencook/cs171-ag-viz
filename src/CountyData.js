@@ -189,6 +189,18 @@ canvas.append("text").attr("class", "text")
     .style("font-size", 15)                
     .text("Yield Distribution (Bu/Ac)");
 
+
+canvas.append("text").attr("class", "text")
+    .attr("x", mapVis.w+margin.left+15)
+    .attr("y", histVis.h+weatherVis.h-5)
+    .attr("text-anchor", "middle")
+    .style("text-align", "center")
+    .style("fill", "black")
+    // .style("font-weight", "bold")
+    .style("font-size", 15)                
+    .text("Growing Season Weather");
+
+
 var weather_vis = canvas.append('svg')
     .attr("width", weatherVis.w)
     .attr("height", weatherVis.h)
@@ -394,7 +406,7 @@ function generate_WeatheVis(counties, year){
                     .attr('class', 'axis')
                     .attr('fill', temp_color)
           weather_vis.append('text')
-                     .attr('x', (weatherVis.h-margin.top-margin.bottom)/2)
+                     .attr('x', (weatherVis.h-margin.top-margin.bottom)/2-10)
                      .attr('y', -weatherVis.w+margin.left-25)
                      .text('Precipitation (Inches)')
                      .attr('transform', 'rotate(90)')  
@@ -406,8 +418,8 @@ function generate_WeatheVis(counties, year){
                      .attr('class', 'axis')
                      .selectAll('text')
                      .attr('y',0)
-                     .attr('x',+20)
-                     .attr('transform', 'rotate(90)')  
+                     .attr('x',-20)
+                     .attr('transform', 'rotate(-70)')  
                      .style('font-size', 10);
 
           weather_vis.append('g')
@@ -432,6 +444,7 @@ function generate_WeatheVis(counties, year){
                      .attr('x',+(weatherVis.w-margin.left-margin.right)/2-30) 
                      .text('No Weather for Selection')
                      .attr('class', 'axis')
+                     .attr('id', 'nodata_weather')
                      .style('text-align', 'center')
                      .style('font-style', 'italic')
                      .style('font-size', 15);
@@ -442,11 +455,13 @@ function generate_WeatheVis(counties, year){
 function highlighted_weather(highlighted, year){
     d3.select('#weather').selectAll(".highlighted_weather").remove();
     d3.select('#weather').selectAll(".HL_avg_temps").remove();
+
     var weather_xscale = d3.scale.linear().domain(weather_range).range([margin.left, weatherVis.w-margin.left]);
     var temp_yscale = d3.scale.linear().domain([100, 0]).range([margin.bottom, weatherVis.h-margin.top]);
     var prcp_yscale = d3.scale.linear().domain([3, 0]).range([margin.bottom, weatherVis.h-margin.top]);
     var num_path = 0
       for(i=0; i< highlighted.length; i ++){
+
           var key = highlighted[i]+String(select_year);
           var start_pathT = 0
           var start_pathP = 0
@@ -541,10 +556,10 @@ function highlighted_weather(highlighted, year){
    
       }
       }
-      weather_vis.selectAll(".highlighted_weather").attr('opacity', Math.sqrt(1/num_path))
-      weather_vis.selectAll(".temps").attr('opacity', (1/num_path))
-      weather_vis.selectAll(".temps").attr('stroke', 'grey')
 
+      weather_vis.selectAll(".highlighted_weather").attr('opacity', Math.sqrt(1/num_path))
+      weather_vis.selectAll(".temps").attr('stroke', 'grey')
+      if (num_path != 0){d3.select('#weather').select("#nodata_weather").remove();}
 }
 
 
@@ -611,9 +626,7 @@ function yield_color(year){
    
     if (selected_data.length == 0 && data != null){
         for (i=0; i<data.length;i++){
-            // var stateANSI = parseFloat(data[i]['State ANSI']);
-            // var countyANSI = data[i]['County ANSI'];
-            // var county_id = ""+stateANSI+""+countyANSI;
+
             var county_id = data[i]['FIPS'];
 
             d3.selectAll('.counties').select('#c'+county_id)
@@ -627,9 +640,7 @@ function yield_color(year){
         d3.selectAll('.counties').selectAll('path').attr('fill', 'none');
         
         for (i=0; i<data.length;i++){
-            // var stateANSI = parseFloat(data[i]['State ANSI']);
-            // var countyANSI = data[i]['County ANSI'];
-            // var county_id = ""+stateANSI+""+countyANSI;
+
             var county_id = data[i]['FIPS'];
 
             var gray_scale = true;
@@ -818,11 +829,7 @@ function generateMap(error, us) {
         .on('mouseout', function(){
             d3.select('#vis').select('#cname_tip').remove();
         });
-     
-    // Map.append("path")
-    //     .data(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-    //     .attr("class", "states")
-    //     .attr("d", path)
+
        
     process_data(yield_path);
 
@@ -1052,31 +1059,11 @@ function generateHist(data){
                        .attr('id', 'bcount_tip')
                        .style('font-weight', 'bold');
 
-            if(checked == true){
-                yield_color(data[0].Year);
-                var bin_min = d3.min(this.__data__);
-                var bin_max = d3.max(this.__data__);
-                hist_canvas.select('#'+this.id).style('fill', highlight_color);
-                var highlightd_counties = [];
-                
-                for (i=0; i<data.length; i++){
-                    if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
-                        // var stateANSI = parseFloat(data[i]['State ANSI']);
-                        // var countyANSI = data[i]['County ANSI'];
-                        // var county_id = ""+stateANSI+""+countyANSI;
-                        var county_id = data[i]['FIPS']
-                        d3.selectAll('.counties').select('#c'+county_id).attr('fill', highlight_color);
-                        highlightd_counties.push('c'+county_id);
-                    }
-                }    
-            keep_marks = true;
-            highlighted_weather(highlightd_counties, gdd_path, select_year);
-            }
+       
         })
 
       .on('mouseout', function(){
-            weather_vis.selectAll(".highlighted_weather").remove();
-            weather_vis.selectAll('.HL_avg_temps').remove();
+         
             hist_canvas.select('#bcount_tip').remove();})
             
       .on('click', function(){
@@ -1122,7 +1109,6 @@ function selected_county_vis(data){
     var xscale_selectvis = d3.scale.linear().domain([parseFloat(d3.min(years)), parseFloat(d3.max(years))]).range([0, timeVis.w]);
     var yscale_selectvis = d3.scale.linear().domain(d3.extent(all_yields)).range([0, timeVis.h]);
 
-    //timeslider.append('rect').attr('x',0).attr('y',histVis.y).attr('width', histVis.w).attr('height', histVis.h).attr('fill', 'white').attr('class', 'selectVis')
     timeslider.append('text')
              .attr('x', 0)
              .attr('y',histVis.y+margin.top-15)
@@ -1279,7 +1265,7 @@ $('#timeSliderControl .btn').on("click", function(d){
     step(); });
 
 $('#changeVis .btn').on("click", function(d){
-    // console.log($(this).button()[0].id)
+    
     if ($(this).button()[0].id == 'national'){
         Map.transition().duration(1500)
             .style("opacity", 1)
