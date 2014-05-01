@@ -105,6 +105,7 @@ var climate_data;
 var months = ['Jan', 'Feb', "Mar", 'Apr', 'May', "Jun", 'Jul', 'Aug', "Sep", "Oct", "Nov", "Dec"]
 var temp_color = ['orange']
 var prcp_color = ['lightblue']
+var legend_tick_color = ['ccc']
 var weather_range = [3,10];
 
 // Declare visualization areas
@@ -237,10 +238,10 @@ function init(error, data, weather){
             .attr("value", d[''])
     });
 
-    $(".dropdown-menu li a").click(function(){
+    $(".dropdown-menu li a").on('mouseup', function(){
         current_field = local_field_info[$(this).attr('value')]
         field_file = "../" + current_field['path'];
-        console.log($(".btn btn-default btn-sm dropdown-toggle").__data__)
+        //console.log($(".btn btn-default btn-sm dropdown-toggle").__data__)
        
         select_year = current_field.year
       
@@ -251,37 +252,45 @@ function init(error, data, weather){
             .await(createVis);
        });
 
-    // $('#fieldSelect .btn').on("click", function(d){
-    //     console.log(current_field, parseInt(current_field['']))
-    //     console.log(local_field_info[parseInt(current_field[''])])
-    //     if ($(this).attr('value') == 'prev'){
-    //         console.log(current_field[''] - 1)
-    //         if(parseInt(current_field['']) > 0){
+    $('#fieldSelect .btn').on("click", function(d){
+        // console.log(current_field, parseInt(current_field['']))
+        // console.log(local_field_info[parseInt(current_field[''])])
+        // console.log($(this).attr('value'))
+        if ($(this).attr('value') == 'prev'){
+                var idx = parseInt(current_field[''])-1
+                if (idx == -1){idx = Object.keys(local_field_info).length-1}
+                current_field = local_field_info[idx]
+                select_year = current_field.year
+                $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
+                // current_field = local_field_info[parseInt(current_field['']) - 1]
+                field_file = "../" + current_field['path'];
+                queue()
+                    // .defer(d3.json, "../data/nebraska.geojson")
+                    // .defer(d3.csv, "../data/wmk5_2009_small.csv")
+                    .defer(d3.csv, field_file)
+                    .await(createVis);
+    
+        } else if($(this).attr('value') == 'next') {
+                var idx = parseInt(current_field[''])+1
+                if (idx == Object.keys(local_field_info).length){idx = 0}
+                current_field = local_field_info[idx]
+                select_year = current_field.year
+                // current_field = local_field_info[parseInt(current_field['']) - 1]
+                field_file = "../" + current_field['path'];
+                $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
+                queue()
+                    // .defer(d3.json, "../data/nebraska.geojson")
+                    // .defer(d3.csv, "../data/wmk5_2009_small.csv")
+                    .defer(d3.csv, field_file)
+                    .await(createVis);
 
-    //             // current_field = local_field_info[parseInt(current_field['']) - 1]
-    //             field_file = "../" + current_field['path'];
-    //             queue()
-    //                 // .defer(d3.json, "../data/nebraska.geojson")
-    //                 // .defer(d3.csv, "../data/wmk5_2009_small.csv")
-    //                 .defer(d3.csv, field_file)
-    //                 .await(createVis);
-    //         };
-    //     } else if($(this).attr('value') == 'next') {
-    //         if(parseInt(current_field['']) < local_field_info.length - 1){
-    //             // current_field = local_field_info[parseInt(current_field['']) - 1]
-    //             field_file = "../" + current_field['path'];
-    //             queue()
-    //                 // .defer(d3.json, "../data/nebraska.geojson")
-    //                 // .defer(d3.csv, "../data/wmk5_2009_small.csv")
-    //                 .defer(d3.csv, field_file)
-    //                 .await(createVis);
-    //         };
 
-    //     }
-    // })
+        }
+    })
 
 
     current_field = local_field_info[0]
+    $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
     select_year = current_field.year
     field_file = "../" + current_field['path'];
     queue()
@@ -807,7 +816,7 @@ function generate_legend(data){
         legend.append('rect')
               .attr('class', 'legend_box')
               .attr('x', 0)
-              .attr('y', (legend_height/legend_ticks)*i)
+              .attr('y', (legend_height/legend_ticks)*i-2)
               .attr('height', (legend_height/legend_ticks) - 1)
               .attr('width', 10)
               .style('fill', legend_color_scale(legend_ticks - i));
@@ -818,7 +827,7 @@ function generate_legend(data){
            .attr('y', (legend_height/legend_ticks)*i + 10)
            .attr('height', 10)
            .attr('width', 10)
-           // .style('fill', legend_color_scale(legend_ticks-i))
+           .style('fill', legend_tick_color)
            .text(d3.round(yield_range[1] - (i)*tick_size) + " to " + d3.round(yield_range[1] - (i-1)*tick_size) )
     }
 
@@ -842,7 +851,7 @@ function generate_legend(data){
 
 
         
-    legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', 5).text('Bu/Acre');
+    legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', 5).text('Bu/Acre').style('fill', legend_tick_color);
     // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
     // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
 
@@ -1117,8 +1126,10 @@ $('#selectionType .btn').on("click", function(d){
     }
 })
 
-$("#fieldList a").on("click", function(){
-    console.log($(this))
-})
 
+$(document).ready(function() {
+      
+      $("#selectionType .btn").first().button("toggle");
+    d3.selectAll('.brush').remove();
+});
 
