@@ -1393,7 +1393,7 @@ $(document).on('ready', function(){
             }
             if (idx_button == 7){
                 click_national();
-                animate_year = 2013;
+                animate_year = 2012;
                 canvas.transition().call(time_brush.event)
                 $('#storyText p').html(
                     "<span style=\"font-size: 14pt\"><q>The United States is, by far, the largest producer of corn in the world, producing <b>32 percent</b> of the world's corn crop in the early 2010s...</span><br><br>" +
