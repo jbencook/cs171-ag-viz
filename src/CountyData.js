@@ -61,7 +61,7 @@ var projection = d3.geo.albersUsa()
 var path = d3.geo.path().projection(projection).pointRadius(1.5);
 
 var color_range = colorbrewer.YlGn[9].slice(2,8);
-var gray_range = colorbrewer.Greys[9].slice(2,8); //['orange', 'darkgreen']
+var gray_range = colorbrewer.Greys[9].slice(2,8); 
 var legend_ticks = color_range.length;
 var legend_height = 75;
 
@@ -91,7 +91,7 @@ var weather_colors = colorbrewer.RdBu[9];
 
 var checked = false;
 var keep_marks = false;
-
+var county_pointselect = false;
 var animate_year = 2013;
 var animate_stop = false;
 var animate_year_max = 2013;
@@ -129,7 +129,7 @@ canvas.append("rect")
     .attr("class", "background")
     .attr("width", width)
     .attr("height", height)
-    // .style("fill", "blue");
+ 
 
 var Map = canvas.append("svg")
     .attr("width", mapVis.w)
@@ -170,10 +170,7 @@ var timeslider = canvas.append("svg")
     .attr("x", timeVis.x)
     .attr("y", timeVis.y);
 
-//timeslider.append("rect")
-//    .attr("class", "background")
-//    .attr("width", timeVis.w)
-//    .attr("height", timeVis.h)
+
 
 var hist_canvas = canvas.append("svg")
     .attr("width", histVis.w)
@@ -192,7 +189,6 @@ canvas.append("text").attr("class", "text")
     .attr("text-anchor", "middle")
     .style("text-align", "center")
     .style("fill", "black")
-    // .style("font-weight", "bold")
     .style("font-size", 15)                
     .text("Yield Distribution (Bu/Ac)");
 
@@ -203,7 +199,6 @@ canvas.append("text").attr("class", "text")
     .attr("text-anchor", "middle")
     .style("text-align", "center")
     .style("fill", "black")
-    // .style("font-weight", "bold")
     .style("font-size", 15)                
     .text("Growing Season Weather");
 
@@ -231,16 +226,6 @@ story_nav.append("rect")
     .attr("class", "background")
     .attr("width", 270)
     .attr("height", 400)
-    // .style("fill", "#ccc")
-
-
-
-// story_pages = [0,1,2,3,4]
-
-// story_pages.forEach(function(d) {
-//     story_page_select = story_nav.selectAll(".storypage")
-//         .enter().
-// })
 
 // Create Time Range Slider
 var xtime_range = d3.scale.linear().domain([1910,2013]).range([0, timeVis.w - padding]).clamp(true);
@@ -258,13 +243,10 @@ timeslider.append('g')
 
 var handle = slider.append('image').attr('class', 'handle')
     .attr("xlink:href", "../img/corn_icon.svg")
-    // .attr("y", function(){return (timeVis.h - padding)})
     .attr('transform', 'translate('+5+','+(timeVis.h - padding)+")")
     .attr("width", 40)
     .attr("height", 40);
-    // .attr('r', 9)
-    
-// slider.selectAll('.extent, .resize' ).remove();
+
 
     
 // Costume Fxns
@@ -287,8 +269,6 @@ function generate_WeatheVis(counties, year){
     weather_vis.selectAll(".highlighted_weather").remove();
     weather_vis.selectAll('.avg_temps').remove();
     weather_vis.selectAll('.HL_avg_temps').remove();
-
-    // var weather_xscale = d3.scale.linear().domain([0, 11]).range([0, weatherVis.w]);
 
     
     var weather_ordinal = d3.scale.ordinal().domain(growing_months).rangeRoundBands([margin.left, weatherVis.w-margin.left])
@@ -401,6 +381,7 @@ function generate_WeatheVis(counties, year){
     
             
         }
+        //create axis:
           var yAxis1 = d3.svg.axis().scale(temp_yscale).orient('left').tickFormat(d3.format("d"));
           var yAxis2 = d3.svg.axis().scale(prcp_yscale).orient('right').tickFormat(d3.format("d"));
           var xAxis = d3.svg.axis().scale(weather_ordinal).orient('bottom')//.tickFormat(d3.format("d"));
@@ -462,6 +443,10 @@ function highlighted_weather(highlighted, year){
     d3.select('#weather').selectAll(".highlighted_weather").remove();
     d3.select('#weather').selectAll(".HL_avg_temps").remove();
 
+    if (county_pointselect){ d3.select('#vis').select("#avg_title").remove();}
+   
+   
+
     var weather_xscale = d3.scale.linear().domain(weather_range).range([margin.left, weatherVis.w-margin.left]);
     var temp_yscale = d3.scale.linear().domain([100, 0]).range([margin.bottom, weatherVis.h-margin.top]);
     var prcp_yscale = d3.scale.linear().domain([3, 0]).range([margin.bottom, weatherVis.h-margin.top]);
@@ -501,34 +486,34 @@ function highlighted_weather(highlighted, year){
               }
 
               //create Temperature Path Element
-                  if (current_T.length > weather_range[0]){
-                    for (j=weather_range[0]; j<=weather_range[1]; j++){
-                        var Temp = current_T[j]
-                        
-                        if (!isNaN(Temp)){
-                        var xpos = weather_xscale(j);
-                        var ypos = temp_yscale(Temp);
-       
-                        if (start_pathT == 0){
-                            temp_path = 'M '+xpos+" "+ypos;
-                            start_pathT = 1
-                            start_idxT = j
+                if (current_T.length > weather_range[0]){
+                  for (j=weather_range[0]; j<=weather_range[1]; j++){
+                      var Temp = current_T[j]
+                      
+                      if (!isNaN(Temp)){
+                      var xpos = weather_xscale(j);
+                      var ypos = temp_yscale(Temp);
+     
+                      if (start_pathT == 0){
+                          temp_path = 'M '+xpos+" "+ypos;
+                          start_pathT = 1
+                          start_idxT = j
 
-                        }
-                        if (j > start_idxT){
-                            temp_path += " L "+xpos+" "+ypos;
-                        }
-                    }}}
-             
-                    //add temperature path
-                    if(temp_path != ''){
-                    num_path += 1
-                    weather_vis.append('path')
-                               .attr('d', temp_path)
-                               .attr('class', 'highlighted_weather')
-                               .attr('fill', 'none')
-                               .attr('stroke', temp_color)
-                               .attr('stroke-width', 3);}
+                      }
+                      if (j > start_idxT){
+                          temp_path += " L "+xpos+" "+ypos;
+                      }
+                  }}}
+           
+                  //add temperature path
+                  if(temp_path != ''){
+                  num_path += 1
+                  weather_vis.append('path')
+                             .attr('d', temp_path)
+                             .attr('class', 'highlighted_weather')
+                             .attr('fill', 'none')
+                             .attr('stroke', temp_color)
+                             .attr('stroke-width', 3);}
 
                 //Create Prcp Path Element:
                   if (current_P.length > weather_range[0]){
@@ -697,7 +682,6 @@ function yield_color(year){
         .style("text-align", "center")
         .text('Year: '+year)
         .attr('id', 'yrtoptip')
-        // .attr('font-weight', 'bold')
         .style('font-size', 20);
 }
 
@@ -736,7 +720,6 @@ function process_data(path){
                     data_by_year[current_year] = data_for_year;
                 }
 
-                // var current_id = ('c'+parseFloat(data[i]['State ANSI'])+data[i]['County ANSI']);
                 var current_id = ('c'+parseFloat(data[i]['FIPS']));
                 var current_list = county_ids[current_id];
                 
@@ -860,7 +843,6 @@ function time_brushed(){
         value = animate_year
         select_year = animate_year;
     }
-    // handle.attr('cx', xtime_range(value))
     handle.transition(100).attr('x', xtime_range(value));
     animate_year = d3.round(value, 0);
     //update color 
@@ -1045,7 +1027,7 @@ function generateHist(data){
         .style("text-align", "right")
         .attr('transform', 'rotate(-70)')  
         .style('font-size', 10);
-    //hist_canvas.append('text').attr('y', histVis.h).attr('x', histVis.w/2-margin.left).text('Yield').style('font-weight', 'bold').attr('class', 'axis')
+    
 
     hist_canvas.selectAll('.bars')
         .on('mousemove', function(){
@@ -1080,9 +1062,6 @@ function generateHist(data){
             var highlightd_counties = [] ;
             for (i=0; i<data.length; i++){
                 if (parseFloat(data[i].Value)>=bin_min && parseFloat(data[i].Value)<=bin_max){
-                    // var stateANSI = parseFloat(data[i]['State ANSI']);
-                    // var countyANSI = data[i]['County ANSI'];
-                    // var county_id = ""+stateANSI+""+countyANSI;
                     var county_id = data[i]['FIPS']
 
                     d3.selectAll('.counties').select('#c'+county_id).attr('fill', highlight_color);
@@ -1110,7 +1089,7 @@ function selected_county_vis(data){
     d3.selectAll('.selectVis').remove();
     d3.selectAll('.nat_avg').style('fill', 'gray').style('opacity', 0.5);
     d3.select('#vis').select("#avg_title").remove();
-
+    county_pointselect = true
     var count_data = county_ids[data.id];
     var xscale_selectvis = d3.scale.linear().domain([parseFloat(d3.min(years)), parseFloat(d3.max(years))]).range([0, timeVis.w]);
     var yscale_selectvis = d3.scale.linear().domain(d3.extent(all_yields)).range([0, timeVis.h]);
@@ -1153,7 +1132,10 @@ function selected_county_vis(data){
               var year = this.getAttribute('year');
               if (yield != null){
                   timeslider.append('text')
-                             .attr('x', coordinates[0]+5)
+                             .attr('x', function(){coordinates[0]+5
+                              if(coordinates[0]+5 < timeVis.w-150){return coordinates[0]+5}
+                              else{return coordinates[0]+5 - 150}
+                             })
                              .attr('y', coordinates[1]-5)
                              .text(year+': '+yield+" Bu/acre")
                              .style('font-weight', 'bold')
@@ -1176,11 +1158,10 @@ Map.append('g').attr('class', 'brush')
     .attr('stroke', 'black')
     .call(brush_2d)
     .call(brush_2d.event);
-// brushed_2d();
 
 function brushed_2d(){
     d3.select('#vis').select('#avg_yeildttip').remove()
-
+    county_pointselect = false
     var extent = d3.event.target.extent();
     var test = 0;
     selected_data = [];
@@ -1223,11 +1204,7 @@ function step() {
 }
 
 // Radial Button Toggle
-// button updates:
-// d3.select("button[value=\"Play\"]").on("click", function(){
-//     animate_stop = false;
-//     step();
-// });
+
 
 
 function click_local(){
@@ -1259,10 +1236,6 @@ $('#selectionType .btn').on("click", function(d){
     else if($(this).children()[0].value == 'brush') {
         animate_stop = true
 
-        // canvas.transition().duration(1500)
-        //   // .attr("width", width)
-        //   .attr("height", height)
-        //   .style("opacity", 1)
 
         d3.selectAll('.selectVis').remove();
         Map.append('g').attr('fill', 'none').attr('stroke', 'black').call(brush_2d).call(brush_2d.event).attr('class', 'brush');
@@ -1279,7 +1252,6 @@ $('#timeSliderControl .btn').on("click", function(d){
         }
         $(this).button('toggle')
 
-        // d3.selectAll('.brush').remove();
     } 
     else if($(this).button()[0].value == 'timeUp') {
         animate_stop = true
@@ -1302,7 +1274,7 @@ $('#changeVis .btn').on("click", function(d){
         click_national();
 
 
-        // d3.selectAll('.brush').remove();
+    
     } 
     else if($(this).button()[0].id == 'local') {
         click_local();
@@ -1310,6 +1282,8 @@ $('#changeVis .btn').on("click", function(d){
 })
 
 
+
+//Animation Details
 
 var story_slide = 1
 $(document).on('ready', function(){
@@ -1442,7 +1416,7 @@ $(document).on('ready', function(){
 
 
 
-
+// Initialization Calls
 
 $(document).ready(function() {
     $("#changeVis .btn[id=\'national\']").button("toggle");
@@ -1460,7 +1434,7 @@ canvas.on("click", function(){
 
 
 
-// Calls
+
 queue()
     .defer(d3.json, "../data/us-named.json")
   
