@@ -1,0 +1,26 @@
+Our visualization is an exploration of corn yield trends at the county and local levels. 
+
+The primary interface displays county-level yields across the continental United States with data coming from surveys conducted by the USDA's National Agricultural Statistics Service from 1910 to 2013.
+
+A time slider across the bottom of the page, allows the user to select any year and displays national averages over time.
+
+On the right hand side is a histogram, which shows the distribution of yield for the chosen year.
+
+Below the histogram we display temperature and precipitation data over each growing season.
+
+By selecting an individual county, the user can compare that county's average yield to national averages over time.
+
+Users can select multiple counties with a 2-D brush.
+
+Modern ag technology also allows us to explore yield at the local level.
+
+This zoomed in visualization is a tool growers can use to play with the data collected from their own farms. 
+
+Using a 2-D brush, a grower can see how much of the distribution of yield a given section of a field accounts for.
+
+With the point selector, a user can explore details about any given point on the field by simply dragging the mouse over that point.
+
+The type of soil typically varies throughout a field. After clicking on a point in the field, our visualization shows how much of the field is made up of the same soil type, and how much of the yield distribution that soil type accounts for.
+
+We also display monthly weather data 
+
