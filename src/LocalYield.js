@@ -643,8 +643,10 @@ function histYield(yield_data) {
     yieldMean_select = yieldHist.append("line")
         .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
         .attr("stroke-width", 3)
-        .attr("stroke", "darkorange")
-        .attr("fill", "darkorange")
+        .attr("stroke", "blue")
+        .attr("fill", "blue")
+        // .attr("stroke", "darkorange")
+        // .attr("fill", "darkorange")
         .attr("visibility", "hidden");
 
     // price.on("click", function() {
@@ -683,7 +685,9 @@ function histYield_select(select_values) {
         .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + (yScale(d.y) + 25) + ")"; });
 
     bar2.append("rect")
-        .style("fill", "#f1a340")
+        // .style("fill", "#f1a340")
+        .style("fill", "blue")
+
         .attr("x", 1)
         .attr("y", -25)
         .attr("width", 20)
@@ -716,9 +720,13 @@ function histSoil(yield_data) {
 
 function brushedHist() {
     var extent = brushHist.extent();
+    console.log(extent)
     bar.selectAll("rect").style("fill", function(d) {
+        console.log(d.x, d.x+d.dx)
         if((d.x + d.dx >= extent[0]) & (d.x <= extent[1])) {
-            return "#f1a340";
+            // return "#f1a340";
+            return "blue";
+            // console.log("test")
         } 
         else {
             return colors(d.x);
@@ -757,7 +765,7 @@ function brushedField() {
             return colors_grey(pt.val);
         }
     });
-    brushHist.extent([0,0])
+    // brushHist.extent([0,0])
     histYield_select(select_values);
 }
 
