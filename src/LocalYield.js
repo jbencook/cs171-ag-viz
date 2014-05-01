@@ -49,8 +49,6 @@ var weatherVis = {
 var color_range = colorbrewer.YlGn[9];
 var colors = d3.scale.quantize()
     .range(color_range);
-    // .range([colorMin, colorMax])
-    // .interpolate(d3.interpolateHcl);
     
 var colors_grey = d3.scale.quantize()
     .range(colorbrewer.Greys[9]);
@@ -117,7 +115,6 @@ canvas.append("rect")
     .attr("class", "background")
     .attr("width", width)
     .attr("height", height)
-    // .style("fill", "blue");
 
 field_image = canvas.append("g").append('image').attr('class', 'image')
 
@@ -180,7 +177,6 @@ canvas.append("text").attr("class", "text")
     .attr("text-anchor", "middle")
     .style("text-align", "center")
     .style("fill", "black")
-    // .style("font-weight", "bold")
     .style("font-size", 15)                
     .text("Growing Season Weather");
     
@@ -192,7 +188,6 @@ canvas.append("text").attr("class", "text")
     .attr("text-anchor", "middle")
     .style("text-align", "center")
     .style("fill", "black")
-    // .style("font-weight", "bold")
     .style("font-size", 15)                
     .text("Yield Distribution (Bu/Ac)");
 
@@ -232,7 +227,6 @@ function init(error, data, weather){
     climate_data = weather
 
     local_field_info.forEach(function(d) {
-        // console.log(d[''])
         d3.select("#fieldList").append("li").append("a")
             .text(d.name + " " + d.year + " (" + d.crop + ")")
             .attr("value", d[''])
@@ -241,32 +235,22 @@ function init(error, data, weather){
     $(".dropdown-menu li a").on('mouseup', function(){
         current_field = local_field_info[$(this).attr('value')]
         field_file = "../" + current_field['path'];
-        //console.log($(".btn btn-default btn-sm dropdown-toggle").__data__)
-       
         select_year = current_field.year
       
         queue()
-            // .defer(d3.json, "../data/nebraska.geojson")
-            // .defer(d3.csv, "../data/wmk5_2009_small.csv")
             .defer(d3.csv, field_file)
             .await(createVis);
        });
 
     $('#fieldSelect .btn').on("click", function(d){
-        // console.log(current_field, parseInt(current_field['']))
-        // console.log(local_field_info[parseInt(current_field[''])])
-        // console.log($(this).attr('value'))
         if ($(this).attr('value') == 'prev'){
                 var idx = parseInt(current_field[''])-1
                 if (idx == -1){idx = Object.keys(local_field_info).length-1}
                 current_field = local_field_info[idx]
                 select_year = current_field.year
                 $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
-                // current_field = local_field_info[parseInt(current_field['']) - 1]
                 field_file = "../" + current_field['path'];
                 queue()
-                    // .defer(d3.json, "../data/nebraska.geojson")
-                    // .defer(d3.csv, "../data/wmk5_2009_small.csv")
                     .defer(d3.csv, field_file)
                     .await(createVis);
     
@@ -275,12 +259,9 @@ function init(error, data, weather){
                 if (idx == Object.keys(local_field_info).length){idx = 0}
                 current_field = local_field_info[idx]
                 select_year = current_field.year
-                // current_field = local_field_info[parseInt(current_field['']) - 1]
                 field_file = "../" + current_field['path'];
                 $('#Fieldlabel').text(current_field.name + " " + current_field.year + " (" + current_field.crop + ")")
                 queue()
-                    // .defer(d3.json, "../data/nebraska.geojson")
-                    // .defer(d3.csv, "../data/wmk5_2009_small.csv")
                     .defer(d3.csv, field_file)
                     .await(createVis);
 
@@ -375,21 +356,6 @@ function createVis(error, yield_data) {
     x = projection([d3.mean(lon), d3.mean(lat)])
     projection.translate([bbFieldVis.w - x[0] + offx, bbFieldVis.h - x[1] + offy]);    
 
-    // if (koz) {
-    //     projection = d3.geo.albers().scale(18000000);
-    //     // Define path generator
-    //     path = d3.geo.path().projection(projection);
-    //     x = projection([d3.mean(lon), d3.mean(lat)])
-    //     projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]);           
-    // } else {
-    //     projection = d3.geo.albers().scale(4000000);
-    //     // Define path generator
-    //     path = d3.geo.path().projection(projection);
-    //     x = projection([d3.mean(lon), d3.mean(lat)])
-    //     projection.translate([bbFieldVis.w - x[0] + 75, bbFieldVis.h - x[1] - 50]); 
-    // }
-     
-
     xScale = d3.scale.linear()
         .domain([d3.min(hist_values),d3.max(hist_values)])
         .range([25, bbYieldHist.w - 25]);    
@@ -433,12 +399,6 @@ function createVis(error, yield_data) {
             histYield_select(select_values);
         });
         
-    // fieldVis.selectAll(".background")
-    //     .on("click", function(d) {
-    //         fieldVis.selectAll(".point")
-    //             .transition().duration(0)
-    //             .style("opacity", 1)            
-    //     });
 
     brushField = d3.svg.brush()
         .x(d3.scale.identity().domain([0, bbFieldVis.w]))
@@ -460,124 +420,17 @@ function createVis(error, yield_data) {
     d3.selectAll('.brush').remove()
 }    
 
-// function createVis(error, yield_data) {
-//     createYieldMeta();
-
-//     lat = []
-//     lon = []
-//     yield_data.forEach(function(d){
-//         lat.push(parseFloat(d.lat))
-//         lon.push(parseFloat(d.lon))
-//     });
-
-//     x = projection([d3.mean(lon), d3.mean(lat)])
-//     projection.translate([bbFieldVis.w - x[0] + 100, bbFieldVis.h - x[1]]); 
-//     // timeSeries(price);
-
-//     hist_values = [];
-//     yield_data_filtered = [];
-//     yield_data.forEach(function(d) {
-//         if(d.val > 0) {
-//             hist_values.push(parseInt(d.val));
-//             yield_data_filtered.push(d);
-//         }
-//     });
-
-//     xScale = d3.scale.linear()
-//         .domain([d3.min(hist_values),d3.max(hist_values)])
-//         .range([25, bbYieldHist.w - 25]);
-
-//     colors.domain(d3.extent(hist_values));
-//     colors_grey.domain(d3.extent(hist_values));
-
-//     point = fieldVis.selectAll(".point")
-//         .data(yield_data_filtered)
-//         .enter()
-//         .append("rect")
-//         .attr("class", "point")
-//         .attr("soil", function(d) {
-//             return d.soil
-//         })
-//         .attr("x", function(d) {
-//             return projection([d.lon, d.lat])[0];
-//         })
-//         .attr("y", function(d) {
-//             return projection([d.lon, d.lat])[1];
-//         })
-//         .attr("width", 7)
-//         .attr("height", 7)
-//         .attr("yield", function(d) {
-//             return d.val;
-//         })
-//         .style("opacity", 0.7)
-//         .on("mouseover", showYield)
-//         .on("mouseout", hideYield)
-//         .on("click", function(d) {
-//             var select_values = []
-//             fieldVis.selectAll(".point")
-//                 .transition().duration(0)
-//                 .style("fill", function(d){return colors_grey(d.val)})
-//             fieldVis.selectAll("[soil = '" + d.soil + "']")
-//                 .transition().duration(0)
-//                 .style("fill", function(d){
-//                     select_values.push(parseInt(d.val)); 
-//                     return colors(d.val)
-//                 })
-//             histYield_select(select_values);
-//         });
-        
-//     fieldVis.selectAll(".background")
-//         .on("click", function(d) {
-//             fieldVis.selectAll(".point")
-//                 .transition().duration(0)
-//                 .style("opacity", 1)            
-//         });
-
-//     brushField = d3.svg.brush()
-//         .x(d3.scale.identity().domain([0, bbFieldVis.w]))
-//         .y(d3.scale.identity().domain([0, bbFieldVis.h]))
-//         .on("brush", brushedField);
-
-//     fieldVis.append("g")
-//         .attr("class", "brush")
-//         .attr("id", "fieldBrush")
-//         .call(brushField);
-//         // .selectAll("rect")
-//         // .attr("height", bbFieldVis.h);
-
-//     yield_range = d3.extent(hist_values)
-
-//     histYield(yield_data_filtered);
-//     histSoil(yield_data_filtered);
-//     generate_legend(hist_values)
-//     d3.selectAll('.brush').remove()
-// }
 var histYield_data, binWidth;
 
 
 function histYield(yield_data) {
 
-    // hist_values = []
-    // yield_data.forEach(function(d) {hist_values.push(parseInt(d.val))})
-
-    // xScale = d3.scale.linear()
-    //     .domain([d3.min(hist_values),d3.max(hist_values)])
-    //     .range([25, bbYieldHist.w - 25]);
-
-    // colors.domain(d3.extent(hist_values));
-
-    // Generate a histogram using twenty uniformly-spaced bins.
     var histYield_data = d3.layout.histogram()
-        //.bins(xScale.ticks(20))
         (hist_values);
-
-    //console.log(histYield_data, d3.extent(hist_values));
-    //console.log(histYield_data[0].x, histYield_data[0].dx, Math.ceil(histYield_data[histYield_data.length-1].x + histYield_data[0].dx));
 
     bins = histYield_data.length;
 
     binWidth = (d3.extent(hist_values)[1] - d3.extent(hist_values)[0]) / histYield_data.length ;
-    //console.log(binWidth);
 
     point.attr("bin", function(d) {
             return Math.round((d.val / binWidth) - 1);
@@ -631,7 +484,6 @@ function histYield(yield_data) {
         .selectAll("rect")
         .attr("y", bbYieldHist.y + 25)
         .attr("height", bbYieldHist.h - 50);
-        // .on("mouseup", highlightBrushedYield);
 
     yieldMean = yieldHist.append("line")
         .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
@@ -643,15 +495,10 @@ function histYield(yield_data) {
     yieldMean_select = yieldHist.append("line")
         .attr({"x1": xScale(d3.mean(hist_values)), "x2": xScale(d3.mean(hist_values)), "y1": 10, "y2": bbYieldHist.h - 25})
         .attr("stroke-width", 3)
-        .attr("stroke", "darkorange")
-        .attr("fill", "darkorange")
+        .attr("stroke", "blue")
+        .attr("fill", "blue")
         .attr("visibility", "hidden");
 
-    // price.on("click", function() {
-    //     value.text("$ " + d3.round(data[d3.round(x_reversed(d3.mouse(this)[0]))].price * 29712))
-    //     vertLine.attr({"x1": d3.mouse(this)[0], "x2": d3.mouse(this)[0]})
-    //         .attr("visibility", "visible");
-    //     })
 }
 
 
@@ -674,8 +521,6 @@ function histYield_select(select_values) {
     
     yieldHist.selectAll(".bar_sub").remove();
     
-    // console.log(histYield_data2)
-    
     bar2 = yieldHist.selectAll(".bar_sub")
         .data(histYield_data2)
         .enter().append("g")
@@ -683,7 +528,7 @@ function histYield_select(select_values) {
         .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + (yScale(d.y) + 25) + ")"; });
 
     bar2.append("rect")
-        .style("fill", "#f1a340")
+        .style("fill", "blue")
         .attr("x", 1)
         .attr("y", -25)
         .attr("width", 20)
@@ -718,7 +563,7 @@ function brushedHist() {
     var extent = brushHist.extent();
     bar.selectAll("rect").style("fill", function(d) {
         if((d.x + d.dx >= extent[0]) & (d.x <= extent[1])) {
-            return "#f1a340";
+            return "blue";
         } 
         else {
             return colors(d.x);
@@ -769,19 +614,12 @@ var showYield = function(d) {
       .text(Math.round(d.elevation_) + " (ft)");
     yieldMeta.selectAll('[kind="soil"]')
       .text(d.soil)
-      // .style("fill", "blue")
-      // .style("text-decoration", "underline");
     yieldMeta.selectAll('[kind="slopes"]')
       .text(d.slopes)
     yieldMeta.selectAll('[kind="lon"]')
       .text(formatCoords(d.lon))
     yieldMeta.selectAll('[kind="lat"]')
       .text(formatCoords(d.lat))
-    //   .style("fill", "blue")
-    //   .style("text-decoration", "underline");
-    // yieldMeta.selectAll('[kind="soil_link"]')
-    //   .attr("xlink:href", d.links)
-    //   .attr("target", "_blank");
 }
 
 
@@ -789,17 +627,11 @@ var hideYield = function(d) {
     d3.selectAll('[kind="yield"]').text("");    
     d3.selectAll('[kind="elevation"]').text("");    
     d3.selectAll('[kind="soil"]').text("")
-      //                         .style("fill", "blue")
-      //                         .style("text-decoration", "underline");      
     d3.selectAll('[kind="slopes"]').text("");
     
     yieldMeta.selectAll('[kind="lon"]').text("");
     yieldMeta.selectAll('[kind="lat"]').text("");
-      //                               .style("fill", "blue")
-      //                               .style("text-decoration", "underline");
-   
-    //d3.selectAll('[kind="soil_link"]').attr("xlink:href", d.links)
-    //                                  .attr("target", "_blank");   
+
 }
 
 function generate_legend(data){
@@ -831,30 +663,8 @@ function generate_legend(data){
            .style('fill', legend_tick_color)
            .text(d3.round(yield_range[1] - (i)*tick_size) + " to " + d3.round(yield_range[1] - (i-1)*tick_size) )
     }
-
-    // legend.append('rect')
-    //           .attr('class', 'legend_box')
-    //           .attr('x', 0)
-    //           .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 5)
-    //           .attr('height', (legend_height/legend_ticks) - 1)
-    //           .attr('width', 10)
-    //           .style('fill', county_fill_color);
-
-    // legend.append('text')
-    //    .attr('class', 'legend_tick')
-    //    .attr('x', 13)
-    //    .attr('y', (legend_height/legend_ticks)*(legend_ticks+1) + 15)
-    //    .attr('height', 10)
-    //    .attr('width', 10)
-    //    // .style('fill', legend_color_scale(legend_ticks-i))
-    //    .text("No Data")
-
-
-
         
     legend.append('text').attr('class', 'legend_tick').attr('x', 13).attr('y', 5).text('Bu/Acre').style('fill', legend_tick_color);
-    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10).text(d3.min(data));
-    // legend.append('text').attr('class', 'legend_tick').attr('x', mapVis.w+25).attr('y',  mapVis.h/2+10+legend_height).text(d3.max(data));
 
 }
 
@@ -942,16 +752,6 @@ function createYieldMeta() {
         .style("fill", "grey")
         .style("font-weight", "bold")
         .style("font-size", 18);
-
-    // yieldMeta.append("a")
-    //     .attr("kind", "soil_link")
-    //     .append("text")
-    //     .attr("x", 200)
-    //     .attr("y", 75)
-    //     .attr("kind", "slopes")
-    //     .style("fill", "grey")
-    //     .style("font-weight", "bold")
-    //     .style("font-size", 16);                    
 }
 
 function weather_viz(year){
