@@ -443,7 +443,8 @@ function highlighted_weather(highlighted, year){
     d3.select('#weather').selectAll(".highlighted_weather").remove();
     d3.select('#weather').selectAll(".HL_avg_temps").remove();
 
-    if (county_pointselect){ d3.select('#vis').select("#avg_title").remove();}
+    if (county_pointselect){ d3.select('#vis').select("#avg_title").remove();
+       d3.selectAll('.nat_avg').style('fill', 'gray').style('opacity', 0.5)}
    
    
 
